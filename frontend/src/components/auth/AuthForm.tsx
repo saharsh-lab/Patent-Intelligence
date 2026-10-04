@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useSWRConfig } from "swr";
 
+import { LogoMark } from "@/components/search/Logo";
 import { ErrorNotice } from "@/components/ui";
 import { auth } from "@/lib/auth";
 
@@ -43,9 +44,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   return (
     <div className="w-full max-w-sm">
       <div className="mb-6 flex flex-col items-center text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-lg font-bold text-white shadow-card">
-          PI
-        </span>
+        <LogoMark size={48} draw className="text-text" />
         <h1 className="mt-4 text-xl font-semibold tracking-tight">
           {isRegister ? "Create your account" : "Welcome back"}
         </h1>

@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from app.core.errors import ConfigurationError
+from app.core.inference import INFERENCE_LOCK
 from app.llm.providers import ChatMessage, LLMProvider
 
 logger = logging.getLogger(__name__)
@@ -135,7 +136,7 @@ class NliVerifier(Verifier):
         self._lock = threading.Lock()
 
     def _load(self):
-        with self._lock:
+        with self._lock, INFERENCE_LOCK:  # loading onto the GPU too (see app/core/inference.py)
             if self._model is None:
                 try:
                     from sentence_transformers import CrossEncoder
@@ -158,7 +159,10 @@ class NliVerifier(Verifier):
                 for window in premise_windows(passage):
                     pairs.append((window, claim))
                     owner.append((i, j))
-        probs = model.predict(pairs, apply_softmax=True, show_progress_bar=False) if pairs else []
+        probs = []
+        if pairs:
+            with INFERENCE_LOCK:  # see app/core/inference.py
+                probs = model.predict(pairs, apply_softmax=True, show_progress_bar=False)
         entail_i, contra_i = self._labels["entailment"], self._labels["contradiction"]
 
         best: dict[int, tuple[float, int]] = {}  # claim → (max entailment, passage)

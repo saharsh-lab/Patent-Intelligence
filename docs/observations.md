@@ -506,3 +506,15 @@ profile setting. The user's answer: 6/6 verified in balanced mode, 5/6 in strict
 
 Also found: Ollama serves qwen3:8b with a 4,096-token context; the largest experiment
 prompts reached ~3,800 tokens (no run exceeded the limit, largest total 3,887).
+
+### 2026-10-04 — API crash during a patent import (Metal/MPS)
+
+The API process died while the user imported a patent ("failed assertion _status <
+MTLCommandBufferStatusCommitted" in IOGPUMetalCommandBuffer). PyTorch's MPS backend is not
+safe when several threads run models at once, and FastAPI runs sync endpoints in a thread
+pool; the per-model locks only covered loading. **Fix:** one process-wide lock
+(`app/core/inference.py`) around every local model call and load (embeddings, reranker,
+NLI). Reproduced: 6 threads embedding and NLI-checking concurrently on `mps:0` crashed
+the process without the lock (exit 134, "A command encoder is already encoding to this
+command buffer") and finished in 3.8 s without errors with it. Test:
+`tests/test_inference_lock.py` (4 concurrent calls overlap without the lock, never with it).

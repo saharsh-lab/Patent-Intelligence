@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** The app opens in chat: the greeting and quick actions live in the new-chat screen. */
+/** The app opens on search (the animated single-question view); chat is one click away. */
 export default function Home() {
-  redirect("/chat");
+  redirect("/search");
 }

@@ -24,6 +24,7 @@ import httpx
 
 from app.core.config import Settings, get_settings
 from app.core.errors import ConfigurationError, ExternalServiceError
+from app.core.inference import INFERENCE_LOCK
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,7 @@ class LocalEmbedder(EmbeddingProvider):
         self._passage_prefix = "passage: " if is_e5 else ""
 
     def _load(self):
-        with self._lock:
+        with self._lock, INFERENCE_LOCK:  # loading onto the GPU too (see app/core/inference.py)
             if self._model is None:
                 try:
                     from sentence_transformers import SentenceTransformer
@@ -141,13 +142,15 @@ class LocalEmbedder(EmbeddingProvider):
         return self._model
 
     def _encode(self, texts: list[str]) -> list[list[float]]:
-        vectors = self._load().encode(
-            texts,
-            batch_size=self.batch_size,
-            normalize_embeddings=True,
-            convert_to_numpy=True,
-            show_progress_bar=False,
-        )
+        model = self._load()
+        with INFERENCE_LOCK:  # concurrent GPU use crashed the process (app/core/inference.py)
+            vectors = model.encode(
+                texts,
+                batch_size=self.batch_size,
+                normalize_embeddings=True,
+                convert_to_numpy=True,
+                show_progress_bar=False,
+            )
         return vectors.tolist()
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:

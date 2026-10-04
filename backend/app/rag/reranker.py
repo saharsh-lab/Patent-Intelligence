@@ -17,6 +17,7 @@ from functools import lru_cache
 
 from app.core.config import Settings, get_settings
 from app.core.errors import ConfigurationError
+from app.core.inference import INFERENCE_LOCK
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class CrossEncoderReranker(Reranker):
         self._lock = threading.Lock()
 
     def _load(self):
-        with self._lock:
+        with self._lock, INFERENCE_LOCK:  # loading onto the GPU too (see app/core/inference.py)
             if self._model is None:
                 try:
                     from sentence_transformers import CrossEncoder
@@ -67,7 +68,9 @@ class CrossEncoderReranker(Reranker):
     def score(self, query: str, passages: list[str]) -> list[float]:
         if not passages:
             return []
-        scores = self._load().predict([(query, p) for p in passages], show_progress_bar=False)
+        model = self._load()
+        with INFERENCE_LOCK:  # see app/core/inference.py
+            scores = model.predict([(query, p) for p in passages], show_progress_bar=False)
         return [float(s) for s in scores]
 
 

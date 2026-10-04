@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import useSWR from "swr";
 
 import { icons } from "@/components/icons";
+import { Wordmark } from "@/components/search/Logo";
 import { Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
 import { auth, initials, useAuth, type User } from "@/lib/auth";
@@ -15,9 +16,10 @@ import type { HealthReady, WatchOut } from "@/lib/types";
 
 const AUTH_PAGES = ["/login", "/register"];
 
-// Three tools besides chat. Research tools (evaluation, research console, system status)
+// Four tools besides chat. Research tools (evaluation, research console, system status)
 // live in the user menu: they are for the project team, not everyday use.
 const TOOLS = [
+  { href: "/search", label: "Search", icon: icons.search, also: [] },
   { href: "/documents", label: "Library", icon: icons.file, also: ["/patents", "/compare"] },
   { href: "/invention", label: "Invention analysis", icon: icons.bulb, also: [] },
   { href: "/watches", label: "Patent watch", icon: icons.bell, also: [] },
@@ -63,7 +65,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
-  const isChat = pathname === "/" || pathname.startsWith("/chat");
+  // Chat and search fill the content area themselves (no padded wrapper or footer)
+  const isChat = pathname === "/" || pathname.startsWith("/chat") || pathname.startsWith("/search");
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
       {/* Mobile top bar */}
@@ -126,14 +129,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white shadow-card">
-        PI
-      </span>
-      <span className="leading-tight">
-        <span className="block text-sm font-semibold">Patent Intelligence</span>
-        {!compact && <span className="block text-[11px] text-muted">Evidence-grounded patent AI</span>}
-      </span>
+    <Link href="/" className="rounded-lg">
+      <Wordmark compact={compact} />
     </Link>
   );
 }
