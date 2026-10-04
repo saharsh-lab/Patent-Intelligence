@@ -88,11 +88,17 @@ passage. The chart is therefore computed rather than generated, and cannot conta
 invented disclosure. Features found in no retrieved document are listed, with an explicit
 statement that this is not a novelty assessment.
 
+*Figure 3.7: Invention analysis (docs/diagrams/7_invention_analysis).*
+
 ## 3.7 Data model
-Ten tables (Figure 3.6) separate the corpus (documents, patents, chunks, API cache) from
-the record of every answer (queries, agent runs, tool calls, retrieval results, claim
-verifications, evaluations). Each run stores a snapshot of all settings used, so every
-reported number can be traced to its configuration.
+Thirteen tables (Figure 3.6) separate the corpus (documents, patents, chunks, API cache)
+from the record of every answer (queries, agent runs, tool calls, retrieval results, claim
+verifications, evaluations) and from the user-facing features (conversations, patent
+watches and their hits). Each run stores a snapshot of all settings used, so every
+reported number can be traced to its configuration. User accounts and login sessions live
+in a **separate database** (`patent_rag_auth`, own migrations); rows in the main database
+refer to their owner only by id, so a fault in the patent data layer cannot expose
+credentials.
 
 *Figure 3.6: Database schema (docs/diagrams/6_database).*
 

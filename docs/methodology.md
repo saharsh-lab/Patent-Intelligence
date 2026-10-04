@@ -16,15 +16,15 @@ The final research claim is chosen **after** experiments, not before. Candidate 
 - **RQ3.** Which retrieval design choices (chunking, top-k, hybrid vs. vector-only,
   reranking) matter most for patent text?
 
-## Planned experiments
+## Experiments (as run, 2026-10-04; results in docs/report/07_results.md)
 
 | ID | Comparison | Held constant |
 |---|---|---|
-| A | Single-source baseline RAG vs. agentic multi-source RAG | LLM, embedding model, dataset |
-| B | Chunking: fixed-size vs. section-aware vs. claim-level | Retrieval method, top-k |
-| C | top-k ∈ {3, 5, 10, 20} | Everything else |
-| D | Without vs. with cross-encoder reranking | Candidate pool size |
-| E | Single source (uploads only / EPO only) vs. multi-source | Agent logic |
+| A | Baseline RAG vs. agentic RAG | LLM, embedding model, dataset |
+| B | Chunking: section-aware (one passage per claim) vs. fixed-size windows | Retrieval method, top-k |
+| C | Passages given to the LLM: k ∈ {3, 6, 10} | Everything else |
+| D | Without vs. with cross-encoder reranking | Candidate pool size (30) |
+| E | New (2026) patents: agent with live EPO vs. local documents only vs. LLM alone; generated question set (`live-build`, `live-run`) | LLM |
 | F | Agent with tool selection vs. fixed "call every tool" pipeline | Tools available |
 | H | Rules planner vs. LLM planner (`AGENT_PLANNER`) | Everything else; measures tool-selection accuracy, invalid-output rate, cost |
 | G | Generation only vs. + claim verification vs. + verification & regeneration (`VERIFY_MODE`) | Retrieval |

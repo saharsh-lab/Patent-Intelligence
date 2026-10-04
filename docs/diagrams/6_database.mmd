@@ -7,6 +7,10 @@ erDiagram
     AGENT_RUNS ||--o{ CLAIM_VERIFICATIONS : "verified"
     AGENT_RUNS ||--o{ EVALUATIONS : "scored by"
     CHUNKS |o--o{ RETRIEVAL_RESULTS : "copy of"
+    CONVERSATIONS ||--o{ QUERIES : "messages"
+    PATENT_WATCHES ||--o{ WATCH_HITS : "found"
+    WATCH_HITS |o--o| PATENTS : "imported as"
+    USERS ||--o{ LOGIN_SESSIONS : "auth database"
     DOCUMENTS {
         uuid id
         text filename
@@ -57,4 +61,38 @@ erDiagram
     API_CACHE {
         text key
         json response
+    }
+    CONVERSATIONS {
+        uuid id
+        uuid owner_id
+        text title
+        json document_ids
+    }
+    PATENT_WATCHES {
+        uuid owner_id
+        text keywords
+        date since
+        bool active
+    }
+    WATCH_HITS {
+        text publication_number
+        float similarity
+        bool seen
+    }
+    USERS {
+        uuid id
+        text email
+        text password_hash
+        json preferences
+    }
+    LOGIN_SESSIONS {
+        text token_hash
+        timestamp expires_at
+        bool revoked
+    }
+    QUERIES {
+        uuid id
+        uuid owner_id
+        uuid conversation_id
+        text query_text
     }

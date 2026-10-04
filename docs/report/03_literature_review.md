@@ -1,8 +1,7 @@
 # 2. Literature Review
 
-> Draft. Each reference must be checked against the original paper (authors, title,
-> venue, year) before submission; see references.md. Add patent-specific works the guide
-> recommends.
+> All references were checked against the original publications on 2026-10-04 (see
+> references.md). Add patent-specific works the guide recommends.
 
 ## 2.1 Retrieval-augmented generation
 Lewis et al. [1] introduced retrieval-augmented generation (RAG): a generator conditioned
@@ -35,15 +34,15 @@ sampling consistency (SelfCheckGPT [10]), decomposition into atomic facts checke
 a knowledge source (FActScore [11]), and NLI-based consistency checking. SummaC [12]
 showed that NLI models applied at sentence granularity, with aggregation over premise
 sentences, detect inconsistencies far better than document-level NLI, a finding we
-reproduced for patent passages. Our verifier uses an NLI cross-encoder based on DeBERTa
-[13] trained on MultiNLI-style data [14].
+reproduced for patent passages. Our verifier uses an NLI cross-encoder built on DeBERTa-v3 [23],
+the successor of DeBERTa [13], fine-tuned on the SNLI [24] and MultiNLI [14] corpora.
 
 ## 2.5 Citations and evaluation of RAG
 Gao et al. [15] (ALCE) evaluate whether generated text is supported by its citations,
 measuring citation recall and precision. RAGAS [16] proposes reference-free RAG metrics
 (faithfulness, answer relevance, context relevance) computed with LLM judges. We adopt
 claim-level faithfulness ("grounding") and add misattribution, and we measure the
-verifier itself against human labels before trusting it.
+verifier itself against labelled statements (Experiment I).
 
 ## 2.6 Patent retrieval and analysis
 Patent retrieval differs from web search: long documents, formal claim language and
@@ -56,5 +55,6 @@ statement-level verification for question answering over patents.
 Existing RAG systems rarely (i) exploit patent structure (claims as units), (ii) select
 sources and tools per question while (iii) verifying each generated statement against
 its specific citation and detecting misattribution, and (iv) report results with
-confidence intervals against a conventional baseline on labelled patent questions. This
-project addresses that combination.
+confidence intervals against a conventional baseline on labelled patent questions, and
+(v) test on patents published after the language model's training data, where only live
+retrieval can give a correct answer. This project addresses that combination.

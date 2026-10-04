@@ -89,6 +89,8 @@ domain (same-domain@1, @3). No human labels are required, so the check scales to
 because queries share wording with their source, it is easier than real use and complements
 the labelled test set.
 
+*Figure 5.1: Evaluation framework (docs/diagrams/5_evaluation).*
+
 ## 5.5 Procedure and statistics
 All variants run on the same questions with temperature 0, through the same code as the
 application, against a separate database containing only the corpus. Variants sharing an
