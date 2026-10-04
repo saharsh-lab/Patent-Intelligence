@@ -127,6 +127,16 @@ def test_unknown_patent_number_is_fetched_then_used(api, battery):
     assert "Demo patents" in body["summary"]["sources_searched"]
 
 
+
+def test_unavailable_patent_number_is_never_answered_from_other_documents(api, battery):
+    # Experiment E: without a patent database, "claim 2 of <new patent>" was answered with
+    # claim 2 of an unrelated local document and attributed to the asked patent.
+    api.app_ref.dependency_overrides[get_patent_sources] = lambda: {}
+    body = ask(api, "What does claim 2 of EP4815257A1 add?")
+    assert body["status"] == "insufficient_evidence"
+    assert body["evidence"] == []
+    assert "EP4815257A1 is not in your library" in body["insufficient_reason"]
+
 def test_find_similar_searches_imports_and_compares(api, battery):
     body = ask(api, "Find patents similar to my uploaded invention")
     assert body["intent"] == "find_similar"

@@ -311,6 +311,67 @@ def cmd_export_claims(args) -> int:
     return 0
 
 
+def _live_parts(settings):
+    from app.llm.providers import build_llm
+    from app.patents.registry import build_sources
+    from app.verification.verifiers import build_verifier
+
+    sources = build_sources(settings)
+    llm = build_llm(settings)
+    method = settings.verifier_method if settings.verifier_method != "auto" else "nli"
+    verifier = build_verifier(method, nli_model=settings.verifier_nli_model, llm=llm)
+    return sources, llm, verifier
+
+
+def cmd_live_build(args) -> int:
+    """Experiment E, step 1: fetch brand-new patents live and freeze the question set."""
+    from app.evaluation.live import build_live_dataset, load_live_config
+    from app.patents.registry import build_sources
+
+    config = load_live_config(args.config)
+    sources = build_sources(get_settings())
+    if config.source not in sources:
+        _log(f"Patent source {config.source!r} is not configured (set its keys in .env).")
+        return 2
+    if config.dataset.exists() and not args.force:
+        _log(f"{config.dataset} exists; it is a frozen question set. Use --force to rebuild.")
+        return 2
+    build_live_dataset(config, sources[config.source], log=_log)
+    return 0
+
+
+def cmd_live_run(args) -> int:
+    """Experiment E, step 2: answer every question live, local-only and closed-book."""
+    from app.evaluation.live import VARIANTS, LiveRunner, load_live_config
+    from app.rag.embeddings import build_embedder
+
+    config = load_live_config(args.config)
+    settings = get_settings().model_copy(
+        update={"upload_dir": PROJECT_ROOT / "data" / "eval_uploads", "patent_demo_source": False}
+    )
+    sources, llm, verifier = _live_parts(settings)
+    if config.source not in sources:
+        _log(f"Patent source {config.source!r} is not configured (set its keys in .env).")
+        return 2
+    engine = prepare_eval_database(settings.eval_database_url, settings.database_url)
+    with Session(engine, expire_on_commit=False) as session:
+        runner = LiveRunner(
+            session,
+            settings,
+            build_embedder(settings),
+            llm,
+            {config.source: sources[config.source]},
+            verifier,
+            log=_log,
+        )
+        variants = tuple(args.variants.split(",")) if args.variants else VARIANTS
+        if unknown := set(variants) - set(VARIANTS):
+            _log(f"Unknown variants {sorted(unknown)}; choose from {', '.join(VARIANTS)}.")
+            return 2
+        runner.run(config, settings.experiments_dir / "results", variants)
+    return 0
+
+
 def cmd_selfcheck(args) -> int:
     """Invention-analysis self-check (label-free) on a dataset's corpus."""
     from app.evaluation.runner import ExperimentRunner
@@ -432,6 +493,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--sample", type=int, help="random sample of this many statements")
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(func=cmd_export_claims)
+
+    p = sub.add_parser("live-build", help="Experiment E: fetch new patents live, freeze questions")
+    p.add_argument("--config", required=True, type=Path)
+    p.add_argument("--force", action="store_true", help="rebuild an existing question set")
+    p.set_defaults(func=cmd_live_build)
+
+    p = sub.add_parser("live-run", help="Experiment E: live vs local-only vs closed-book")
+    p.add_argument("--config", required=True, type=Path)
+    p.add_argument("--variants", help="comma-separated subset, e.g. local_only")
+    p.set_defaults(func=cmd_live_run)
 
     p = sub.add_parser("selfcheck", help="invention-analysis self-check (no labels needed)")
     p.add_argument("--config", required=True, type=Path)

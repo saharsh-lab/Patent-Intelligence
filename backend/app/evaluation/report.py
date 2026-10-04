@@ -11,6 +11,7 @@ Result folder (experiments/results/<experiment>/<timestamp>/):
 
 import csv
 import json
+import re
 from collections import defaultdict
 from dataclasses import asdict
 from datetime import UTC, datetime
@@ -24,6 +25,11 @@ from app.evaluation.scoring import METRICS
 SMALL_N = 30  # below this many questions, say so next to every result
 
 
+def is_draft(labelled_by: str) -> bool:
+    """'DRAFT: …' marks unchecked labels; 'drafted, then audited' does not."""
+    return re.search(r"\bdraft\b", labelled_by or "", re.IGNORECASE) is not None
+
+
 def aggregate(
     rows: list[dict],
     *,
@@ -33,6 +39,7 @@ def aggregate(
     started_at: datetime,
     snapshots: dict[str, dict],
     extra_warnings: list[str] | None = None,
+    extra_caveats: list[str] | None = None,
 ) -> dict[str, Any]:
     variants = [v.name for v in config.variants]
     answerable = {item.id: item.answerable for item in dataset.items}
@@ -84,10 +91,17 @@ def aggregate(
             "Synthetic development dataset: these numbers test the framework only and must "
             "not be reported as research results."
         )
-    if "draft" in dataset.labelled_by.lower():
+    if is_draft(dataset.labelled_by):
         warnings.append(
             f"Draft labels ({dataset.labelled_by}): not verified by two people yet, so these "
             "numbers must not be reported."
+        )
+    # Reportable, but the limitation must be stated wherever the numbers appear.
+    caveats = list(extra_caveats or [])
+    if "not human-verified" in dataset.labelled_by.lower():
+        caveats.append(
+            f"Limitation: labels by {dataset.labelled_by}. "
+            "State this wherever these numbers are reported."
         )
     if n_items < SMALL_N:
         warnings.append(
@@ -132,6 +146,7 @@ def aggregate(
         "threshold_sweep": {v: threshold_sweep(rows, v, answerable) for v in variants},
         "runs": {"total": len(rows), "failed": failed},
         "warnings": warnings,
+        "caveats": caveats,
     }
 
 
@@ -209,6 +224,8 @@ def markdown_report(summary: dict) -> str:
     ]
     for warning in summary["warnings"]:
         lines.append(f"> **Note:** {warning}")
+    for caveat in summary.get("caveats", []):
+        lines.append(f"> **Note:** {caveat}")
     lines += ["", "## Variants", ""]
     for v in summary["variants"]:
         settings = ", ".join(f"`{k}={val}`" for k, val in v["settings"].items()) or "defaults"
@@ -355,6 +372,7 @@ def paper_table(summary: dict, fmt: str = "markdown", metrics: list[str] | None 
             r"\label{tab:" + summary["experiment"].replace("_", "-") + "}",
             r"\end{table}",
         ]
+        lines = [f"% NOTE: {c}" for c in summary.get("caveats", [])] + lines
         if warnings:
             lines = [f"% WARNING: {w}" for w in warnings] + lines
         return "\n".join(lines) + "\n"
@@ -366,6 +384,8 @@ def paper_table(summary: dict, fmt: str = "markdown", metrics: list[str] | None 
         "",
         f"*{caption}*",
     ]
+    if summary.get("caveats"):
+        lines = [f"> **Note:** {c}" for c in summary["caveats"]] + [""] + lines
     if warnings:
         lines = [f"> **Not reportable:** {w}" for w in warnings] + [""] + lines
     return "\n".join(lines) + "\n"

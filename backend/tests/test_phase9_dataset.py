@@ -26,11 +26,24 @@ def test_dev_dataset_loads():
     assert len(dataset.fingerprint()) == 64
 
 
-@pytest.mark.parametrize("name", [p.stem for p in CONFIGS.glob("exp_[a-h]_*.yaml")] + ["smoke"])
+LIVE = {"exp_e_live"}  # Experiment E has its own config format (app/evaluation/live.py)
+
+
+@pytest.mark.parametrize(
+    "name", [p.stem for p in CONFIGS.glob("exp_[a-h]_*.yaml") if p.stem not in LIVE] + ["smoke"]
+)
 def test_every_experiment_config_is_valid(name):
     config = load_config(CONFIGS / f"{name}.yaml")
     for variant in config.variants:
         variant_settings(get_settings(), config, variant)
+
+
+@pytest.mark.parametrize("name", sorted(LIVE))
+def test_live_config_is_valid_and_its_question_set_is_frozen(name):
+    from app.evaluation.live import load_live_config
+
+    config = load_live_config(CONFIGS / f"{name}.yaml")
+    assert config.dataset.exists() and (config.dataset.parent / "FROZEN.md").exists()
 
 
 PASSAGE = {

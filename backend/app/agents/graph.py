@@ -491,6 +491,10 @@ class AgentGraph:
         }
 
     def route_after_check(self, state: AgentState) -> str:
+        if self._unavailable_patents(state):
+            # Never answer about a named patent from other documents' passages
+            # (Experiment E found claim 2 of a local patent attributed to the asked one).
+            return "finish"
         if self._missing_similar_patents(state):
             # Passages about the user's OWN invention are not evidence of similar patents
             can_retry = state["attempts"] < self.max_recoveries and self._recovery_plan(state)
@@ -689,8 +693,26 @@ class AgentGraph:
             "regeneration_added_passages": added,
         }
 
+    def _unavailable_patents(self, state: AgentState) -> list[str]:
+        """Patent numbers named in the question that are neither indexed nor retrievable."""
+        return [t.number for t in state["targets"] if t.kind == "external" and t.number]
+
     def finish(self, state: AgentState) -> dict:
         reason = state.get("stop_reason")
+        unavailable = self._unavailable_patents(state)
+        if not reason and unavailable:
+            failures = [
+                e["output_summary"]
+                for e in state["tool_log"]
+                if e["tool_name"] == "get_patent_details" and not e["success"]
+            ]
+            names = ", ".join(unavailable)
+            reason = (
+                f"{names} {'is' if len(unavailable) == 1 else 'are'} not in your library and "
+                "could not be retrieved from a patent database"
+                + (f" ({failures[-1]})" if failures else "")
+                + ". Upload the document or connect a patent database to ask about it."
+            )
         if not reason and self._missing_similar_patents(state):
             searched = [
                 e["input"].get("keywords")

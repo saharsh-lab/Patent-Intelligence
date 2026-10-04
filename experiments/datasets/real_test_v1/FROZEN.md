@@ -14,3 +14,16 @@ Rules:
    re-running.
 3. Questions are not edited or removed after results exist. If one is truly broken, keep
    it and explain in `notes`, or report results with and without it.
+
+## Label corrections
+
+- **2026-10-04, AI audit (not a human check).** The team asked the assistant to check the
+  labels itself. Every item was re-read against the patent text; every label was
+  re-matched to the corpus (`validate --check-labels`), each key fact was confirmed next to
+  its passage, generic questions were searched across all 16 patents for missing answer
+  passages, and the 6 unanswerable questions were searched for any answer. Result: 4 key
+  facts corrected (t03, t13, m02, n04), 2 notes added (t11, t17); no question changed.
+  Details in each item's `notes`. New SHA-256:
+  `97a338c11947c18a…` (see `summary.json` of the rescored results). Because the labels'
+  author and checker are the same AI, this is **not** independent verification; results
+  must say so.

@@ -1,0 +1,17 @@
+# Experiment E: does live patent data matter? Questions about patents published after the
+# LLM's training data, answered (1) by the agent with live EPO access, (2) by the same
+# agent with local documents only, (3) by the LLM alone. Ground truth = the claim text,
+# fetched live and frozen in the question set (no human labels needed).
+#   python -m app.evaluation live-build --config ../experiments/configs/exp_e_live.yaml
+#   python -m app.evaluation live-run   --config ../experiments/configs/exp_e_live.yaml
+name: exp_e_live
+description: Brand-new EPO patents answered with live data, local data only, or the LLM alone (Experiment E).
+dataset: ../datasets/live_epo_v1/questions.json
+source: epo
+published_from: 2026-01-01  # after the LLM's training data (Qwen3: 2025)
+per_topic: 5
+countries: [EP, WO]  # offices whose claims EPO supplies in English full text
+topics:
+  wireless_charging: wireless charging foreign object
+  battery_thermal: battery thermal management
+  immersion_cooling: immersion cooling

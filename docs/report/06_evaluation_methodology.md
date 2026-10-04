@@ -8,9 +8,11 @@
 - **RQ3.** Which retrieval design choices (chunking, number of passages, reranking)
   matter for patent text?
 - **RQ4.** How accurately does an automatic verifier agree with human judgement?
+- **RQ5.** Does live patent data matter for patents the LLM cannot know (published after
+  its training data)?
 
 ## 5.2 Corpus and dataset
-The corpus is [RESULT: N] public patents in three technical domains (wireless-charging
+The corpus is 16 public patents in three technical domains (wireless-charging
 foreign object detection, electric-vehicle battery thermal management, immersion
 cooling), including near-neighbour documents so retrieval must discriminate. Patents were
 downloaded as text with standard section headings (backend/scripts/build_corpus.py).
@@ -26,11 +28,26 @@ technical comparison). Each question is labelled with:
 - expected intent and expected tools;
 - whether it is answerable and whether it asks for a legal opinion.
 
-Labels were drafted, then checked by two team members [RESULT: agreement statistics];
-disagreements were resolved by discussion. The questions used for tuning (dev set,
-[RESULT: n]) are separate from the questions used for reporting (test set, [RESULT: n]),
-which were written independently and frozen before any run (dataset SHA-256 recorded in
-each result).
+The questions used for tuning (dev set `real_v1`, 54 questions) are separate from the
+questions used for reporting (test set `real_test_v1`, 53 questions), which use different
+facts and were frozen before any system run on them (dataset SHA-256 recorded in each
+result). **Who wrote the labels.** Both sets were written by an AI coding assistant from
+the patent texts. After the final runs, the same assistant audited every test item
+against the patent text (labels re-matched to the corpus, key facts confirmed next to
+their passages, generic questions searched across all 16 patents for missing answer
+passages, unanswerable questions searched for any answer); this corrected 4 key facts and
+changed no question. The stored runs were then re-scored without regenerating answers.
+The labels were **not verified by humans**, so retrieval metrics and key-fact recall carry
+that limitation; grounding, latency, token and tool metrics do not depend on them.
+
+**Live question set (Experiment E).** A second question set is generated, not written:
+EPO is searched for EP and WO publications from 2026 in the three domains, and for each of
+15 patents (published 2026-04-15 to 2026-09-30) two questions ask what claim 1 covers and
+what one dependent claim adds. The ground truth is the claim text and abstract as EPO
+supplied them, frozen in the question set before any run
+(`experiments/datasets/live_epo_v1/`). Answers are scored by the share of the claim's
+content words they contain ("claim content") and by the NLI verifier against the real
+claims and abstract ("supported by the patent"); no human labels are involved.
 
 ## 5.3 Metrics
 | Group | Metric | Definition |
@@ -57,7 +74,7 @@ document-level metrics are reported next to them.
 | B | Section-aware vs. fixed-size chunking | Retrieval, LLM |
 | C | Passages given to the LLM (k = 3, 6, 10) | Everything else |
 | D | Without vs. with cross-encoder reranking | Candidate pool (30) |
-| E | Single source vs. multiple sources | Agent (requires EPO access) |
+| E | Live EPO access vs. local documents only vs. the LLM alone, on 2026 patents | LLM, question set |
 | F | Tool selection vs. running every available tool | Tools available |
 | G | No verification vs. verification vs. verification + regeneration | Retrieval |
 | H | Rule-based vs. LLM planner | Everything else |

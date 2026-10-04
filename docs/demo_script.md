@@ -74,6 +74,14 @@ from Finder into it (they are recognised as already in the library). Ask:
 In our run one statement was flagged unsupported: "This is hallucination detection
 happening live."
 
+**6:30 Live data (1.5 min, optional, needs internet + EPO keys).** New chat, ask:
+> What does claim 2 of EP4815257A1 add?
+
+(~40 s; measured mean 37 s in Experiment E) "This patent was published on 30 September
+2026; no AI model has seen it. The agent fetched it live from the European Patent Office,
+indexed it, and answered from claim 2." Show the source in Sources. Then: "The model on
+its own invents a photovoltaic system for this number; we measured that in Experiment E."
+
 **7:00 Safety behaviour (1.5 min).**
 > What is the retail price of the machine-learning wireless charging pad?
 

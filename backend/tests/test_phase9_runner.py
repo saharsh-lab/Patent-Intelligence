@@ -229,7 +229,7 @@ def test_rescore_uses_current_labels_without_rerunning(smoke, tmp_path):
     assert rows[("baseline", "q02")]["recall_at_k"] == 1.0  # untouched labels score as before
     summary = json.loads((new / "summary.json").read_text())
     assert summary["rescored_from"] == out.name
-    assert any("Rescored from" in w for w in summary["warnings"])
+    assert any("Rescored from" in c for c in summary["caveats"])  # a note, not a blocker
 
 
 def test_paper_tables_come_from_the_summary(smoke):

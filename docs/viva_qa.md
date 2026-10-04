@@ -58,10 +58,11 @@ It makes the agent an explicit graph of steps with conditions. That's easier to 
 explain and evaluate than a free-form loop where the LLM decides everything.
 
 **12. Rules planner or LLM planner?**
-Both exist (Experiment H). The LLM planner is more flexible but costs an extra call and
-made mistakes we had to guard against: it called a valid question "out of scope" and
-sent plain lookups to similar-patent search. We now accept its output only when the
-question supports it.
+Both exist, and Experiment H compared them on the test set: the rules planner got all 53
+intents right, the LLM planner 49 (92.5%), with the same tools and answer quality, and the
+LLM planner costs one extra LLM call. During development it also made mistakes we had to
+guard against (calling a valid question "out of scope", sending plain lookups to
+similar-patent search), so we accept its output only when the question supports it.
 
 **13. Why a local model (Qwen3-8B)?**
 Zero cost, documents never leave the machine, and results are reproducible. The code
@@ -117,9 +118,14 @@ Both systems answer the same questions, so we compare question by question
 (agent − baseline), which removes the variation between questions.
 
 **25. How do you know the verifier is right?**
-Experiment I: humans label statements, and we measure the verifier's agreement with them
-(accuracy and Cohen's κ). Two humans also label the same statements; their agreement is
-the ceiling.
+We measured it in Experiment I, with limits. One team member labelled 150 answer
+statements (with an AI assistant's help) as supported, partly supported or unsupported.
+Our NLI verifier caught 5 of the 9 unsupported statements, more than the LLM judge (2 of
+9), but it also flagged 30% of the statements the labeller called supported, so it is
+strict: our grounding scores are conservative. Agreement beyond chance was low for all
+methods (κ 0.16–0.24). Limits: one annotator, AI-assisted, and only 9 unsupported
+statements, so this is indicative. The planned fix is a second independent labeller
+(the tooling, `make eval-agreement`, is ready).
 
 **26. What is Cohen's κ?**
 Agreement corrected for chance. 1 = perfect, 0 = no better than chance.
@@ -170,9 +176,10 @@ local models.
 ## Limitations and future work
 
 **36. What are the main limitations?**
-Small dataset and three domains; one LLM; a verifier that can still make mistakes
-(especially on statements combining two sources); EPO is the only live source; no user
-accounts.
+Labels written and audited by an AI, not verified by people; the verifier checked only
+against one AI-assisted annotator (Experiment I: strict, κ 0.16); 53 test questions in three domains, one
+run each; one LLM; the main experiments used the LLM planner although the rules planner
+did at least as well; EPO is the only live source; false premises are not rejected.
 
 **37. What would you do next?**
 More sources (Lens, USPTO), larger multilingual datasets, a stronger verifier that can
@@ -237,3 +244,55 @@ source of unverified facts.
 **48. What happens when you upload a document in a chat?**
 It is processed like any upload (sections, claims, embeddings), owned by you, and attached
 to that conversation; questions in the chat are then answered from the attached documents.
+
+## Results (added after the final runs)
+
+**49. What are your main results?**
+On 53 frozen test questions over 16 real patents, compared with a plain RAG pipeline the
+agent found the right passage more often (recall@5 39.4% → 51.1%), its answers were
+better grounded (66.4% → 72.6%) with fewer unsupported statements (22.2% → 17.2%), all
+with 95% intervals excluding zero, at about twice the latency (15 s → 29 s). The biggest
+gains were on comparisons and legal-opinion questions; plain lookups gained nothing.
+Regeneration added 4 points of grounding; fixed-size chunks dropped grounding from 65% to
+48%; the reranker doubled MRR (0.26 → 0.52) at +15 s. On 30 questions about patents
+published in 2026 (after the model's training), the LLM alone never said "I don't know"
+and 73% of its statements were unsupported, while the agent with live EPO access found
+the asked claim every time. Every number is in docs/report/07_results.md with its result
+folder.
+
+**50. Who wrote the test questions and labels? Are they reliable?**
+An AI coding assistant wrote them from the patent texts, before any system run, and froze
+them. After the runs the same assistant audited every item against the patents (4 key
+facts corrected, no question changed), and all runs were re-scored. No human verified
+them, which we state as a limitation. Two things limit the damage: labels are
+content-based (checked automatically against the patent text), and only retrieval and
+key-fact metrics depend on them; grounding, latency, tokens and tool choice do not.
+
+**51. Why did the main experiments use the LLM planner if the rules planner was better?**
+The `auto` setting picks the LLM planner when a real LLM is configured, and we only
+learned that the rules planner was as good from Experiment H, on the test set. Switching
+afterwards and re-reporting would be tuning on the test set, so we report what was
+measured and list re-running with the rules planner as future work.
+
+**52. Why do you need live data at all? Couldn't the LLM just know the patent?**
+Experiment E tested exactly that on 15 patents published in 2026. Asked about them
+without retrieval, Qwen3-8B answered all 30 questions confidently, never said it did not
+know, and described the wrong invention (a wireless-charging patent became "a
+photovoltaic system"). With live EPO access, the agent fetched every named patent and
+retrieved the asked claim every time. For new patents, live retrieval is not an
+improvement, it is the only way to be right.
+
+**53. How did you get ground truth for the live experiment without labelling?**
+The questions ask what a specific claim says, so the answer is the claim text itself,
+which we fetched from EPO when building the question set and froze. Answers are scored by
+how much of the claim's content they contain and by our verifier against the real claim
+text. No one wrote labels, so there is no labelling bias, but the questions are only
+about claims.
+
+**54. Did the experiments find any bug in your own system?**
+Yes. Without a patent database, asking about a patent that is not in the library made the
+agent fall back to searching every document, and it answered with another patent's
+claim, naming the asked patent. The verifier missed it, because each sentence matched its
+cited passage. We fixed it (the agent now says the patent is not available), added a
+regression test, and re-ran that part: 30 of 30 questions correctly declined. We report
+the result before and after the fix.

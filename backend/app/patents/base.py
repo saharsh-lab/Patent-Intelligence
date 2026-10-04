@@ -19,6 +19,7 @@ class PatentQuery:
     date_from: date | None = None  # publication date range
     date_to: date | None = None
     limit: int = 25
+    countries: list[str] = field(default_factory=list)  # publishing offices, e.g. ["EP", "WO"]
 
     def is_empty(self) -> bool:
         return not (self.keywords.strip() or self.cpc or self.applicant)

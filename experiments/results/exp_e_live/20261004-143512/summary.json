@@ -1,0 +1,458 @@
+{
+  "kind": "experiment",
+  "experiment": "exp_e_live",
+  "run": "20261004-143512",
+  "description": "Brand-new EPO patents answered with live data, local data only, or the LLM alone (Experiment E).",
+  "started_at": "2026-10-04T14:35:12.359128+00:00",
+  "finished_at": "2026-10-04T15:05:54.855847+00:00",
+  "dataset": {
+    "name": "live_epo_v1",
+    "items": 30,
+    "patents": 15,
+    "published": [
+      "2026-04-15",
+      "2026-09-30"
+    ],
+    "synthetic": false,
+    "labelled_by": "automatic: claim text fetched live from the patent office",
+    "sha256": "2763406f60edcfc140da374a72acf0fc7f790cde535e81d847144a2cbd5d0533"
+  },
+  "repeats": 1,
+  "eval_k": 0,
+  "variants": [
+    {
+      "name": "live",
+      "pipeline": "agentic",
+      "description": "Agent with live EPO access",
+      "settings": {}
+    },
+    {
+      "name": "local_only",
+      "pipeline": "agentic",
+      "description": "Same agent, no patent source (local documents only)",
+      "settings": {}
+    },
+    {
+      "name": "closed_book",
+      "pipeline": "llm_only",
+      "description": "LLM alone, no retrieval",
+      "settings": {}
+    }
+  ],
+  "metrics": [
+    {
+      "key": "abstained",
+      "label": "Said it could not answer",
+      "group": "Answer",
+      "higher_is_better": null,
+      "format": "percent"
+    },
+    {
+      "key": "right_patent",
+      "label": "Evidence from the asked patent",
+      "group": "Retrieval",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "right_claim",
+      "label": "Asked claim retrieved",
+      "group": "Retrieval",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "claim_recall",
+      "label": "Claim content in the answer",
+      "group": "Answer",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "supported_by_patent",
+      "label": "Statements supported by the patent",
+      "group": "Truthfulness",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "unsupported_share",
+      "label": "Statements contradicted/unsupported",
+      "group": "Truthfulness",
+      "higher_is_better": false,
+      "format": "percent"
+    },
+    {
+      "key": "latency_ms",
+      "label": "Latency",
+      "group": "System",
+      "higher_is_better": false,
+      "format": "ms"
+    },
+    {
+      "key": "total_tokens",
+      "label": "Tokens",
+      "group": "System",
+      "higher_is_better": false,
+      "format": "tokens"
+    }
+  ],
+  "results": {
+    "live": {
+      "abstained": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "right_patent": {
+        "n": 30,
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0
+      },
+      "right_claim": {
+        "n": 30,
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0
+      },
+      "claim_recall": {
+        "n": 30,
+        "mean": 0.662268854184719,
+        "ci_low": 0.5291021341040817,
+        "ci_high": 0.7836916187769348
+      },
+      "supported_by_patent": {
+        "n": 30,
+        "mean": 0.6473333333333334,
+        "ci_low": 0.5067638888888889,
+        "ci_high": 0.769675
+      },
+      "unsupported_share": {
+        "n": 30,
+        "mean": 0.2843333333333333,
+        "ci_low": 0.16597222222222224,
+        "ci_high": 0.416688888888889
+      },
+      "latency_ms": {
+        "n": 30,
+        "mean": 37252.6,
+        "ci_low": 31992.411666666667,
+        "ci_high": 43994.14333333333
+      },
+      "total_tokens": {
+        "n": 30,
+        "mean": 3058.3,
+        "ci_low": 2667.4241666666667,
+        "ci_high": 3476.605
+      }
+    },
+    "local_only": {
+      "abstained": {
+        "n": 30,
+        "mean": 0.5,
+        "ci_low": 0.3333333333333333,
+        "ci_high": 0.6666666666666666
+      },
+      "right_patent": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "right_claim": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "claim_recall": {
+        "n": 30,
+        "mean": 0.016509287925696597,
+        "ci_low": 0.0017543859649122805,
+        "ci_high": 0.034009287925696595
+      },
+      "supported_by_patent": {
+        "n": 15,
+        "mean": 0.2,
+        "ci_low": 0.05,
+        "ci_high": 0.36666666666666664
+      },
+      "unsupported_share": {
+        "n": 15,
+        "mean": 0.7,
+        "ci_low": 0.4666666666666667,
+        "ci_high": 0.9333333333333333
+      },
+      "latency_ms": {
+        "n": 30,
+        "mean": 17681.333333333332,
+        "ci_low": 14371.335000000003,
+        "ci_high": 21411.861666666668
+      },
+      "total_tokens": {
+        "n": 30,
+        "mean": 2747.0,
+        "ci_low": 2285.0391666666665,
+        "ci_high": 3257.7541666666666
+      }
+    },
+    "closed_book": {
+      "abstained": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "right_patent": {
+        "n": 0,
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null
+      },
+      "right_claim": {
+        "n": 0,
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null
+      },
+      "claim_recall": {
+        "n": 30,
+        "mean": 0.022972649789228455,
+        "ci_low": 0.008105801226521468,
+        "ci_high": 0.04028624788508203
+      },
+      "supported_by_patent": {
+        "n": 30,
+        "mean": 0.20277777777777778,
+        "ci_low": 0.10277777777777779,
+        "ci_high": 0.30833333333333335
+      },
+      "unsupported_share": {
+        "n": 30,
+        "mean": 0.7333333333333333,
+        "ci_low": 0.6166666666666667,
+        "ci_high": 0.8555555555555556
+      },
+      "latency_ms": {
+        "n": 30,
+        "mean": 3640.633333333333,
+        "ci_low": 3447.4758333333334,
+        "ci_high": 3835.8208333333337
+      },
+      "total_tokens": {
+        "n": 30,
+        "mean": 151.73333333333332,
+        "ci_low": 147.46583333333334,
+        "ci_high": 156.53333333333333
+      }
+    }
+  },
+  "latency": {
+    "live": {
+      "p50": 34246.5,
+      "p95": 66046.95000000001
+    },
+    "local_only": {
+      "p50": 12622.5,
+      "p95": 33701.9
+    },
+    "closed_book": {
+      "p50": 3635.0,
+      "p95": 4438.7
+    }
+  },
+  "comparisons": [
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "abstained",
+      "n": 30,
+      "mean_diff": 0.5,
+      "ci_low": 0.3333333333333333,
+      "ci_high": 0.6666666666666666,
+      "wins": 15,
+      "losses": 0,
+      "ties": 15,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "right_patent",
+      "n": 30,
+      "mean_diff": -1.0,
+      "ci_low": -1.0,
+      "ci_high": -1.0,
+      "wins": 0,
+      "losses": 30,
+      "ties": 0,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "right_claim",
+      "n": 30,
+      "mean_diff": -1.0,
+      "ci_low": -1.0,
+      "ci_high": -1.0,
+      "wins": 0,
+      "losses": 30,
+      "ties": 0,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "claim_recall",
+      "n": 30,
+      "mean_diff": -0.6457595662590224,
+      "ci_low": -0.7625956731283484,
+      "ci_high": -0.5190851763353694,
+      "wins": 0,
+      "losses": 29,
+      "ties": 1,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "supported_by_patent",
+      "n": 15,
+      "mean_diff": -0.38999999999999996,
+      "ci_low": -0.59,
+      "ci_high": -0.1888888888888889,
+      "wins": 1,
+      "losses": 9,
+      "ties": 5,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "unsupported_share",
+      "n": 15,
+      "mean_diff": 0.36444444444444446,
+      "ci_low": 0.1377777777777778,
+      "ci_high": 0.5866666666666667,
+      "wins": 7,
+      "losses": 1,
+      "ties": 7,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "latency_ms",
+      "n": 30,
+      "mean_diff": -19571.266666666666,
+      "ci_low": -27829.748333333333,
+      "ci_high": -12543.638333333332,
+      "wins": 4,
+      "losses": 26,
+      "ties": 0,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "local_only",
+      "metric": "total_tokens",
+      "n": 30,
+      "mean_diff": -311.3,
+      "ci_low": -850.8066666666666,
+      "ci_high": 245.84000000000003,
+      "wins": 13,
+      "losses": 17,
+      "ties": 0,
+      "clear": false
+    },
+    {
+      "reference": "live",
+      "variant": "closed_book",
+      "metric": "abstained",
+      "n": 30,
+      "mean_diff": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "wins": 0,
+      "losses": 0,
+      "ties": 30,
+      "clear": false
+    },
+    {
+      "reference": "live",
+      "variant": "closed_book",
+      "metric": "claim_recall",
+      "n": 30,
+      "mean_diff": -0.6392962043954906,
+      "ci_low": -0.7618621093132782,
+      "ci_high": -0.503937783629623,
+      "wins": 0,
+      "losses": 29,
+      "ties": 1,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "closed_book",
+      "metric": "supported_by_patent",
+      "n": 30,
+      "mean_diff": -0.44455555555555554,
+      "ci_low": -0.5775583333333334,
+      "ci_high": -0.3063305555555555,
+      "wins": 1,
+      "losses": 23,
+      "ties": 6,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "closed_book",
+      "metric": "unsupported_share",
+      "n": 30,
+      "mean_diff": 0.449,
+      "ci_low": 0.3035555555555556,
+      "ci_high": 0.5945555555555555,
+      "wins": 20,
+      "losses": 3,
+      "ties": 7,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "closed_book",
+      "metric": "latency_ms",
+      "n": 30,
+      "mean_diff": -33611.96666666667,
+      "ci_low": -40280.45083333333,
+      "ci_high": -28357.881666666664,
+      "wins": 0,
+      "losses": 30,
+      "ties": 0,
+      "clear": true
+    },
+    {
+      "reference": "live",
+      "variant": "closed_book",
+      "metric": "total_tokens",
+      "n": 30,
+      "mean_diff": -2906.5666666666666,
+      "ci_low": -3324.5516666666667,
+      "ci_high": -2515.3758333333335,
+      "wins": 0,
+      "losses": 30,
+      "ties": 0,
+      "clear": true
+    }
+  ],
+  "runs": {
+    "total": 90,
+    "failed": 0
+  },
+  "warnings": [],
+  "caveats": [
+    "Ground truth is the patent's own claim text and abstract, fetched live and frozen in the question set; 'supported by the patent' is the NLI verifier's judgement against them (strict; see Experiment I). Statements drawn from the description are not covered by these premises and count as unsupported."
+  ]
+}

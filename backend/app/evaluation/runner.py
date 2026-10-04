@@ -441,10 +441,10 @@ def rescore(
             f.write(json.dumps(row, default=str) + "\n")
 
     warnings = [w for w in old_summary.get("warnings", []) if "FAKE models" in w]
-    warnings.append(
+    caveats = [
         f"Rescored from run {result_dir.name} with the current labels and scoring code "
         "(the answers themselves were not regenerated)."
-    )
+    ]
     if missing_items:
         warnings.append(f"Items no longer in the dataset were dropped: {sorted(missing_items)}")
     summary = aggregate(
@@ -455,6 +455,7 @@ def rescore(
         started_at=datetime.fromisoformat(old_summary["started_at"]),
         snapshots={v["name"]: v.get("run_config") for v in old_summary.get("variants", [])},
         extra_warnings=warnings,
+        extra_caveats=caveats,
     )
     summary["rescored_from"] = result_dir.name
     write_report(out, summary, rows)

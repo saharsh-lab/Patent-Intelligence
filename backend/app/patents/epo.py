@@ -112,6 +112,9 @@ def build_cql(query: PatentQuery) -> str:
         parts.append(f"pd<={query.date_to:%Y%m%d}")
     if not parts:
         raise ValueError("A patent search needs keywords, a CPC code or an applicant.")
+    offices = [c.upper() for c in query.countries if re.fullmatch(r"[A-Za-z]{2}", c)]
+    if offices:
+        parts.append("(" + " or ".join(f"pn={c}" for c in offices) + ")")
     return " and ".join(parts)
 
 

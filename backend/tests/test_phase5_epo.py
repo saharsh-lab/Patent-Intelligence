@@ -77,6 +77,13 @@ def test_build_cql_single_date_bound_and_empty_query():
         build_cql(PatentQuery(keywords='  "  '))
 
 
+def test_build_cql_office_filter_ignores_invalid_codes():
+    query = PatentQuery(keywords="coil", countries=["ep", "WO", "x) or (1"])
+    assert build_cql(query) == 'ta all "coil" and (pn=EP or pn=WO)'
+    with pytest.raises(ValueError):  # an office alone is not a search
+        build_cql(PatentQuery(countries=["EP"]))
+
+
 # ------------------------------------------------------------------ parsing
 
 

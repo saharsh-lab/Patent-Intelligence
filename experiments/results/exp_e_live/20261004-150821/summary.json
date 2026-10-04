@@ -1,0 +1,155 @@
+{
+  "kind": "experiment",
+  "experiment": "exp_e_live",
+  "run": "20261004-150821",
+  "description": "Brand-new EPO patents answered with live data, local data only, or the LLM alone (Experiment E).",
+  "started_at": "2026-10-04T15:08:21.903483+00:00",
+  "finished_at": "2026-10-04T15:09:35.709172+00:00",
+  "dataset": {
+    "name": "live_epo_v1",
+    "items": 30,
+    "patents": 15,
+    "published": [
+      "2026-04-15",
+      "2026-09-30"
+    ],
+    "synthetic": false,
+    "labelled_by": "automatic: claim text fetched live from the patent office",
+    "sha256": "2763406f60edcfc140da374a72acf0fc7f790cde535e81d847144a2cbd5d0533"
+  },
+  "repeats": 1,
+  "eval_k": 0,
+  "variants": [
+    {
+      "name": "local_only",
+      "pipeline": "agentic",
+      "description": "Same agent, no patent source (local documents only)",
+      "settings": {}
+    }
+  ],
+  "metrics": [
+    {
+      "key": "abstained",
+      "label": "Said it could not answer",
+      "group": "Answer",
+      "higher_is_better": null,
+      "format": "percent"
+    },
+    {
+      "key": "right_patent",
+      "label": "Evidence from the asked patent",
+      "group": "Retrieval",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "right_claim",
+      "label": "Asked claim retrieved",
+      "group": "Retrieval",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "claim_recall",
+      "label": "Claim content in the answer",
+      "group": "Answer",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "supported_by_patent",
+      "label": "Statements supported by the patent",
+      "group": "Truthfulness",
+      "higher_is_better": true,
+      "format": "percent"
+    },
+    {
+      "key": "unsupported_share",
+      "label": "Statements contradicted/unsupported",
+      "group": "Truthfulness",
+      "higher_is_better": false,
+      "format": "percent"
+    },
+    {
+      "key": "latency_ms",
+      "label": "Latency",
+      "group": "System",
+      "higher_is_better": false,
+      "format": "ms"
+    },
+    {
+      "key": "total_tokens",
+      "label": "Tokens",
+      "group": "System",
+      "higher_is_better": false,
+      "format": "tokens"
+    }
+  ],
+  "results": {
+    "local_only": {
+      "abstained": {
+        "n": 30,
+        "mean": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0
+      },
+      "right_patent": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "right_claim": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "claim_recall": {
+        "n": 30,
+        "mean": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "supported_by_patent": {
+        "n": 0,
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null
+      },
+      "unsupported_share": {
+        "n": 0,
+        "mean": null,
+        "ci_low": null,
+        "ci_high": null
+      },
+      "latency_ms": {
+        "n": 30,
+        "mean": 2458.8333333333335,
+        "ci_low": 2379.725,
+        "ci_high": 2527.84
+      },
+      "total_tokens": {
+        "n": 30,
+        "mean": 327.43333333333334,
+        "ci_low": 325.2,
+        "ci_high": 329.4
+      }
+    }
+  },
+  "latency": {
+    "local_only": {
+      "p50": 2512.0,
+      "p95": 2656.95
+    }
+  },
+  "comparisons": [],
+  "runs": {
+    "total": 30,
+    "failed": 0
+  },
+  "warnings": [],
+  "caveats": [
+    "Ground truth is the patent's own claim text and abstract, fetched live and frozen in the question set; 'supported by the patent' is the NLI verifier's judgement against them (strict; see Experiment I). Statements drawn from the description are not covered by these premises and count as unsupported."
+  ]
+}

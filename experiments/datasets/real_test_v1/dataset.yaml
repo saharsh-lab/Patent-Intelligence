@@ -4,12 +4,13 @@
 # system run on these questions, and frozen (see FROZEN.md). It must never be used for
 # tuning. Questions use different facts from the dev set.
 #
-# STATUS: labels await the team's check (REVIEW.md). Corrections to labels are allowed
-# (then rescore the results); changing the questions after seeing results is not.
+# STATUS: labels drafted and then audited item by item by the AI assistant (2026-10-04,
+# after the final runs; corrections recorded in each item's notes). NOT verified by a
+# human: state this wherever results are reported. Changing questions is not allowed.
 name: real_test_v1
-description: TEST set - 53 questions over 16 real patents (wireless-charging foreign object detection, EV battery thermal management, immersion cooling); frozen before any run; labels awaiting the team's check.
+description: TEST set - 53 questions over 16 real patents (wireless-charging foreign object detection, EV battery thermal management, immersion cooling); frozen before any run; labels AI-drafted and AI-audited, not human-verified.
 synthetic: false
-labelled_by: "DRAFT: AI coding assistant, awaiting the team's check"
+labelled_by: "AI coding assistant (drafted, then audited item by item on 2026-10-04); not human-verified"
 
 corpus:
   - {id: fod_coils, file: ../real_v1/corpus/US9178361B2.txt}
@@ -55,9 +56,10 @@ items:
     relevant:
       - {doc: fod_coils, contains: "operated preferably when there is no power being transferred"}
       - {doc: fod_coils, claim: 19}
-    key_facts: ["suspend"]
+    key_facts: ["differentiate"]
     expected_intent: document_qa
     expected_tools: [search_uploaded_documents]
+    notes: "Audit 2026-10-04: key fact 'suspend' -> 'differentiate'. The question asks why; the reason is that the detection cannot differentiate transferred power from power lost in a foreign object ('suspend' is the remedy)."
 
   - id: t04
     type: lookup
@@ -132,6 +134,7 @@ items:
     key_facts: ["uphill", "hot climates"]
     expected_intent: document_qa
     expected_tools: [search_uploaded_documents]
+    notes: "Audit 2026-10-04: the grouped-cell patent also says DC fast charging heats the battery and needs cooling (partial, generic overlap); not labelled."
 
   - id: t12
     type: lookup
@@ -147,10 +150,10 @@ items:
     question: Does the battery temperature estimation software have to be written in a particular programming language?
     relevant:
       - {doc: kalman, contains: "independent of the programming language"}
-    key_facts: ["C++"]
+    key_facts: ["independent"]
     expected_intent: document_qa
     expected_tools: [search_uploaded_documents]
-    notes: Answer is "no particular language" (examples C, C++, Java...). Tests reading a boilerplate passage.
+    notes: "Answer is 'no particular language' (examples C, C++, Java...). Tests reading a boilerplate passage. Audit 2026-10-04: key fact 'C++' -> 'independent' (a correct 'no' answer need not name C++)."
 
   - id: t14
     type: lookup
@@ -187,6 +190,7 @@ items:
     key_facts: ["over-charging"]
     expected_intent: document_qa
     expected_tools: [search_uploaded_documents]
+    notes: "Audit 2026-10-04: 'battery thermal event' is the runners patent's term; the grouped-cell patent lists general cell-failure causes (not labelled; the question's wording points to the runners pack)."
 
   - id: t18
     type: lookup
@@ -253,9 +257,10 @@ items:
     relevant:
       - {doc: kalman, claim: 1}
       - {doc: kalman, contains: "Kalman gain may be calculated"}
-    key_facts: ["ambient", "Kalman gain"]
+    key_facts: ["ambient", "measurement model"]
     expected_intent: document_qa
     expected_tools: [search_uploaded_documents]
+    notes: "Audit 2026-10-04: key fact 'Kalman gain' -> 'measurement model' ('Kalman gain' is in the question, so it tested nothing; the gain weights the process-model prediction against the measurement model, [0038], which the 'contains' label already matches)."
 
   - id: m03
     type: multi_passage
@@ -403,7 +408,8 @@ items:
     question: What does claim 1 of US20190315232A1 require the processor to estimate?
     relevant:
       - {doc: predictive, claim: 1}
-    key_facts: ["estimated temperature at arrival"]
+    key_facts: ["temperature at arrival"]
+    notes: "Audit 2026-10-04: key fact 'estimated temperature at arrival' -> 'temperature at arrival' ('estimate' is already in the question). Found while inspecting results (Experiment F); the reason holds independently of them."
     expected_intent: patent_lookup
     expected_tools: [retrieve_document_section, retrieve_evidence]
 

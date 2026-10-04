@@ -51,6 +51,7 @@ export interface ExperimentSummary {
   comparisons: Comparison[];
   runs: { total: number; failed: number };
   warnings: string[];
+  caveats?: string[]; // reportable, but must be stated with the numbers
 }
 
 export interface Agreement {

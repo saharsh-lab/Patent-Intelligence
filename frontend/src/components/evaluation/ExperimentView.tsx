@@ -37,7 +37,7 @@ function Overview({ summary }: { summary: ExperimentSummary }) {
         <Badge>dataset {summary.dataset.name}</Badge>
         <Badge>{summary.dataset.items} questions</Badge>
         <Badge>{summary.repeats} repeat{summary.repeats === 1 ? "" : "s"}</Badge>
-        <Badge>k = {summary.eval_k}</Badge>
+        {summary.eval_k > 0 && <Badge>k = {summary.eval_k}</Badge>}
         <Badge tone={summary.runs.failed ? "bad" : "neutral"}>
           {summary.runs.total} runs, {summary.runs.failed} failed
         </Badge>
@@ -46,6 +46,13 @@ function Overview({ summary }: { summary: ExperimentSummary }) {
         <ul className="mt-3 space-y-1 rounded border border-warn/30 bg-warn-soft px-3 py-2 text-xs text-warn">
           {summary.warnings.map((w) => (
             <li key={w}>{w}</li>
+          ))}
+        </ul>
+      )}
+      {(summary.caveats ?? []).length > 0 && (
+        <ul className="mt-3 space-y-1 rounded border border-line bg-surface-2 px-3 py-2 text-xs text-muted">
+          {summary.caveats!.map((c) => (
+            <li key={c}>{c}</li>
           ))}
         </ul>
       )}

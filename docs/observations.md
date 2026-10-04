@@ -382,3 +382,69 @@ analysis. The 15-patent run is kept for the record but superseded.
   ordering bug: all hits from one watch check share a timestamp, so their order was
   arbitrary; hits are now ordered by check, then similarity (the import order), which
   also fixes the order shown on the Patent watch page. 354 backend tests pass.
+
+### 2026-10-04 — Correction: which planner the agent used; label audit; rescoring
+
+1. **The agent in Experiments A, F and G used the LLM planner**, not the rules planner:
+   `.env` has `AGENT_PLANNER=auto`, which picks the LLM planner whenever a real LLM is
+   configured (recorded in each variant's `run_config.agent.planner`). The earlier note on
+   Experiment F was wrong to call the 3 patent-number "intent errors" a labelling
+   convention: they are the LLM planner's choices. Experiment H shows the rules planner
+   gets all 53 intents right (LLM planner 92.5%, 4 losses / 0 wins), with one LLM call
+   fewer per question and no loss in answer quality. The default was not changed after
+   seeing test results; the report states which planner each experiment used.
+2. **Label audit by the assistant** (the team asked for it; not a human check): 4 key facts
+   corrected (t03, t13, m02, n04), 2 notes added; details in FROZEN.md and item notes.
+   All stored runs were re-scored, not re-run. Key-fact recall moved by at most +2.7
+   points, about equally for both variants of every experiment; no conclusion changed
+   except one: **the reranker's key-fact gain (D) is +15.4 points but no longer clear**
+   (its CI now includes 0), whereas its retrieval gains (recall, MRR) stay clear.
+
+### 2026-10-04 — Experiment I on the test-set statements
+
+150 statements from the final Experiment A answers, labelled by one team member with an
+AI assistant's help (no second annotator): 137 supported, 4 partial, 9 unsupported.
+Result `exp_i_verifiers/20261004-193340`: accuracy lexical 0.76 / NLI 0.68 / LLM judge
+0.86; κ 0.24 / 0.16 / 0.20; unsupported recall 4/9, 5/9, 2/9. Always answering
+"supported" would score 0.913, so accuracy is misleading on these skewed labels.
+
+**What it means:** the deployed NLI verifier is strict. It flagged 41 of 137
+labelled-supported statements (30%) as partial or unsupported, so the system's grounding
+scores (~70%) understate support relative to these labels (91%). Comparisons between
+variants are unaffected (same verifier for all). With only 9 unsupported statements,
+differences between methods are not reliable. Follow-ups (future work): a second
+independent annotator, a larger sample with more unsupported statements, and calibrating
+the NLI threshold on such labels.
+
+### 2026-10-04 — Experiment E built: live data on brand-new patents
+
+The question set is generated, not written: EPO is searched for EP/WO publications from
+2026 (after the LLM's training data) in the three topics; for each, claim 1 and a
+dependent claim become questions, and their EPO claim text is the ground truth
+(`experiments/datasets/live_epo_v1/`, frozen before any run). Building it exposed parser
+cases the importer never met: claim lists that start with a heading ("1. CLAIMS What is
+claimed is:", "Attorney Docket No.: … What is claimed is:"), cancelled ranges ("3.-4.
+(canceled)"), an independent claim ending in "wherein …", WO publications whose claims
+EPO supplies only in Chinese or Japanese, and US publications without full text in OPS.
+The patent search gained an office filter (`(pn=EP or pn=WO)` in CQL), without which
+most hits were Chinese publications without English claims.
+
+### 2026-10-04 — Experiment E results, and a misattribution bug it exposed
+
+Run `exp_e_live/20261004-143512` (30 questions, 15 patents from 2026, 90 answers, none
+failed): live retrieved the asked patent and claim 30/30, claim content 66%, 65% of
+statements supported by the patent; the LLM alone never said it did not know (0/30),
+claim content 2%, 73% of statements unsupported (e.g. EP4815257A1, wireless charging
+object detection, described as "a photovoltaic system").
+
+**Bug found:** without a patent source, the agent answered 15/30 questions by falling back
+to a search of all local documents and attributing a local patent's claim to the asked
+one ("Claim 2 of EP4815257A1 adds … electronic expansion valve … chiller", which is claim
+2 of US20230415612A1). Statement verification cannot catch this: every sentence matches
+its cited passage; only the named patent is wrong. **Fix:** a question naming a patent that
+is neither indexed nor retrievable now ends with "<number> is not in your library and
+could not be retrieved from a patent database"; regression test
+`test_unavailable_patent_number_is_never_answered_from_other_documents` (fails without
+the fix). Re-run of local_only only (`20261004-150821`): 30/30 declined, 2.5 s each. The
+main experiments A–H are unaffected: every patent number in the test set is in the
+corpus.

@@ -1,0 +1,19 @@
+name: exp_h_planner
+description: Rules planner vs. LLM planner (Experiment H).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/real_test_v1/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings: {}
+variants:
+- name: rules
+  pipeline: agentic
+  settings:
+    agent_planner: rules
+  description: ''
+- name: llm
+  pipeline: agentic
+  settings:
+    agent_planner: llm
+  description: ''
+items: null

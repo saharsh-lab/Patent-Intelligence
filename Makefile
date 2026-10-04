@@ -1,7 +1,7 @@
 # Common commands. Run `make help` to list them.
 PY := backend/.venv/bin
 
-.PHONY: help setup setup-ml embed-check web-setup web web-test gen-api db-up db-down db-reset db-shell migrate test lint format run eval eval-dry eval-validate eval-export eval-agreement eval-verifier eval-review eval-rescore eval-tables
+.PHONY: help setup setup-ml embed-check web-setup web web-test gen-api db-up db-down db-reset db-shell migrate test lint format run eval eval-dry eval-validate eval-export eval-live-build eval-live eval-agreement eval-verifier eval-review eval-rescore eval-tables
 
 help:  ## List available commands
 	@grep -E '^[a-z-]+:.*##' Makefile | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
@@ -70,6 +70,12 @@ eval-validate:  ## Check a dataset: make eval-validate DATASET=experiments/datas
 
 eval-export:  ## Export statements for labelling: make eval-export RESULT=experiments/results/<exp>/<run>
 	cd backend && .venv/bin/python -m app.evaluation export-claims --result ../$(RESULT) --sample 150
+
+eval-live-build:  ## Experiment E step 1: fetch new patents live from EPO, freeze the questions
+	cd backend && .venv/bin/python -m app.evaluation live-build --config ../experiments/configs/exp_e_live.yaml
+
+eval-live:  ## Experiment E step 2: live vs local-only vs closed-book answers
+	cd backend && .venv/bin/python -m app.evaluation live-run --config ../experiments/configs/exp_e_live.yaml
 
 eval-agreement:  ## Compare two labellers: make eval-agreement LABELS=experiments/labels/test_claims
 	cd backend && .venv/bin/python -m app.evaluation agreement --a ../$(LABELS)_A.csv --b ../$(LABELS)_B.csv --out ../$(LABELS).csv

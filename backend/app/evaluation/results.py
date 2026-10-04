@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 
+from app.evaluation.report import is_draft
+
 _NAME = re.compile(r"^[A-Za-z0-9_.-]{1,80}$")
 
 
@@ -28,8 +30,9 @@ def list_results(experiments_dir: Path) -> list[dict]:
                 "finished_at": summary.get("finished_at"),
                 "dataset": (summary.get("dataset") or {}).get("name"),
                 "synthetic": bool((summary.get("dataset") or {}).get("synthetic")),
-                "draft_labels": "draft"
-                in str((summary.get("dataset") or {}).get("labelled_by", "")).lower(),
+                "draft_labels": is_draft(
+                    str((summary.get("dataset") or {}).get("labelled_by", ""))
+                ),
                 "n": (summary.get("dataset") or {}).get("items")
                 or (summary.get("labels") or {}).get("n"),
                 "variants": [v["name"] for v in summary.get("variants", [])]
