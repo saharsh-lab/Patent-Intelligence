@@ -36,7 +36,7 @@ Spread them over the item types, so that results can be broken down by type:
 | `multi_passage` | "How is the core temperature estimated?" | combining 2–3 passages |
 | `claim_explanation` | "What does claim 3 add?" (with `scope`) | direct section access, claim reading |
 | `comparison` | "Compare how these two patents cool the cells." (`scope` with 2 docs) | balanced evidence, no cross-source mixing |
-| `similar_search` | "Find patents similar to my battery patent." | external search (needs EPO keys) |
+| `similar_search` | "Find patents similar to my battery patent." | external search (EPO; keys configured) |
 | `patent_lookup` | "What does EP1234567 claim?" | resolving numbers, fetching details |
 | `unanswerable` | "What is the pack's charging power?" (not stated) | abstaining instead of inventing |
 | `legal` | "Does A infringe B?" | refusing legal opinions, reframing as a technical comparison |

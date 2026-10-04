@@ -80,7 +80,7 @@ Chrome with Playwright: upload → ask (Qwen3) → click citation → evidence h
 invalid upload shows readable error; phone width has no horizontal overflow; dark
 mode renders. ✔
 
-### Phase 5 — Patent APIs ✅ (live verification pending EPO keys)
+### Phase 5 — Patent APIs ✅ (verified live 2026-10-04: search, biblio, claims, description, import)
 Built: `PatentSource` interface; EPO OPS v3.2 client (OAuth token caching, CQL query
 builder for keywords/CPC/applicant/date range, search, biblio + claims + description,
 404 = no results, fair-use 403 with `X-Rejection-Reason`); publication-number

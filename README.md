@@ -44,7 +44,7 @@ and [docs/concepts.md](docs/concepts.md) for plain-language explanations.
 | 2 | Document ingestion (PDF/DOCX/TXT → sections → chunks → embeddings) | ✅ |
 | 3 | Basic RAG: hybrid retrieval + cited answers (`POST /ask`) | ✅ |
 | 4 | Web UI: Dashboard, Documents, Ask AI with evidence, Settings | ✅ |
-| 5 | Live patent search (EPO OPS), import patents as evidence | ✅ (awaiting EPO keys for live verification) |
+| 5 | Live patent search (EPO OPS), import patents as evidence | ✅ (verified against the live service, 2026-10-04) |
 | 6 | Agent with tool selection (LangGraph) | ✅ |
 | 7 | Multi-source intelligence: family dedup, similarity ranking, cited comparison tables | ✅ |
 | 8 | Claim-level verification (hallucination detection) + regeneration | ✅ |
@@ -250,8 +250,8 @@ experiments/      datasets, experiment configs, human labels, results (see exper
 
 ## Known limitations (current)
 
-- The EPO client is tested against hand-made responses that follow the OPS v3.2
-  documentation; it has not yet been run against the live service (needs keys).
+- The EPO client is tested against real recorded OPS v3.2 responses (2026-10-04) and the
+  live service; Lens and USPTO clients are not built.
 - Only EPO is implemented; Lens and USPTO clients are planned. Full text (claims,
   description) is only available from EPO for some offices (EP, WO, and a few others).
 - Claim verification is automatic and imperfect: the small NLI model is strict and can flag

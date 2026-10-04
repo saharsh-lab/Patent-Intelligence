@@ -1,0 +1,116 @@
+{
+ "ops:world-patent-data": {
+  "@xmlns": {
+   "ops": "http://ops.epo.org",
+   "$": "http://www.epo.org/exchange",
+   "xlink": "http://www.w3.org/1999/xlink"
+  },
+  "ftxt:fulltext-documents": {
+   "ftxt:fulltext-document": {
+    "@system": "ops.epo.org",
+    "@fulltext-format": "text-only",
+    "bibliographic-data": {
+     "publication-reference": {
+      "@data-format": "docdb",
+      "document-id": {
+       "country": {
+        "$": "EP"
+       },
+       "doc-number": {
+        "$": "4815257"
+       },
+       "kind": {
+        "$": "A1"
+       }
+      }
+     }
+    },
+    "claims": {
+     "@lang": "EN",
+     "claim": {
+      "claim-text": [
+       {
+        "$": "1. A wireless charging system comprising:"
+       },
+       {
+        "$": "a resonant tank comprising a coil;\nan exciter electrically connected to the resonant tank; and\na processing circuit in communication with at least the exciter, the processing circuit configured to:"
+       },
+       {
+        "$": "cause the exciter to excite the resonant tank;\ndetermine a first parameter indicative of inductance of the coil and a second parameter indicative of resistance of the coil associated with the coil being excited; and\ndetect an object based on the first parameter indicating a decrease in inductance and the second parameter indicating an increase in resistance relative to when the object is not present, wherein the object may be a metal object."
+       },
+       {
+        "$": "2. The wireless charging system of Claim 1, wherein the first parameter comprises a resonant frequency of the resonant tank and the second parameter comprises a magnitude of an output voltage of the resonant tank."
+       },
+       {
+        "$": "3. The wireless charging system of Claim 1 or 2, wherein the processing circuit is configured to excite the resonant tank by at least sequentially applying a first plurality of signals to the resonant tank, each of the first plurality of signals generated based on a frequency of a plurality of frequencies, and wherein the processing circuit is configured to determine the first parameter and the second parameter by at least:"
+       },
+       {
+        "$": "measuring an output magnitude at an output terminal of the resonant tank associated with each of the first plurality of signals being applied to the resonant tank to obtain a first plurality of output magnitudes; and\nselecting one of the plurality of frequencies corresponding to a first maximum output magnitude among the first plurality of output magnitudes as a first resonant frequency of the resonant tank,\nwherein the first parameter comprises the first resonant frequency and the second parameter comprises the first maximum output magnitude."
+       },
+       {
+        "$": "4. The wireless charging system of Claim 3, wherein detecting the object comprises:"
+       },
+       {
+        "$": "determining that a first point in a two-dimensional plane representing the first resonant frequency and the first maximum output magnitude falls to a first side of a distribution boundary in the two-dimensional plane; and\nin response to determining that the first point falls to the first side of the distribution boundary in the two-dimensional plane, generating a first processing result to indicate that the object is present on the coil."
+       },
+       {
+        "$": "5. The wireless charging system of Claim 4, wherein the processing circuit is configured to:"
+       },
+       {
+        "$": "cause the exciter to sequentially apply a second plurality of signals to the resonant tank, wherein each of the second plurality of signals is generated based on the frequency of the plurality of frequencies;\nmeasure the output magnitude at the output terminal of the resonant tank when each of the second plurality of signals is applied to the resonant tank to obtain a second plurality of output magnitudes;\nselect one of the plurality of frequencies corresponding to a second maximum output magnitude among the second plurality of output magnitudes as a second resonant frequency of the resonant tank;\ndetermine that a second point in the two-dimensional plane representing the second resonant frequency and the second maximum output magnitude falls to a second side of the distribution boundary in the two-dimensional plane; and\nin response to determining that the second point falls to the second side of the distribution boundary in the two-dimensional plane, generate a second processing result to indicate that the coil is free from objects thereon."
+       },
+       {
+        "$": "6. The wireless charging system of Claim 5, wherein a first temperature associated with the resonant tank while applying the first plurality of signals to the resonant tank is different from a second temperature associated with the resonant tank while applying the second plurality of signals to the resonant tank."
+       },
+       {
+        "$": "7. The wireless charging system of Claim 5 or 6, wherein the processing circuit is configured to:\nbased on the second processing result, cause a wireless charging pad to initiate inductive power transfer to another wireless charging pad."
+       },
+       {
+        "$": "8. The wireless charging system of one of Claims 4 to 7, wherein the distribution boundary comprises a line in the two-dimensional plane, and wherein the first side of the distribution boundary is below the distribution boundary and the second side of the distribution boundary is above the distribution boundary."
+       },
+       {
+        "$": "9. The wireless charging system of one of Claims 4 to 8, wherein the processing circuit is configured to:"
+       },
+       {
+        "$": "demarcate the distribution boundary based on a distribution of a plurality of points in the two-dimensional plane,\nwherein each of the plurality of points represents a resonant frequency of the resonant tank and a maximum output magnitude at the output terminal under a corresponding operating condition associated with the resonant tank without objects present on the coil."
+       },
+       {
+        "$": "10. The wireless charging system of one of Claims 3 to 9, wherein the output magnitude at the output terminal comprises a voltage at the output terminal; and/or\nwherein the plurality of frequencies include or are near a nominal resonant frequency of the resonant tank."
+       },
+       {
+        "$": "11. A method of object detection for wireless charging, the method comprising:"
+       },
+       {
+        "$": "exciting a resonant tank of a wireless charging pad, the resonant tank comprising a coil; and\nwhile the resonant tank is excited, detecting an object on the wireless charging pad based on a resistance of the coil increasing and an inductance of the coil decreasing."
+       },
+       {
+        "$": "12. The method of claim 11 wherein:\nan exciter is caused to excite the resonant tank; and further comprising:"
+       },
+       {
+        "$": "determining a first parameter indicative of the inductance of the coil and a second parameter indicative of the resistance of the coil associated with the coil being excited; and\ndetecting the object based on the first parameter and the second parameter relative to when the object is not present"
+       },
+       {
+        "$": "13. The method of Claim 11 or 12, wherein exciting the resonant tank comprises sequentially applying a first plurality of signals to the resonant tank, each of the first plurality of signals generated based on a frequency of a plurality of frequencies, and preferably wherein determining the first parameter and the second parameter comprises:"
+       },
+       {
+        "$": "measuring an output magnitude at an output terminal of the resonant tank when each of the first plurality of signals is applied to the resonant tank to obtain a first plurality of output magnitudes; and\nselecting one of the plurality of frequencies corresponding to a first maximum output magnitude among the first plurality of output magnitudes as a first resonant frequency of the resonant tank,\nwherein the first parameter comprises the first resonant frequency and the second parameter comprises the first maximum output magnitude."
+       },
+       {
+        "$": "14. The method of Claim 13, wherein detecting the object comprises:"
+       },
+       {
+        "$": "determining that a first point in a two-dimensional plane representing the first resonant frequency and the first maximum output magnitude falls to a first side of a distribution boundary in the two-dimensional plane; and\nin response to determining that the first point falls to the first side of the distribution boundary in the two-dimensional plane, generating a first processing result to indicate that the object is present on the wireless charging pad."
+       },
+       {
+        "$": "15. The method of Claim 14, further comprising:"
+       },
+       {
+        "$": "causing the exciter to sequentially apply a second plurality of signals to the resonant tank, wherein each of the second plurality of signals is generated based on the frequency of the plurality of frequencies;\nmeasuring the output magnitude at the output terminal of the resonant tank when each of the second plurality of signals is applied to the resonant tank to obtain a second plurality of output magnitudes;\nselecting one of the plurality of frequencies corresponding to a second maximum output magnitude among the second plurality of output magnitudes as a second resonant frequency of the resonant tank;\ndetermining that a second point in the two-dimensional plane representing the second resonant frequency and the second maximum output magnitude falls to a second side of the distribution boundary in the two-dimensional plane; and\nin response to determining that the second point falls to the second side of the distribution boundary in the two-dimensional plane, generating a second processing result to indicate that the wireless charging pad is free from objects thereon."
+       }
+      ]
+     }
+    }
+   }
+  }
+ }
+}

@@ -294,3 +294,13 @@ give 2,500–3,000-token prompts.
    per question. The run above predates this, so its latency comparison favours the agent.
 4. **Consequence for the methodology:** real_v1 has now been used for tuning, so it is a
    dev set; the team must write the test questions independently.
+
+### 2026-10-04 — First contact with the live EPO OPS service
+
+**Seen:** with real credentials, the EPO client worked on the first attempt: OAuth token,
+CQL search ("wireless charging foreign object detection": 212 results, newest published
+2026-09-30), bibliographic data, claims (8,489 characters) and description (51,063
+characters) for EP4815257A1; importing it produced 63 passages with all sections detected
+and one passage per claim (26). The real responses are recorded in
+`tests/fixtures/epo/recorded_*.json` and parsed by the test suite (the formerly skipped
+test now runs), so a future change in EPO's response format shows up as a failing test.

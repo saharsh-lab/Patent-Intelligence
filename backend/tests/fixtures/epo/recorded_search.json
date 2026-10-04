@@ -1,0 +1,5234 @@
+{
+ "ops:world-patent-data": {
+  "@xmlns": {
+   "ops": "http://ops.epo.org",
+   "$": "http://www.epo.org/exchange",
+   "xlink": "http://www.w3.org/1999/xlink"
+  },
+  "ops:biblio-search": {
+   "@total-result-count": "212",
+   "@publications-count": "10",
+   "ops:query": {
+    "$": "ta all \"wireless charging foreign object detection\"",
+    "@syntax": "CQL"
+   },
+   "ops:range": {
+    "@begin": "1",
+    "@end": "10"
+   },
+   "ops:search-result": {
+    "exchange-documents": [
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "99057516",
+       "@country": "EP",
+       "@doc-number": "4815257",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "EP"
+           },
+           "doc-number": {
+            "$": "4815257"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260930"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "EP4815257"
+           },
+           "date": {
+            "$": "20260930"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "B60L  53/   124            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "H02J  50/    12            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "B"
+           },
+           "class": {
+            "$": "60"
+           },
+           "subclass": {
+            "$": "L"
+           },
+           "main-group": {
+            "$": "53"
+           },
+           "subgroup": {
+            "$": "122"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "B"
+           },
+           "class": {
+            "$": "60"
+           },
+           "subclass": {
+            "$": "L"
+           },
+           "main-group": {
+            "$": "53"
+           },
+           "subgroup": {
+            "$": "124"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "B"
+           },
+           "class": {
+            "$": "60"
+           },
+           "subclass": {
+            "$": "L"
+           },
+           "main-group": {
+            "$": "53"
+           },
+           "subgroup": {
+            "$": "38"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "4",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "5",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "646558859",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "EP"
+           },
+           "doc-number": {
+            "$": "26165647"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20260318"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "EP20260165647"
+           },
+           "date": {
+            "$": "20260318"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "26165647.4"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "US"
+            },
+            "doc-number": {
+             "$": "202563779988"
+            },
+            "kind": {
+             "$": "P"
+            },
+            "date": {
+             "$": "20250328"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "US202563779988P"
+            },
+            "date": {
+             "$": "20250328"
+            }
+           },
+           {
+            "@document-id-type": "original",
+            "doc-number": {
+             "$": "202563779988 P"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "TESLA INC [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "Tesla, Inc."
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "O'MEARA SUZANNE [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "O'MEARA, Suzanne"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "OBJEKTERKENNUNG BEIM DRAHTLOSEN LADEN",
+          "@lang": "de"
+         },
+         {
+          "$": "D\u00c9TECTION D'OBJET DANS UNE CHARGE SANS FIL",
+          "@lang": "fr"
+         },
+         {
+          "$": "OBJECT DETECTION IN WIRELESS CHARGING",
+          "@lang": "en"
+         }
+        ],
+        "references-cited": {
+         "citation": [
+          {
+           "@cited-phase": "national-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "1",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "1",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "EP3654491"
+              },
+              "name": {
+               "$": "LG ELECTRONICS INC [KR]"
+              },
+              "date": {
+               "$": "20200520"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "EP"
+              },
+              "doc-number": {
+               "$": "3654491"
+              },
+              "kind": {
+               "$": "A1"
+              },
+              "name": {
+               "$": "LG ELECTRONICS INC [KR]"
+              },
+              "date": {
+               "$": "20200520"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "Y"
+           },
+           "rel-claims": {
+            "$": "4-9,14-15"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* paragraphs  [0171] - [0177] - [0228] - [0230] - [0298] - [0303], figures 2,8,10-17 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "national-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "2",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "2",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "WO2025054019"
+              },
+              "name": {
+               "$": "APPLE INC [US]"
+              },
+              "date": {
+               "$": "20250313"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "WO"
+              },
+              "doc-number": {
+               "$": "2025054019"
+              },
+              "kind": {
+               "$": "A1"
+              },
+              "name": {
+               "$": "APPLE INC [US]"
+              },
+              "date": {
+               "$": "20250313"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "Y"
+           },
+           "rel-claims": {
+            "$": "4-9,14-15"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* paragraphs  [0003] - [0010] - [0044] - [0072], figures 9,16-21 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "national-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "3",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "3",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "US2019312468"
+              },
+              "name": {
+               "$": "KWON YONG IL [KR] ET AL"
+              },
+              "date": {
+               "$": "20191010"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "US"
+              },
+              "doc-number": {
+               "$": "2019312468"
+              },
+              "kind": {
+               "$": "A1"
+              },
+              "name": {
+               "$": "KWON YONG IL [KR] ET AL"
+              },
+              "date": {
+               "$": "20191010"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-15"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* paragraphs  [0011] - [0016] - [0019] - [0027] - [0101] - [0121], figures 8-16 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "national-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "4",
+           "nplcit": {
+            "@num": "1",
+            "text": {
+             "$": "- YANG ZIYUE ET AL: \"Bivariate Detection-Based Dual-Mode Metal Object Detection System for Wireless EV Charging\", IEEE JOURNAL OF EMERGING AND SELECTED TOPICS IN POWER ELECTRONICS IEEE, PISCATAWAY, NJ, USA, vol. 13, no. 4, 30 August 2024 (2024-08-30), pages 4029 - 4044, XP034947554, ISSN: 2168-6777, [retrieved on 20240830], DOI: 10.1109/JESTPE.2024.3452186"
+            }
+           },
+           "category": [
+            {
+             "$": "X"
+            },
+            {
+             "$": "Y"
+            }
+           ],
+           "rel-claims": [
+            {
+             "$": "1-3,10-13"
+            },
+            {
+             "$": "4-9,14-15"
+            }
+           ],
+           "rel-passage": {
+            "passage": {
+             "$": "* page  4029  - page  4043 *"
+            }
+           }
+          }
+         ]
+        }
+       },
+       "abstract": {
+        "@lang": "en",
+        "p": {
+         "$": "The present disclosure relates to methods and systems that can reliably detect foreign objects on a wireless charging pad under varying temperatures. In some examples, an object detector can utilize a set of inductive coils included in resonant tanks, and excite the resonant tanks using signals in a range of frequencies including or near a nominal resonant frequency of the resonant tanks. The object detector can detect a metal object based on resistance of a coil increasing and inductance of the coil decreasing. By analyzing the shifts and/or distributions in resonant frequencies and output magnitudes (e.g., output voltage peaks), the object detector can distinguish between changes of frequencies and magnitudes caused by temperature and those caused by foreign objects to accurately detect the foreign objects."
+        }
+       }
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "101435992",
+       "@country": "US",
+       "@doc-number": "20260299157",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "US"
+           },
+           "doc-number": {
+            "$": "20260299157"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20261001"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "US20260299157"
+           },
+           "date": {
+            "$": "20261001"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "G01V   3/    10            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "H02J  50/    12            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "G"
+           },
+           "class": {
+            "$": "01"
+           },
+           "subclass": {
+            "$": "V"
+           },
+           "main-group": {
+            "$": "3"
+           },
+           "subgroup": {
+            "$": "101"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "656738273",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "US"
+           },
+           "doc-number": {
+            "$": "202619566418"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20260313"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "US202619566418"
+           },
+           "date": {
+            "$": "20260313"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "19566418"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": [
+          {
+           "@sequence": "1",
+           "@kind": "national",
+           "document-id": [
+            {
+             "@document-id-type": "docdb",
+             "country": {
+              "$": "US"
+             },
+             "doc-number": {
+              "$": "202563779988"
+             },
+             "kind": {
+              "$": "P"
+             },
+             "date": {
+              "$": "20250328"
+             }
+            },
+            {
+             "@document-id-type": "epodoc",
+             "doc-number": {
+              "$": "US202563779988P"
+             },
+             "date": {
+              "$": "20250328"
+             }
+            },
+            {
+             "@document-id-type": "original",
+             "doc-number": {
+              "$": "63779988"
+             }
+            }
+           ]
+          },
+          {
+           "@sequence": "2",
+           "@kind": "national",
+           "document-id": [
+            {
+             "@document-id-type": "docdb",
+             "country": {
+              "$": "US"
+             },
+             "doc-number": {
+              "$": "202619566418"
+             },
+             "kind": {
+              "$": "A"
+             },
+             "date": {
+              "$": "20260313"
+             }
+            },
+            {
+             "@document-id-type": "epodoc",
+             "doc-number": {
+              "$": "US202619566418"
+             },
+             "date": {
+              "$": "20260313"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "TESLA INC [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "Tesla, Inc."
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "O'MEARA SUZANNE [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "O'Meara, Suzanne"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": {
+         "$": "OBJECT DETECTION IN WIRELESS CHARGING",
+         "@lang": "en"
+        }
+       },
+       "abstract": {
+        "@lang": "en",
+        "p": {
+         "$": "[0000]    The present disclosure relates to methods and systems that can reliably detect foreign objects on a wireless charging pad under varying temperatures. In some examples, an object detector can utilize a set of inductive coils included in resonant tanks, and excite the resonant tanks using signals in a range of frequencies including or near a nominal resonant frequency of the resonant tanks. The object detector can detect a metal object based on resistance of a coil increasing and inductance of the coil decreasing. By analyzing the shifts and/or distributions in resonant frequencies and output magnitudes (e.g., output voltage peaks), the object detector can distinguish between changes of frequencies and magnitudes caused by temperature and those caused by foreign objects to accurately detect the foreign objects."
+        }
+       }
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "101299107",
+       "@country": "WO",
+       "@doc-number": "2026189482",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "WO"
+           },
+           "doc-number": {
+            "$": "2026189482"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260917"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2026189482"
+           },
+           "date": {
+            "$": "20260917"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": {
+          "@sequence": "1",
+          "text": {
+           "$": "H02J  50/    60            A I"
+          }
+         }
+        },
+        "patent-classifications": {},
+        "application-reference": {
+         "@doc-id": "656359323",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "2026083062"
+           },
+           "kind": {
+            "$": "W"
+           },
+           "date": {
+            "$": "20260312"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2026CN83062"
+           },
+           "date": {
+            "$": "20260312"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "CN2026/083062"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": [
+          {
+           "@sequence": "1",
+           "@kind": "national",
+           "document-id": [
+            {
+             "@document-id-type": "docdb",
+             "country": {
+              "$": "CN"
+             },
+             "doc-number": {
+              "$": "202510310224"
+             },
+             "kind": {
+              "$": "A"
+             },
+             "date": {
+              "$": "20250314"
+             }
+            },
+            {
+             "@document-id-type": "epodoc",
+             "doc-number": {
+              "$": "CN202510310224"
+             },
+             "date": {
+              "$": "20250314"
+             }
+            },
+            {
+             "@document-id-type": "original",
+             "doc-number": {
+              "$": "202510310224.0"
+             }
+            }
+           ]
+          },
+          {
+           "@sequence": "2",
+           "@kind": "national",
+           "document-id": [
+            {
+             "@document-id-type": "docdb",
+             "country": {
+              "$": "CN"
+             },
+             "doc-number": {
+              "$": "202510457582"
+             },
+             "kind": {
+              "$": "A"
+             },
+             "date": {
+              "$": "20250411"
+             }
+            },
+            {
+             "@document-id-type": "epodoc",
+             "doc-number": {
+              "$": "CN202510457582"
+             },
+             "date": {
+              "$": "20250411"
+             }
+            },
+            {
+             "@document-id-type": "original",
+             "doc-number": {
+              "$": "202510457582.4"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "HUAWEI TECH CO LTD [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u534e\u4e3a\u6280\u672f\u6709\u9650\u516c\u53f8"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "YU WENCHAO [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "TAN RONGLONG [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "QIN JIAYI [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "DUAN WENJIE [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "5",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "LI JUNJIE [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u4e8e\u6587\u8d85"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u8c2d\u8363\u9f99"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u79e6\u4f73\u6021"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u6bb5\u6587\u6770"
+             }
+            }
+           },
+           {
+            "@sequence": "5",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u674e\u4fca\u6770"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "PROC\u00c9D\u00c9 DE D\u00c9TECTION D'OBJET \u00c9TRANGER DANS UNE CHARGE SANS FIL, ET DISPOSITIF \u00c9LECTRONIQUE ET SYST\u00c8ME",
+          "@lang": "fr"
+         },
+         {
+          "$": "METHOD FOR DETECTING FOREIGN OBJECT IN WIRELESS CHARGING, AND ELECTRONIC DEVICE AND SYSTEM",
+          "@lang": "en"
+         },
+         {
+          "$": "\u4e00\u79cd\u65e0\u7ebf\u5145\u7535\u5f02\u7269\u68c0\u6d4b\u65b9\u6cd5\u3001\u7535\u5b50\u8bbe\u5907\u53ca\u7cfb\u7edf",
+          "@lang": "ol"
+         }
+        ]
+       },
+       "abstract": [
+        {
+         "@lang": "en",
+         "p": {
+          "$": "Provided in the present application are a method for detecting a foreign object in wireless charging, and an electronic device and a system. The method comprises: receiving a first signal sent by a second device; on the basis of the first signal, outputting a first ping voltage to a second device, and measuring a first ping current of a first device, wherein the first ping current is a ping current fed back by means of coupling between the second device and a magnetic field; if the first ping current is greater than a preset threshold, determining that there is a foreign object between the first device and the second device, and the first device not receiving a charging current from the second device; and if the first ping current is less than or equal to the preset threshold, determining that there is no foreign object between the first device and the second device, and the first device receiving the charging current from the second device. The present application enables unrestricted application scenarios, and achieves a better detection effect (e.g., a higher detection accuracy, a shorter detection time, etc.), thereby improving the efficiency and safety of wireless charging."
+         }
+        },
+        {
+         "@lang": "fr",
+         "p": {
+          "$": "Sont pr\u00e9vus dans la pr\u00e9sente demande un proc\u00e9d\u00e9 de d\u00e9tection d'un objet \u00e9tranger dans une charge sans fil, et un dispositif \u00e9lectronique et un syst\u00e8me. Le proc\u00e9d\u00e9 consiste \u00e0 : recevoir un premier signal envoy\u00e9 par un second dispositif ; sur la base du premier signal, d\u00e9livrer une premi\u00e8re tension ping \u00e0 un second dispositif, et mesurer un premier courant ping d'un premier dispositif, le premier courant ping \u00e9tant un courant ping renvoy\u00e9 au moyen d'un couplage entre le second dispositif et un champ magn\u00e9tique ; si le premier courant ping est sup\u00e9rieur \u00e0 un seuil pr\u00e9d\u00e9fini, d\u00e9terminer qu'il existe un objet \u00e9tranger entre le premier dispositif et le second dispositif, et le premier dispositif ne re\u00e7oit pas de courant de charge provenant du second dispositif ; et si le premier courant ping est inf\u00e9rieur ou \u00e9gal au seuil pr\u00e9d\u00e9fini, d\u00e9terminer qu'il n'y a pas d'objet \u00e9tranger entre le premier dispositif et le second dispositif, et le premier dispositif re\u00e7oit le courant de charge provenant du second dispositif. La pr\u00e9sente demande permet des sc\u00e9narios d'application illimit\u00e9s, et permet d'obtenir un meilleur effet de d\u00e9tection (par exemple, une pr\u00e9cision de d\u00e9tection plus \u00e9lev\u00e9e, un temps de d\u00e9tection plus court, etc.), ce qui permet d'am\u00e9liorer l'efficacit\u00e9 et la s\u00e9curit\u00e9 de la charge sans fil."
+         }
+        },
+        {
+         "@lang": "ol",
+         "p": {
+          "$": "\u672c\u7533\u8bf7\u63d0\u4f9b\u4e86\u4e00\u79cd\u65e0\u7ebf\u5145\u7535\u5f02\u7269\u68c0\u6d4b\u65b9\u6cd5\u3001\u7535\u5b50\u8bbe\u5907\u53ca\u7cfb\u7edf\uff0c\u8be5\u65b9\u6cd5\u5305\u62ec\uff1a\u63a5\u6536\u7b2c\u4e8c\u8bbe\u5907\u53d1\u9001\u7684\u7b2c\u4e00\u4fe1\u53f7\uff1b\u6839\u636e\u7b2c\u4e00\u4fe1\u53f7\u5411\u7b2c\u4e8c\u8bbe\u5907\u8f93\u51fa\u7b2c\u4e00ping\u7535\u538b\uff0c\u5e76\u68c0\u6d4b\u7b2c\u4e00\u8bbe\u5907\u7684\u7b2c\u4e00ping\u7535\u6d41\uff0c\u7b2c\u4e00ping\u7535\u6d41\u4e3a\u901a\u8fc7\u7b2c\u4e8c\u8bbe\u5907\u4e0e\u78c1\u573a\u8026\u5408\u53cd\u9988\u7684ping\u7535\u6d41\uff1b\u82e5\u7b2c\u4e00ping\u7535\u6d41\u5927\u4e8e\u9884\u8bbe\u9608\u503c\uff0c\u5219\u786e\u5b9a\u7b2c\u4e00\u8bbe\u5907\u548c\u7b2c\u4e8c\u8bbe\u5907\u95f4\u5b58\u5728\u5f02\u7269\uff0c\u7b2c\u4e00\u8bbe\u5907\u4e0d\u63a5\u6536\u7b2c\u4e8c\u8bbe\u5907\u7684\u5145\u7535\u7535\u6d41\uff1b\u82e5\u7b2c\u4e00ping\u7535\u6d41\u5c0f\u4e8e\u6216\u7b49\u4e8e\u9884\u8bbe\u9608\u503c\uff0c\u5219\u786e\u5b9a\u7b2c\u4e00\u8bbe\u5907\u548c\u7b2c\u4e8c\u8bbe\u5907\u95f4\u4e0d\u5b58\u5728\u5f02\u7269\uff0c\u7b2c\u4e00\u8bbe\u5907\u63a5\u6536\u7b2c\u4e8c\u8bbe\u5907\u7684\u5145\u7535\u7535\u6d41\u3002\u672c\u7533\u8bf7\u80fd\u591f\u4f7f\u5f97\u4f7f\u7528\u573a\u666f\u4e0d\u53d7\u9650\u5236\uff0c\u5e76\u4e14\u68c0\u6d4b\u6548\u679c\u8f83\u597d(\u4f8b\u5982\u68c0\u6d4b\u7684\u51c6\u786e\u5ea6\u66f4\u9ad8\u3001\u68c0\u6d4b\u65f6\u95f4\u66f4\u77ed\u7b49)\uff0c\u4ece\u800c\u63d0\u5347\u4e86\u65e0\u7ebf\u5145\u7535\u7684\u6548\u7387\u548c\u5b89\u5168\u6027\u3002"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "101024146",
+       "@country": "WO",
+       "@doc-number": "2026175159",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "WO"
+           },
+           "doc-number": {
+            "$": "2026175159"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260827"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2026175159"
+           },
+           "date": {
+            "$": "20260827"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "B60L  53/   126            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "H02J  50/    00            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "H02J  50/    12            A I"
+           }
+          },
+          {
+           "@sequence": "4",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          },
+          {
+           "@sequence": "5",
+           "text": {
+            "$": "H02J  50/    70            A I"
+           }
+          },
+          {
+           "@sequence": "6",
+           "text": {
+            "$": "H02J  50/    80            A I"
+           }
+          },
+          {
+           "@sequence": "7",
+           "text": {
+            "$": "H02J  50/    90            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "B"
+           },
+           "class": {
+            "$": "60"
+           },
+           "subclass": {
+            "$": "L"
+           },
+           "main-group": {
+            "$": "53"
+           },
+           "subgroup": {
+            "$": "126"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "00"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "4",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "5",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "70"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "6",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "80"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "7",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "90"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "654862547",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "2026076718"
+           },
+           "kind": {
+            "$": "W"
+           },
+           "date": {
+            "$": "20260203"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2026CN76718"
+           },
+           "date": {
+            "$": "20260203"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "CN2026/076718"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": [
+          {
+           "@sequence": "1",
+           "@kind": "national",
+           "document-id": [
+            {
+             "@document-id-type": "docdb",
+             "country": {
+              "$": "CN"
+             },
+             "doc-number": {
+              "$": "202510202706"
+             },
+             "kind": {
+              "$": "A"
+             },
+             "date": {
+              "$": "20250221"
+             }
+            },
+            {
+             "@document-id-type": "epodoc",
+             "doc-number": {
+              "$": "CN202510202706"
+             },
+             "date": {
+              "$": "20250221"
+             }
+            },
+            {
+             "@document-id-type": "original",
+             "doc-number": {
+              "$": "202510202706.4"
+             }
+            }
+           ]
+          },
+          {
+           "@sequence": "2",
+           "@kind": "national",
+           "document-id": [
+            {
+             "@document-id-type": "docdb",
+             "country": {
+              "$": "CN"
+             },
+             "doc-number": {
+              "$": "202520295192"
+             },
+             "kind": {
+              "$": "U"
+             },
+             "date": {
+              "$": "20250221"
+             }
+            },
+            {
+             "@document-id-type": "epodoc",
+             "doc-number": {
+              "$": "CN202520295192U"
+             },
+             "date": {
+              "$": "20250221"
+             }
+            },
+            {
+             "@document-id-type": "original",
+             "doc-number": {
+              "$": "202520295192.7"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "INTDEVICE LTD [NZ]"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "INTDEVICE TECH WUXI CO LTD [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u82f1\u7279\u8fea\u65af\u79d1\u6280\u6709\u9650\u516c\u53f8"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u82f1\u7279\u8fea\u65af\u79d1\u6280\uff08\u65e0\u9521\uff09\u6709\u9650\u516c\u53f8"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "YU LIJUN [NZ]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u4e8e\u7acb\u519b"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "APPAREIL DE CHARGE SANS FIL",
+          "@lang": "fr"
+         },
+         {
+          "$": "WIRELESS CHARGING APPARATUS",
+          "@lang": "en"
+         },
+         {
+          "$": "\u65e0\u7ebf\u5145\u7535\u88c5\u7f6e",
+          "@lang": "ol"
+         }
+        ],
+        "references-cited": {
+         "citation": [
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "1",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "1",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN120056771"
+              },
+              "name": {
+               "$": "INTDEVICE LTD."
+              },
+              "date": {
+               "$": "20250530"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "120056771"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "INTDEVICE LTD."
+              },
+              "date": {
+               "$": "20250530"
+              }
+             }
+            ]
+           },
+           "category": [
+            {
+             "$": "P"
+            },
+            {
+             "$": "X"
+            }
+           ],
+           "rel-claims": [
+            {
+             "$": "1-19"
+            },
+            {
+             "$": "1-19"
+            }
+           ],
+           "rel-passage": {
+            "passage": {
+             "$": "* claims 1-19 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "2",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "2",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN120056772"
+              },
+              "name": {
+               "$": "INTDEVICE LTD."
+              },
+              "date": {
+               "$": "20250530"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "120056772"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "INTDEVICE LTD."
+              },
+              "date": {
+               "$": "20250530"
+              }
+             }
+            ]
+           },
+           "category": [
+            {
+             "$": "P"
+            },
+            {
+             "$": "X"
+            }
+           ],
+           "rel-claims": [
+            {
+             "$": "1-19"
+            },
+            {
+             "$": "1-19"
+            }
+           ],
+           "rel-passage": {
+            "passage": {
+             "$": "* description, specific embodiments, and figures 1-7 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "3",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "3",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN223890820"
+              },
+              "name": {
+               "$": "INTDEVICE LTD."
+              },
+              "date": {
+               "$": "20260210"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "223890820"
+              },
+              "kind": {
+               "$": "U"
+              },
+              "name": {
+               "$": "INTDEVICE LTD."
+              },
+              "date": {
+               "$": "20260210"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "E"
+           },
+           "rel-claims": {
+            "$": "1-19"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* claims 1-19 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "4",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "4",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN109177761"
+              },
+              "name": {
+               "$": "JILIN UNIVERSITY"
+              },
+              "date": {
+               "$": "20190111"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "109177761"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "JILIN UNIVERSITY"
+              },
+              "date": {
+               "$": "20190111"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "X"
+           },
+           "rel-claims": {
+            "$": "1-19"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* description, specific embodiments, and figures 3-5 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "5",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "5",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN218997780"
+              },
+              "name": {
+               "$": "CATL (SHANGHAI"
+              },
+              "date": {
+               "$": "20230509"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "218997780"
+              },
+              "kind": {
+               "$": "U"
+              },
+              "name": {
+               "$": "CATL (SHANGHAI"
+              },
+              "date": {
+               "$": "20230509"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "X"
+           },
+           "rel-claims": {
+            "$": "1-19"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* description, specific embodiments, and figures 1-5 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "6",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "6",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "KR20160083343"
+              },
+              "name": {
+               "$": "KBAUTOTECH CO., LTD."
+              },
+              "date": {
+               "$": "20160712"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "KR"
+              },
+              "doc-number": {
+               "$": "20160083343"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "KBAUTOTECH CO., LTD."
+              },
+              "date": {
+               "$": "20160712"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "X"
+           },
+           "rel-claims": {
+            "$": "1-19"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* description, specific embodiments, and figures 1-9 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "7",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "7",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN108819748"
+              },
+              "name": {
+               "$": "BEIJING GUODIAN GUANGYU TECHNOLOGY DEVELOPMENT CO., LTD."
+              },
+              "date": {
+               "$": "20181116"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "108819748"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "BEIJING GUODIAN GUANGYU TECHNOLOGY DEVELOPMENT CO., LTD."
+              },
+              "date": {
+               "$": "20181116"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-19"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          }
+         ]
+        }
+       },
+       "abstract": [
+        {
+         "@lang": "en",
+         "p": {
+          "$": "Disclosed is a wireless charging apparatus, comprising a receiving coil (8), a housing (2), and a transmitting coil (6); an insertion opening is provided at an end of the housing; when the transmitting coil has fully entered the interior of the housing through the insertion opening, the insertion opening fixes the transmitting coil in place, the transmitting coil directly faces and is in a matched state with the receiving coil, and the gap and offset between the two are less than or equal to a set threshold. The wireless charging apparatus can not only reduce coil misalignment during charging and reduce the coil surface area, but can also reduce the need for foreign object detection and reduce electromagnetic radiation, thereby ensuring charging efficiency while also ensuring charging safety and reducing the manufacturing cost of the charging apparatus."
+         }
+        },
+        {
+         "@lang": "fr",
+         "p": {
+          "$": "La pr\u00e9sente invention concerne un appareil de charge sans fil, comprenant une bobine de r\u00e9ception (8), un bo\u00eetier (2) et une bobine de transmission (6) ; une ouverture d'insertion est dispos\u00e9e au niveau d'une extr\u00e9mit\u00e9 du bo\u00eetier ; lorsque la bobine de transmission a enti\u00e8rement p\u00e9n\u00e9tr\u00e9 \u00e0 l'int\u00e9rieur du bo\u00eetier \u00e0 travers l'ouverture d'insertion, l'ouverture d'insertion fixe la bobine de transmission en position, la bobine de transmission fait directement face \u00e0 la bobine de r\u00e9ception et se trouve dans un \u00e9tat de correspondance avec celle-ci, et l'espace ainsi que le d\u00e9calage entre les deux sont inf\u00e9rieurs ou \u00e9gaux \u00e0 un seuil d\u00e9fini. L'appareil de charge sans fil peut non seulement r\u00e9duire le d\u00e9salignement des bobines pendant la charge et r\u00e9duire la surface sp\u00e9cifique des bobines, mais peut \u00e9galement r\u00e9duire la n\u00e9cessit\u00e9 d'une d\u00e9tection de corps \u00e9trangers et r\u00e9duire le rayonnement \u00e9lectromagn\u00e9tique, ce qui permet de garantir l'efficacit\u00e9 de charge tout en garantissant \u00e9galement la s\u00e9curit\u00e9 de charge et en r\u00e9duisant le co\u00fbt de fabrication de l'appareil de charge."
+         }
+        },
+        {
+         "@lang": "ol",
+         "p": {
+          "$": "\u516c\u5f00\u4e86\u4e00\u79cd\u65e0\u7ebf\u5145\u7535\u88c5\u7f6e\uff0c\u5305\u62ec\u63a5\u6536\u7ebf\u5708\uff088\uff09\u3001\u58f3\u4f53\uff082\uff09\u548c\u53d1\u5c04\u7ebf\u5708\uff086\uff09\uff1b\u58f3\u4f53\u7684\u7aef\u90e8\u8bbe\u6709\u63d2\u5165\u53e3\uff1b\u5f53\u53d1\u5c04\u7ebf\u5708\u4ece\u63d2\u5165\u53e3\u5b8c\u5168\u8fdb\u5165\u81f3\u58f3\u4f53\u7684\u5185\u90e8\u540e\uff0c\u63d2\u5165\u53e3\u56fa\u5b9a\u53d1\u5c04\u7ebf\u5708\uff0c\u53d1\u5c04\u7ebf\u5708\u4e0e\u63a5\u6536\u7ebf\u5708\u6b63\u5bf9\u5e76\u5904\u4e8e\u5339\u914d\u72b6\u6001\uff0c\u4e14\u4e8c\u8005\u4e4b\u95f4\u7684\u95f4\u9699\u548c\u504f\u79fb\u5c0f\u4e8e\u6216\u7b49\u4e8e\u8bbe\u5b9a\u9608\u503c\u3002\u8be5\u65e0\u7ebf\u5145\u7535\u88c5\u7f6e\u4e0d\u4ec5\u53ef\u4ee5\u51cf\u5c0f\u5145\u7535\u65f6\u7ebf\u5708\u9519\u4f4d\uff0c\u51cf\u5c0f\u7ebf\u5708\u9762\u79ef\uff0c\u800c\u4e14\u80fd\u964d\u4f4e\u5bf9\u5f02\u7269\u68c0\u6d4b\u7684\u9700\u6c42\uff0c\u51cf\u5c11\u7535\u78c1\u8f90\u5c04\uff0c\u4ece\u800c\u5728\u4fdd\u8bc1\u5145\u7535\u6548\u7387\u7684\u540c\u65f6\u4fdd\u8bc1\u4e86\u5145\u7535\u5b89\u5168\u4ee5\u53ca\u964d\u4f4e\u5145\u7535\u88c5\u7f6e\u7684\u5236\u9020\u6210\u672c\u3002"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "100915917",
+       "@country": "WO",
+       "@doc-number": "2026170871",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "WO"
+           },
+           "doc-number": {
+            "$": "2026170871"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260820"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2026170871"
+           },
+           "date": {
+            "$": "20260820"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": {
+          "@sequence": "1",
+          "text": {
+           "$": "H02J  50/    60            A I"
+          }
+         }
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "10"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "10"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "40"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "4",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "40"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "5",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "6",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "7",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "70"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "8",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "70"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "9",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "7"
+           },
+           "subgroup": {
+            "$": "70"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "654537366",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "2025146852"
+           },
+           "kind": {
+            "$": "W"
+           },
+           "date": {
+            "$": "20251229"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2025CN146852"
+           },
+           "date": {
+            "$": "20251229"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "CN2025/146852"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "CN"
+            },
+            "doc-number": {
+             "$": "202510175904"
+            },
+            "kind": {
+             "$": "A"
+            },
+            "date": {
+             "$": "20250217"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "CN202510175904"
+            },
+            "date": {
+             "$": "20250217"
+            }
+           },
+           {
+            "@document-id-type": "original",
+            "doc-number": {
+             "$": "202510175904.6"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "HUAWEI TECH CO LTD [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u534e\u4e3a\u6280\u672f\u6709\u9650\u516c\u53f8"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "YANG CHENGJUN [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "GUO RUI [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "WANG ZHAO [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u6768\u6210\u519b"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u90ed\u745e"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u738b\u671d"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "PROC\u00c9D\u00c9 DE D\u00c9TECTION D'OBJET \u00c9TRANGER ET APPAREIL DE CHARGE",
+          "@lang": "fr"
+         },
+         {
+          "$": "FOREIGN OBJECT DETECTION METHOD AND CHARGING APPARATUS",
+          "@lang": "en"
+         },
+         {
+          "$": "\u5f02\u7269\u68c0\u6d4b\u65b9\u6cd5\u53ca\u5145\u7535\u88c5\u7f6e",
+          "@lang": "ol"
+         }
+        ],
+        "references-cited": {
+         "citation": [
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "1",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "1",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "WO2024095592"
+              },
+              "name": {
+               "$": "CANON K.K."
+              },
+              "date": {
+               "$": "20240510"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "WO"
+              },
+              "doc-number": {
+               "$": "2024095592"
+              },
+              "kind": {
+               "$": "A1"
+              },
+              "name": {
+               "$": "CANON K.K."
+              },
+              "date": {
+               "$": "20240510"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "X"
+           },
+           "rel-claims": {
+            "$": "1-14"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* description, paragraphs 10-308, and figures 1-14 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "2",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "2",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN112737148"
+              },
+              "name": {
+               "$": "GOERTEK INC."
+              },
+              "date": {
+               "$": "20210430"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "112737148"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "GOERTEK INC."
+              },
+              "date": {
+               "$": "20210430"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-14"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "3",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "3",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN117118097"
+              },
+              "name": {
+               "$": "HONOR DEVICE CO., LTD."
+              },
+              "date": {
+               "$": "20231124"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "117118097"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "HONOR DEVICE CO., LTD."
+              },
+              "date": {
+               "$": "20231124"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-14"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "4",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "4",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN111245107"
+              },
+              "name": {
+               "$": "INTEGRATED DEVICE TECHNOLOGY, INC."
+              },
+              "date": {
+               "$": "20200605"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "111245107"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "INTEGRATED DEVICE TECHNOLOGY, INC."
+              },
+              "date": {
+               "$": "20200605"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-14"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          }
+         ]
+        }
+       },
+       "abstract": [
+        {
+         "@lang": "en",
+         "p": {
+          "$": "The present application relates to the technical field of wireless charging and discloses a foreign object detection method and a charging apparatus, which are capable of accurately recognizing a foreign object affecting wireless charging, ensuring wireless charging safety and charging efficiency. In the present application, a charging apparatus comprehensively determines, according to detection values of a plurality of coils such as a first coil and a second coil, whether a foreign object affecting wireless charging is present on the charging apparatus, thereby allowing for an increased recognition range for foreign object detection. For example, compared to a solution in which a detection value of only a single coil is used to determine whether a foreign object is present on a charging apparatus, the present application overcomes the problem of foreign objects going unrecognized due to the foreign objects having a minor impact on the detection value of said single coil, thereby improving object detection reliability and accuracy, and improving wireless charging safety and charging efficiency."
+         }
+        },
+        {
+         "@lang": "fr",
+         "p": {
+          "$": "La pr\u00e9sente demande se rapporte au domaine technique de la charge sans fil et divulgue un proc\u00e9d\u00e9 de d\u00e9tection d'objet \u00e9tranger et un appareil de charge, qui permettent de reconna\u00eetre avec pr\u00e9cision un objet \u00e9tranger affectant une charge sans fil, garantissant la s\u00e9curit\u00e9 de charge et l'efficacit\u00e9 de charge sans fil. Dans la pr\u00e9sente demande, un appareil de charge d\u00e9termine de mani\u00e8re compl\u00e8te, conform\u00e9ment \u00e0 des valeurs de d\u00e9tection d'une pluralit\u00e9 de bobines telles qu'une premi\u00e8re bobine et une seconde bobine, si un objet \u00e9tranger affectant une charge sans fil est pr\u00e9sent sur l'appareil de charge, ce qui permet une plage de reconnaissance accrue de d\u00e9tection d'objet \u00e9tranger. Par exemple, par comparaison avec une solution selon laquelle une valeur de d\u00e9tection d'une seule bobine est utilis\u00e9e pour d\u00e9terminer si un objet \u00e9tranger est pr\u00e9sent sur un appareil de charge, la pr\u00e9sente invention surmonte le probl\u00e8me d'objets \u00e9trangers non reconnus du fait que les objets \u00e9trangers ont un impact mineur sur la valeur de d\u00e9tection de ladite bobine unique, ce qui permet d'am\u00e9liorer la fiabilit\u00e9 et la pr\u00e9cision de d\u00e9tection d'objet, et d'am\u00e9liorer la s\u00e9curit\u00e9 de charge et l'efficacit\u00e9 de charge sans fil."
+         }
+        },
+        {
+         "@lang": "ol",
+         "p": {
+          "$": "\u672c\u7533\u8bf7\u516c\u5f00\u4e86\u5f02\u7269\u68c0\u6d4b\u65b9\u6cd5\u53ca\u5145\u7535\u88c5\u7f6e\uff0c\u6d89\u53ca\u65e0\u7ebf\u5145\u7535\u6280\u672f\u9886\u57df\uff0c\u53ef\u4ee5\u51c6\u786e\u8bc6\u522b\u51fa\u5bf9\u65e0\u7ebf\u5145\u7535\u6709\u5f71\u54cd\u7684\u5f02\u7269\uff0c\u4fdd\u8bc1\u65e0\u7ebf\u5145\u7535\u7684\u5b89\u5168\u6027\u548c\u5145\u7535\u6548\u7387\u3002\u672c\u7533\u8bf7\u4e2d\uff0c\u5145\u7535\u88c5\u7f6e\u6839\u636e\u7b2c\u4e00\u7ebf\u5708\u548c\u7b2c\u4e8c\u7ebf\u5708\u7b49\u591a\u4e2a\u7ebf\u5708\u7684\u68c0\u6d4b\u503c\u7efc\u5408\u5224\u65ad\u5145\u7535\u88c5\u7f6e\u4e0a\u662f\u5426\u5b58\u5728\u5bf9\u65e0\u7ebf\u5145\u7535\u6709\u5f71\u54cd\u7684\u5f02\u7269\u80fd\u591f\u63d0\u9ad8\u5f02\u7269\u68c0\u6d4b\u7684\u8bc6\u522b\u8303\u56f4\uff0c\u4f8b\u5982\uff0c\u76f8\u6bd4\u4e8e\u4ec5\u901a\u8fc7\u4e00\u4e2a\u7ebf\u5708\u7684\u68c0\u6d4b\u503c\u786e\u5b9a\u5145\u7535\u88c5\u7f6e\u4e0a\u662f\u5426\u5b58\u5728\u5f02\u7269\u7684\u65b9\u6848\uff0c\u53ef\u4ee5\u907f\u514d\u5f02\u7269\u5bf9\u8be5\u4e00\u4e2a\u7ebf\u5708\u7684\u68c0\u6d4b\u503c\u7684\u5f71\u54cd\u8f83\u5c0f\u5bfc\u81f4\u65e0\u6cd5\u8bc6\u522b\u8be5\u5f02\u7269\u7684\u95ee\u9898\uff0c\u63d0\u9ad8\u5f02\u7269\u68c0\u6d4b\u7684\u53ef\u9760\u6027\u548c\u51c6\u786e\u6027\uff0c\u63d0\u9ad8\u65e0\u7ebf\u5145\u7535\u7684\u5b89\u5168\u6027\u548c\u5145\u7535\u6548\u7387\u3002"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "100412294",
+       "@country": "WO",
+       "@doc-number": "2026144648",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "WO"
+           },
+           "doc-number": {
+            "$": "2026144648"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260709"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2026144648"
+           },
+           "date": {
+            "$": "20260709"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "B60R  16/    02            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "H02J  50/    80            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "B"
+           },
+           "class": {
+            "$": "60"
+           },
+           "subclass": {
+            "$": "R"
+           },
+           "main-group": {
+            "$": "16"
+           },
+           "subgroup": {
+            "$": "02"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "10"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "10"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "4",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "5",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "6",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "80"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "7",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "7"
+           },
+           "subgroup": {
+            "$": "40"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "8",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "7"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "9",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "7"
+           },
+           "subgroup": {
+            "$": "80"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "10",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "04"
+           },
+           "subclass": {
+            "$": "B"
+           },
+           "main-group": {
+            "$": "5"
+           },
+           "subgroup": {
+            "$": "40"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "11",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "04"
+           },
+           "subclass": {
+            "$": "B"
+           },
+           "main-group": {
+            "$": "5"
+           },
+           "subgroup": {
+            "$": "40"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "652365261",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "2025137143"
+           },
+           "kind": {
+            "$": "W"
+           },
+           "date": {
+            "$": "20251124"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "WO2025CN137143"
+           },
+           "date": {
+            "$": "20251124"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "CN2025/137143"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "CN"
+            },
+            "doc-number": {
+             "$": "202510019426"
+            },
+            "kind": {
+             "$": "A"
+            },
+            "date": {
+             "$": "20250106"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "CN20251019426"
+            },
+            "date": {
+             "$": "20250106"
+            }
+           },
+           {
+            "@document-id-type": "original",
+            "doc-number": {
+             "$": "202510019426.X"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "GUANGZHOU AUTOMOBILE GROUP CO [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u5e7f\u5dde\u6c7d\u8f66\u96c6\u56e2\u80a1\u4efd\u6709\u9650\u516c\u53f8"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "DU YUPEI [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "HOU LIHENG [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "HAN JINGFENG [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "GUO JINGDA [CN]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u675c\u7389\u4f69"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u4faf\u9ece\u6052"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u97e9\u666f\u950b"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u90ed\u666f\u8fbe"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "PROC\u00c9D\u00c9 ET APPAREIL DE CHARGE SANS FIL, V\u00c9HICULE ET SUPPORT DE STOCKAGE LISIBLE PAR ORDINATEUR",
+          "@lang": "fr"
+         },
+         {
+          "$": "WIRELESS CHARGING METHOD AND APPARATUS, VEHICLE, AND COMPUTER-READABLE STORAGE MEDIUM",
+          "@lang": "en"
+         },
+         {
+          "$": "\u65e0\u7ebf\u5145\u7535\u65b9\u6cd5\u3001\u88c5\u7f6e\u3001\u8f66\u8f86\u53ca\u8ba1\u7b97\u673a\u53ef\u8bfb\u53d6\u5b58\u50a8\u4ecb\u8d28",
+          "@lang": "ol"
+         }
+        ],
+        "references-cited": {
+         "citation": [
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "1",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "1",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN118199282"
+              },
+              "name": {
+               "$": "WUHAN LOTUS CARS CO., LTD."
+              },
+              "date": {
+               "$": "20240614"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "118199282"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "WUHAN LOTUS CARS CO., LTD."
+              },
+              "date": {
+               "$": "20240614"
+              }
+             }
+            ]
+           },
+           "category": [
+            {
+             "$": "X"
+            },
+            {
+             "$": "Y"
+            }
+           ],
+           "rel-claims": [
+            {
+             "$": "1-2,10-12"
+            },
+            {
+             "$": "3-4,7"
+            }
+           ],
+           "rel-passage": {
+            "passage": {
+             "$": "* claims 1-10, description, paragraphs [0042]-[0102], and figures 1-3 *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "2",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "2",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN114801796"
+              },
+              "name": {
+               "$": "GREAT WALL MOTOR CO., LTD."
+              },
+              "date": {
+               "$": "20220729"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "114801796"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "GREAT WALL MOTOR CO., LTD."
+              },
+              "date": {
+               "$": "20220729"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "Y"
+           },
+           "rel-claims": {
+            "$": "3-4,7"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* description, paragraphs [0057]-[0074] *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "3",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "3",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "CN117081275"
+              },
+              "name": {
+               "$": "CHONGQING SAILISI NEW ENERGY AUTOMOBILE DESIGN INSTITUTE CO., LTD."
+              },
+              "date": {
+               "$": "20231117"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "CN"
+              },
+              "doc-number": {
+               "$": "117081275"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "CHONGQING SAILISI NEW ENERGY AUTOMOBILE DESIGN INSTITUTE CO., LTD."
+              },
+              "date": {
+               "$": "20231117"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-12"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "4",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "4",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "KR20240113373"
+              },
+              "name": {
+               "$": "KOREA ELECTRONICS TECHNOLOGY INSTITUTE"
+              },
+              "date": {
+               "$": "20240722"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "KR"
+              },
+              "doc-number": {
+               "$": "20240113373"
+              },
+              "kind": {
+               "$": "A"
+              },
+              "name": {
+               "$": "KOREA ELECTRONICS TECHNOLOGY INSTITUTE"
+              },
+              "date": {
+               "$": "20240722"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-12"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          },
+          {
+           "@cited-phase": "international-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "5",
+           "@office": "US",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "5",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "WO2020052023"
+              },
+              "name": {
+               "$": "SHANGHAI CHUSHAN TECHNOLOGY CO., LTD."
+              },
+              "date": {
+               "$": "20200319"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "WO"
+              },
+              "doc-number": {
+               "$": "2020052023"
+              },
+              "kind": {
+               "$": "A1"
+              },
+              "name": {
+               "$": "SHANGHAI CHUSHAN TECHNOLOGY CO., LTD."
+              },
+              "date": {
+               "$": "20200319"
+              }
+             }
+            ]
+           },
+           "category": {
+            "$": "A"
+           },
+           "rel-claims": {
+            "$": "1-12"
+           },
+           "rel-passage": {
+            "passage": {
+             "$": "* entire document *"
+            }
+           }
+          }
+         ]
+        }
+       },
+       "abstract": [
+        {
+         "@lang": "en",
+         "p": {
+          "$": "The embodiments of the present application relate to the technical field of automotive electronics and electrical systems, and provide a wireless charging method and apparatus, a vehicle, and a computer-readable storage medium. The present application allows for foreign object detection to be performed during wireless charging of a device to be charged by a wireless charging apparatus of a vehicle, wherein the foreign object comprises a near field communication card, the near field communication card is provided with a built-in metal identifier, and an area of the metal identifier is greater than or equal to an effective recognition area for foreign object detection; and when the foreign object is detected, wireless charging of the device to be charged is suspended. The present application allows for quick and effective recognition of a near field communication card by means of foreign object detection in a wireless charging process, so as to suspend charging in a timely manner and thereby prevent the problem of localized overheating in near field communication cards causing card deformation or burning."
+         }
+        },
+        {
+         "@lang": "fr",
+         "p": {
+          "$": "Les modes de r\u00e9alisation de la pr\u00e9sente demande se rapportent aux domaines techniques de l'\u00e9lectronique automobile et des syst\u00e8mes \u00e9lectriques, et concernent un proc\u00e9d\u00e9 et un appareil de charge sans fil, un v\u00e9hicule et un support de stockage lisible par ordinateur. La pr\u00e9sente demande permet de d\u00e9tecter un objet \u00e9tranger pendant la charge sans fil d'un dispositif \u00e0 charger par un appareil de charge sans fil d'un v\u00e9hicule, l'objet \u00e9tranger comprenant une carte de communication en champ proche (NFC), celle-ci \u00e9tant \u00e9quip\u00e9e d'un identifiant m\u00e9tallique int\u00e9gr\u00e9, et la surface de l'identifiant m\u00e9tallique \u00e9tant sup\u00e9rieure ou \u00e9gale \u00e0 une surface de reconnaissance effective pour la d\u00e9tection d'objets \u00e9trangers ; et lorsque l'objet \u00e9tranger est d\u00e9tect\u00e9, la charge sans fil du dispositif \u00e0 charger est suspendue. La pr\u00e9sente demande permet une d\u00e9tection rapide et efficace d'une carte de communication en champ proche au moyen de la d\u00e9tection d'objets \u00e9trangers lors d'un processus de charge sans fil, afin de suspendre la charge en temps opportun et d'\u00e9viter ainsi le probl\u00e8me de surchauffe localis\u00e9e des cartes de communication en champ proche, qui peut entra\u00eener leur d\u00e9formation ou leur combustion."
+         }
+        },
+        {
+         "@lang": "ol",
+         "p": {
+          "$": "\u672c\u7533\u8bf7\u5b9e\u65bd\u4f8b\u63d0\u4f9b\u4e00\u79cd\u65e0\u7ebf\u5145\u7535\u65b9\u6cd5\u3001\u88c5\u7f6e\u3001\u8f66\u8f86\u53ca\u8ba1\u7b97\u673a\u53ef\u8bfb\u53d6\u5b58\u50a8\u4ecb\u8d28\uff0c\u6d89\u53ca\u6c7d\u8f66\u7535\u5b50\u7535\u5668\u6280\u672f\u9886\u57df\u3002\u672c\u7533\u8bf7\u53ef\u4ee5\u5728\u8f66\u8f86\u7684\u65e0\u7ebf\u5145\u7535\u88c5\u7f6e\u5bf9\u5f85\u5145\u7535\u8bbe\u5907\u8fdb\u884c\u65e0\u7ebf\u5145\u7535\u8fc7\u7a0b\u4e2d\u8fdb\u884c\u5f02\u7269\u68c0\u6d4b\uff0c\u5176\u4e2d\uff0c\u5f02\u7269\u5305\u62ec\u8fd1\u573a\u901a\u4fe1\u5361\u7247\uff0c\u8fd1\u573a\u901a\u4fe1\u5361\u7247\u5185\u7f6e\u6709\u91d1\u5c5e\u8bc6\u522b\u7269\uff0c\u91d1\u5c5e\u8bc6\u522b\u7269\u7684\u9762\u79ef\u5927\u4e8e\u6216\u7b49\u4e8e\u5f02\u7269\u68c0\u6d4b\u7684\u6709\u6548\u8bc6\u522b\u9762\u79ef\uff1b\u5728\u68c0\u6d4b\u5230\u5f02\u7269\u65f6\uff0c\u6682\u505c\u5bf9\u5f85\u5145\u7535\u8bbe\u5907\u8fdb\u884c\u65e0\u7ebf\u5145\u7535\u3002\u672c\u7533\u8bf7\u80fd\u591f\u5728\u65e0\u7ebf\u5145\u7535\u8fc7\u7a0b\u4e2d\u901a\u8fc7\u5f02\u7269\u68c0\u6d4b\u4fbf\u53ef\u5feb\u901f\u6709\u6548\u5730\u8bc6\u522b\u51fa\u8fd1\u573a\u901a\u4fe1\u5361\u7247\uff0c\u4ece\u800c\u53ca\u65f6\u6682\u505c\u5145\u7535\uff0c\u907f\u514d\u8fd1\u573a\u901a\u4fe1\u5361\u7247\u5c40\u90e8\u8fc7\u70ed\u5bfc\u81f4\u5361\u7247\u53d8\u5f62\u6216\u70e7\u574f\u7684\u95ee\u9898\u3002"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "100052337",
+       "@country": "CN",
+       "@doc-number": "122203626",
+       "@kind": "A",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "122203626"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20260612"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "CN122203626"
+           },
+           "date": {
+            "$": "20260612"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "B60L  53/    12            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "G01V   3/    10            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "H02J  50/    10            A I"
+           }
+          },
+          {
+           "@sequence": "4",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          },
+          {
+           "@sequence": "5",
+           "text": {
+            "$": "H03B   5/    08            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {},
+        "application-reference": {
+         "@doc-id": "650793146",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "202411811547"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20241210"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "CN202411811547"
+           },
+           "date": {
+            "$": "20241210"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "202411811547.X"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "CN"
+            },
+            "doc-number": {
+             "$": "202411811547"
+            },
+            "kind": {
+             "$": "A"
+            },
+            "date": {
+             "$": "20241210"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "CN202411811547"
+            },
+            "date": {
+             "$": "20241210"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "SUZHOU TSING STANDARD AUTOMOTIVE TECH CO LTD"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u82cf\u5dde\u6e05\u7814\u7cbe\u51c6\u6c7d\u8f66\u79d1\u6280\u6709\u9650\u516c\u53f8"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "XU JIN"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "CHEN CHAO"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "DONG HAN"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "SHU WEI"
+             }
+            }
+           },
+           {
+            "@sequence": "5",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "MU LAN"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u5f90\u9526"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u9648\u8d85"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u8463\u6c49"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u8212\u4f1f"
+             }
+            }
+           },
+           {
+            "@sequence": "5",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u7a46\u5170"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "Foreign matter detection circuit and wireless charging system",
+          "@lang": "en"
+         },
+         {
+          "$": "\u5f02\u7269\u68c0\u6d4b\u7535\u8def\u548c\u65e0\u7ebf\u5145\u7535\u7cfb\u7edf",
+          "@lang": "ol"
+         }
+        ]
+       },
+       "abstract": [
+        {
+         "@lang": "en",
+         "p": {
+          "$": "The invention provides a foreign matter detection circuit and a wireless charging system. The foreign matter detection circuit comprises a detection module and a judgment module which are connected, the detection module comprises an LC oscillation circuit; the LC oscillating circuit comprises an inductance coil and a capacitor; when a metal object approaches, the inductance coil generates a mutual inductance signal, so that the impedance of the LC oscillating circuit is changed; when a living body approaches, a mutual capacitance signal is generated by the capacitor, so that the impedance of the LC oscillating circuit is changed; the judgment module is used for acquiring an output signal of the detection module, determining an amplitude difference between the output signal and a standard output signal, judging whether the amplitude difference is higher than a preset amplitude difference threshold value or not, and if yes, determining that foreign matters exist; the foreign body is a metal foreign body or a living foreign body. In the mode, through a method of arranging the inductance coil and the capacitor in the LC oscillation circuit, identification of metal foreign matters and living foreign matters can be realized at the same time, so that the reliability of foreign matter detection is improved, and the safety of the wireless charging system is further improved."
+         }
+        },
+        {
+         "@lang": "ol",
+         "p": {
+          "$": "\u672c\u53d1\u660e\u63d0\u4f9b\u4e86\u4e00\u79cd\u5f02\u7269\u68c0\u6d4b\u7535\u8def\u548c\u65e0\u7ebf\u5145\u7535\u7cfb\u7edf\uff0c\u5305\u62ec\uff1a\u76f8\u8fde\u7684\u68c0\u6d4b\u6a21\u5757\u548c\u5224\u65ad\u6a21\u5757\uff1b\u68c0\u6d4b\u6a21\u5757\u4e2d\u5305\u62ecLC\u632f\u8361\u7535\u8def\uff1bLC\u632f\u8361\u7535\u8def\u4e2d\u5305\u62ec\u7535\u611f\u7ebf\u5708\u548c\u7535\u5bb9\uff1b\u5f53\u6709\u91d1\u5c5e\u7269\u9760\u8fd1\u65f6\uff0c\u7535\u611f\u7ebf\u5708\u4f1a\u4ea7\u751f\u4e92\u611f\u4fe1\u53f7\uff0c\u4ece\u800c\u5f15\u8d77LC\u632f\u8361\u7535\u8def\u7684\u963b\u6297\u53d1\u751f\u53d8\u5316\uff1b\u5f53\u6709\u6d3b\u4f53\u9760\u8fd1\u65f6\uff0c\u7535\u5bb9\u4f1a\u4ea7\u751f\u4e92\u5bb9\u4fe1\u53f7\uff0c\u4ece\u800c\u5f15\u8d77LC\u632f\u8361\u7535\u8def\u7684\u963b\u6297\u53d1\u751f\u53d8\u5316\uff1b\u5224\u65ad\u6a21\u5757\uff0c\u7528\u4e8e\u83b7\u53d6\u68c0\u6d4b\u6a21\u5757\u7684\u8f93\u51fa\u4fe1\u53f7\uff0c\u786e\u5b9a\u8f93\u51fa\u4fe1\u53f7\u4e0e\u6807\u51c6\u8f93\u51fa\u4fe1\u53f7\u4e4b\u95f4\u7684\u5e45\u503c\u5dee\uff0c\u5224\u65ad\u5e45\u503c\u5dee\u662f\u5426\u9ad8\u4e8e\u9884\u8bbe\u5e45\u503c\u5dee\u9608\u503c\uff0c\u5982\u679c\u662f\uff0c\u786e\u5b9a\u5b58\u5728\u5f02\u7269\uff1b\u5f02\u7269\u4e3a\u91d1\u5c5e\u5f02\u7269\u6216\u6d3b\u4f53\u5f02\u7269\u3002\u8be5\u65b9\u5f0f\u4e2d\uff0c\u901a\u8fc7\u5728LC\u632f\u8361\u7535\u8def\u8bbe\u7f6e\u7535\u611f\u7ebf\u5708\u548c\u7535\u5bb9\u7684\u65b9\u6cd5\uff0c\u53ef\u4ee5\u540c\u65f6\u5b9e\u73b0\u91d1\u5c5e\u5f02\u7269\u548c\u6d3b\u4f53\u5f02\u7269\u7684\u8bc6\u522b\uff0c\u4ece\u800c\u63d0\u9ad8\u5f02\u7269\u68c0\u6d4b\u7684\u53ef\u9760\u6027\uff0c\u8fdb\u800c\u63d0\u5347\u65e0\u7ebf\u5145\u7535\u7cfb\u7edf\u7684\u5b89\u5168\u6027\u3002"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "99718296",
+       "@country": "US",
+       "@doc-number": "20260149309",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "US"
+           },
+           "doc-number": {
+            "$": "20260149309"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260528"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "US20260149309"
+           },
+           "date": {
+            "$": "20260528"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "H02J  50/    12            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "01"
+           },
+           "subclass": {
+            "$": "F"
+           },
+           "main-group": {
+            "$": "38"
+           },
+           "subgroup": {
+            "$": "14"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "KR"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "10"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "KR"
+           }
+          },
+          {
+           "@sequence": "4",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "5",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "6",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "7",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "KR"
+           }
+          },
+          {
+           "@sequence": "8",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "9",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "10",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "80"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "CN"
+           }
+          },
+          {
+           "@sequence": "11",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "80"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "KR"
+           }
+          },
+          {
+           "@sequence": "12",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "80"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "13",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "04"
+           },
+           "subclass": {
+            "$": "B"
+           },
+           "main-group": {
+            "$": "5"
+           },
+           "subgroup": {
+            "$": "72"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "KR"
+           }
+          },
+          {
+           "@sequence": "14",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "04"
+           },
+           "subclass": {
+            "$": "B"
+           },
+           "main-group": {
+            "$": "5"
+           },
+           "subgroup": {
+            "$": "79"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "KR"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "650049671",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "US"
+           },
+           "doc-number": {
+            "$": "202418962667"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20241127"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "US202418962667"
+           },
+           "date": {
+            "$": "20241127"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "18962667"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "US"
+            },
+            "doc-number": {
+             "$": "202418962667"
+            },
+            "kind": {
+             "$": "A"
+            },
+            "date": {
+             "$": "20241127"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "US202418962667"
+            },
+            "date": {
+             "$": "20241127"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "RENESAS ELECTRONICS AMERICA INC [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "Renesas Electronics America Inc."
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "MEHAS GUSTAVO JAMES [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "FIGLIOZZI GIOVANNI [CH]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "MEHAS, Gustavo James"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "FIGLIOZZI, Giovanni"
+             }
+            }
+           },
+           {
+            "@sequence": "3",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "Mehas, Gustavo James"
+             }
+            }
+           },
+           {
+            "@sequence": "4",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "Figliozzi, Giovanni"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": {
+         "$": "Wireless power transmitter implementing low power pre-charging for foreign object detection in a semiconductor device",
+         "@lang": "en"
+        },
+        "references-cited": {
+         "citation": [
+          {
+           "@cited-phase": "national-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "1",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "1",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "US2023269117"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "US"
+              },
+              "doc-number": {
+               "$": "2023269117"
+              },
+              "kind": {
+               "$": "A1"
+              }
+             }
+            ]
+           }
+          },
+          {
+           "@cited-phase": "national-search-report",
+           "@cited-by": "examiner",
+           "@sequence": "2",
+           "patcit": {
+            "@dnum-type": "publication number",
+            "@num": "2",
+            "document-id": [
+             {
+              "@document-id-type": "epodoc",
+              "doc-number": {
+               "$": "US20250385550"
+              }
+             },
+             {
+              "@document-id-type": "docdb",
+              "country": {
+               "$": "US"
+              },
+              "doc-number": {
+               "$": "20250385550"
+              },
+              "kind": {
+               "$": "A1"
+              }
+             }
+            ]
+           }
+          }
+         ]
+        }
+       },
+       "abstract": {
+        "@lang": "en",
+        "p": {
+         "$": "In an embodiment, a semiconductor device is disclosed that includes a buffer circuit that is configured to selectively output a charge signal to an inductor-capacitor node of a power driver to charge the inductor-capacitor node to a predetermined voltage level and an amplifier circuit that is configured to monitor a voltage differential across a capacitor of the inductor-capacitor node of the power driver. The amplifier circuit is configured to output a positive side signal and a negative side signal. The semiconductor device further includes an output that is configured to provide at least one signal based on the positive side signal and negative side signal to an analog-to-digital converter for measurement by a controller."
+        }
+       }
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "96919051",
+       "@country": "US",
+       "@doc-number": "20260100609",
+       "@kind": "A1",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "US"
+           },
+           "doc-number": {
+            "$": "20260100609"
+           },
+           "kind": {
+            "$": "A1"
+           },
+           "date": {
+            "$": "20260409"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "US20260100609"
+           },
+           "date": {
+            "$": "20260409"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "H02J  50/    00            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "H02J  50/    12            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "H02J  50/    60            A I"
+           }
+          },
+          {
+           "@sequence": "4",
+           "text": {
+            "$": "H04B   5/    73            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {
+         "patent-classification": [
+          {
+           "@sequence": "1",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "B"
+           },
+           "class": {
+            "$": "60"
+           },
+           "subclass": {
+            "$": "L"
+           },
+           "main-group": {
+            "$": "53"
+           },
+           "subgroup": {
+            "$": "124"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "2",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "005"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "3",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "10"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "4",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "12"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "5",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          },
+          {
+           "@sequence": "6",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "50"
+           },
+           "subgroup": {
+            "$": "60"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "7",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "02"
+           },
+           "subclass": {
+            "$": "J"
+           },
+           "main-group": {
+            "$": "7"
+           },
+           "subgroup": {
+            "$": "02"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "EP"
+           }
+          },
+          {
+           "@sequence": "8",
+           "classification-scheme": {
+            "@office": "EP",
+            "@scheme": "CPCI"
+           },
+           "section": {
+            "$": "H"
+           },
+           "class": {
+            "$": "04"
+           },
+           "subclass": {
+            "$": "B"
+           },
+           "main-group": {
+            "$": "5"
+           },
+           "subgroup": {
+            "$": "73"
+           },
+           "classification-value": {
+            "$": "I"
+           },
+           "generating-office": {
+            "$": "US"
+           }
+          }
+         ]
+        },
+        "application-reference": {
+         "@doc-id": "647632482",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "US"
+           },
+           "doc-number": {
+            "$": "202418909032"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20241008"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "US202418909032"
+           },
+           "date": {
+            "$": "20241008"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "18909032"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "US"
+            },
+            "doc-number": {
+             "$": "202418909032"
+            },
+            "kind": {
+             "$": "A"
+            },
+            "date": {
+             "$": "20241008"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "US202418909032"
+            },
+            "date": {
+             "$": "20241008"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "APTIV TECHNOLOGIES AG [CH]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "Aptiv Technologies AG"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "COOK JAMES [US]"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "Cook, James"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": {
+         "$": "WIRELESS CHARGING FOREIGN OBJECT DETECTION",
+         "@lang": "en"
+        }
+       },
+       "abstract": {
+        "@lang": "en",
+        "p": {
+         "$": "A method of foreign object detection for a wireless power transmitter. The method includes determining a vector impedance of a near-field communication (NFC) coil with an NFC chip. The determined vector impedance includes an impedance amplitude component and an impedance phase component. The impedance amplitude component and the impedance phase component are compared to a baseline impedance amplitude and a baseline impedance phase. A determination as to whether an object is present within an inductive charging area of the wireless power transmitter is made when a difference between the determined vector impedance, and the baseline impedance amplitude and the baseline impedance phase, exceeds a delta threshold. A ping signal is generated with a charging source coil when the object is determined to be present. A foreign object is detected based on whether a response signal to the ping signal is received from the object."
+        }
+       }
+      }
+     },
+     {
+      "exchange-document": {
+       "@system": "ops.epo.org",
+       "@family-id": "99187082",
+       "@country": "CN",
+       "@doc-number": "121756943",
+       "@kind": "A",
+       "bibliographic-data": {
+        "publication-reference": {
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "121756943"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20260331"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "CN121756943"
+           },
+           "date": {
+            "$": "20260331"
+           }
+          }
+         ]
+        },
+        "classifications-ipcr": {
+         "classification-ipcr": [
+          {
+           "@sequence": "1",
+           "text": {
+            "$": "B60L  53/   124            A I"
+           }
+          },
+          {
+           "@sequence": "2",
+           "text": {
+            "$": "G01S  13/    04            A I"
+           }
+          },
+          {
+           "@sequence": "3",
+           "text": {
+            "$": "G01S  13/    87            A I"
+           }
+          },
+          {
+           "@sequence": "4",
+           "text": {
+            "$": "G01S   7/    41            A I"
+           }
+          }
+         ]
+        },
+        "patent-classifications": {},
+        "application-reference": {
+         "@doc-id": "647092893",
+         "document-id": [
+          {
+           "@document-id-type": "docdb",
+           "country": {
+            "$": "CN"
+           },
+           "doc-number": {
+            "$": "202512015569"
+           },
+           "kind": {
+            "$": "A"
+           },
+           "date": {
+            "$": "20251226"
+           }
+          },
+          {
+           "@document-id-type": "epodoc",
+           "doc-number": {
+            "$": "CN20251215569"
+           },
+           "date": {
+            "$": "20251226"
+           }
+          },
+          {
+           "@document-id-type": "original",
+           "doc-number": {
+            "$": "202512015569.6"
+           }
+          }
+         ]
+        },
+        "priority-claims": {
+         "priority-claim": {
+          "@sequence": "1",
+          "@kind": "national",
+          "document-id": [
+           {
+            "@document-id-type": "docdb",
+            "country": {
+             "$": "CN"
+            },
+            "doc-number": {
+             "$": "202512015569"
+            },
+            "kind": {
+             "$": "A"
+            },
+            "date": {
+             "$": "20251226"
+            }
+           },
+           {
+            "@document-id-type": "epodoc",
+            "doc-number": {
+             "$": "CN20251215569"
+            },
+            "date": {
+             "$": "20251226"
+            }
+           }
+          ]
+         }
+        },
+        "parties": {
+         "applicants": {
+          "applicant": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "applicant-name": {
+             "name": {
+              "$": "OUMOWEI SOFTWARE SYSTEM DEV CHONGQING CO LTD"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "applicant-name": {
+             "name": {
+              "$": "\u6b27\u6469\u5a01\u8f6f\u4ef6\u7cfb\u7edf\u5f00\u53d1\uff08\u91cd\u5e86\uff09\u6709\u9650\u516c\u53f8"
+             }
+            }
+           }
+          ]
+         },
+         "inventors": {
+          "inventor": [
+           {
+            "@sequence": "1",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "WU RUCHUN"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "epodoc",
+            "inventor-name": {
+             "name": {
+              "$": "ZHANG WEI"
+             }
+            }
+           },
+           {
+            "@sequence": "1",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u5434\u5982\u6625"
+             }
+            }
+           },
+           {
+            "@sequence": "2",
+            "@data-format": "original",
+            "inventor-name": {
+             "name": {
+              "$": "\u5f20\u552f"
+             }
+            }
+           }
+          ]
+         }
+        },
+        "invention-title": [
+         {
+          "$": "Wireless charging detection method, vehicle, ultra wide band radar and electronic equipment",
+          "@lang": "en"
+         },
+         {
+          "$": "\u65e0\u7ebf\u5145\u7535\u7684\u68c0\u6d4b\u65b9\u6cd5\u3001\u8f66\u8f86\u3001\u8d85\u5bbd\u5e26\u96f7\u8fbe\u53ca\u7535\u5b50\u8bbe\u5907",
+          "@lang": "ol"
+         }
+        ]
+       },
+       "abstract": [
+        {
+         "@lang": "en",
+         "p": {
+          "$": "The invention provides a wireless charging detection method, a vehicle, an ultra wide band radar and electronic equipment. According to the specific implementation scheme, in response to the situation that a vehicle is located at the position corresponding to a wireless charging panel, the ultra-wideband radar periodically detects a preset area corresponding to the wireless charging panel; in response to the condition that the ultra-wideband radar detects that a target object exists in the preset area, the ultra-wideband radar determines a target echo corresponding to the target object; the ultra wide band radar determines the object type of the target object according to the target echo; and the ultra wide band radar sends a corresponding charging adjustment instruction to the vehicle according to the object type, so that the vehicle stops charging or adjusts the charging power. According to the scheme disclosed by the invention, the robustness of foreign matter and living body detection during wireless charging of the vehicle can be improved, and the problem of influence of external environment change on foreign matter and living body detection of wireless charging is solved."
+         }
+        },
+        {
+         "@lang": "ol",
+         "p": {
+          "$": "[0001]    \u672c\u516c\u5f00\u63d0\u4f9b\u4e86\u65e0\u7ebf\u5145\u7535\u7684\u68c0\u6d4b\u65b9\u6cd5\u3001\u8f66\u8f86\u3001\u8d85\u5bbd\u5e26\u96f7\u8fbe\u53ca\u7535\u5b50\u8bbe\u5907\u3002\u5177\u4f53\u5b9e\u73b0\u65b9\u6848\u4e3a\uff1a\u54cd\u5e94\u4e8e\u8f66\u8f86\u4f4d\u4e8e\u65e0\u7ebf\u5145\u7535\u677f\u5bf9\u5e94\u4f4d\u7f6e\uff0c\u6240\u8ff0\u8d85\u5bbd\u5e26\u96f7\u8fbe\u5468\u671f\u6027\u5730\u5bf9\u6240\u8ff0\u65e0\u7ebf\u5145\u7535\u677f\u5bf9\u5e94\u7684\u9884\u8bbe\u533a\u57df\u8fdb\u884c\u68c0\u6d4b\uff1b\u54cd\u5e94\u4e8e\u6240\u8ff0\u8d85\u5bbd\u5e26\u96f7\u8fbe\u68c0\u6d4b\u5230\u6240\u8ff0\u9884\u8bbe\u533a\u57df\u5b58\u5728\u76ee\u6807\u5bf9\u8c61\uff0c\u6240\u8ff0\u8d85\u5bbd\u5e26\u96f7\u8fbe\u786e\u5b9a\u6240\u8ff0\u76ee\u6807\u5bf9\u8c61\u5bf9\u5e94\u7684\u76ee\u6807\u56de\u6ce2\uff1b\u6240\u8ff0\u8d85\u5bbd\u5e26\u96f7\u8fbe\u6839\u636e\u6240\u8ff0\u76ee\u6807\u56de\u6ce2\uff0c\u786e\u5b9a\u6240\u8ff0\u76ee\u6807\u5bf9\u8c61\u7684\u5bf9\u8c61\u7c7b\u522b\uff1b\u6240\u8ff0\u8d85\u5bbd\u5e26\u96f7\u8fbe\u6839\u636e\u6240\u8ff0\u5bf9\u8c61\u7c7b\u522b\uff0c\u5411\u6240\u8ff0\u8f66\u8f86\u53d1\u9001\u5bf9\u5e94\u7684\u5145\u7535\u8c03\u6574\u6307\u4ee4\uff0c\u4ee5\u4f7f\u6240\u8ff0\u8f66\u8f86\u505c\u6b62\u5145\u7535\u6216\u8c03\u6574\u5145\u7535\u529f\u7387\u3002\u6839\u636e\u672c\u516c\u5f00\u7684\u65b9\u6848\uff0c\u53ef\u4ee5\u63d0\u5347\u8f66\u8f86\u65e0\u7ebf\u5145\u7535\u65f6\u7684\u5f02\u7269\u548c\u6d3b\u4f53\u68c0\u6d4b\u7684\u9c81\u68d2\u6027\uff0c\u89e3\u51b3\u5916\u90e8\u73af\u5883\u53d8\u5316\u5bf9\u65e0\u7ebf\u5145\u7535\u7684\u5f02\u7269\u548c\u6d3b\u4f53\u68c0\u6d4b\u7684\u5f71\u54cd\u95ee\u9898\u3002"
+         }
+        }
+       ]
+      }
+     }
+    ]
+   }
+  }
+ }
+}

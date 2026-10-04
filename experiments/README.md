@@ -54,7 +54,7 @@ retrieved, and your own uploads are never touched.
 | B | `exp_b_chunking.yaml` | ready |
 | C | `exp_c_topk.yaml` | ready |
 | D | `exp_d_rerank.yaml` | ready (needs `make setup-ml`) |
-| E | — | needs EPO credentials (single source vs. multi-source) |
+| E | — | EPO now configured: config to be added after the current suite (single source vs. multi-source) |
 | F | `exp_f_tool_selection.yaml` | ready (`AGENT_TOOL_POLICY=all` = every available tool) |
 | G | `exp_g_verification.yaml` | ready |
 | H | `exp_h_planner.yaml` | ready (needs a real LLM) |
