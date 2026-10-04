@@ -49,11 +49,18 @@ the passage; runs are stored like answers (agent runs with tool steps and cited
 retrieval results) and exported as a Markdown report.
 
 ## 4.4 Frontend
-Eight pages: Dashboard, Documents (upload, sections, passages), Invention Analysis (feature
-chart with clickable evidence and report download), Ask AI (answer with
-clickable citations, evidence list, agent steps, verification highlighting and grounding),
-Patent Search, Comparison, Evaluation (results with confidence intervals and per-question
-drill-down) and Settings. API types are generated from the backend's OpenAPI schema.
+The UI is built around a chat, like the assistants users already know. After login, a
+sidebar lists the user's conversations (grouped by date, renamable) and three tools:
+**Library** (My documents, Find patents, Compare), **Invention analysis** (feature chart
+with clickable evidence and report download) and **Patent watch** (new-publication alerts
+with an unread badge). A chat answers with clickable citations and a one-line trust
+summary ("5 of 6 statements verified"); sources, sentence checks and the agent's steps
+open on demand. Files are attached by drag-and-drop or the paperclip, and any library
+item opens a chat with it attached. Follow-ups are shown with the standalone question
+the system understood. Research pages (Evaluation results with confidence intervals,
+a Research console exposing every retrieval option, System status) sit in the user menu,
+with the profile and the light/dark theme. API types are generated from the backend's
+OpenAPI schema.
 
 ## 4.5 Security and deployment
 Configuration and secrets come from `.env` (secrets as `SecretStr`, never logged or sent to

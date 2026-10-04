@@ -52,7 +52,9 @@ class PatentWatch(Base):
         back_populates="watch",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        order_by="WatchHit.found_at.desc()",
+        # newest check first; within one check, most similar first (= import order)
+        order_by="(WatchHit.found_at.desc(), WatchHit.similarity.desc().nulls_last(), "
+        "WatchHit.publication_date.desc().nulls_last())",
     )
 
 

@@ -4,10 +4,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 
 import { ExperimentView } from "@/components/evaluation/ExperimentView";
+import { SelfCheckView } from "@/components/evaluation/SelfCheckView";
 import { VerifierView } from "@/components/evaluation/VerifierView";
 import { Badge, EmptyState, ErrorNotice, Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
-import type { EvaluationListItem, EvaluationResult } from "@/lib/evaluation";
+import type { EvaluationListItem, EvaluationResult, SelfCheckRow } from "@/lib/evaluation";
 import { formatDateTime } from "@/lib/format";
 
 const key = (e: EvaluationListItem) => `${e.experiment}/${e.run}`;
@@ -55,8 +56,8 @@ export function EvaluationWorkspace() {
                         {e.finished_at ? formatDateTime(e.finished_at) : e.run}
                       </span>
                       <span className="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-muted">
-                        {e.kind === "verifier" ? `${e.n} labels` : `${e.n} questions`} ·{" "}
-                        {e.variants.join(" vs ")}
+                        {e.kind === "verifier" ? `${e.n} labels` : e.kind === "selfcheck" ? `${e.n} patents` : `${e.n} questions`}
+                        {e.variants.length > 0 && ` · ${e.variants.join(" vs ")}`}
                         {e.synthetic && <Badge tone="warn">synthetic</Badge>}
                         {!e.synthetic && e.draft_labels && <Badge tone="warn">draft labels</Badge>}
                       </span>
@@ -72,15 +73,25 @@ export function EvaluationWorkspace() {
       <div className="min-w-0">
         {result.error && <ErrorNotice error={result.error} title="Could not load this result" />}
         {result.isLoading && <Spinner label="Loading result…" />}
-        {result.data &&
-          (result.data.summary.kind === "verifier" ? (
-            <VerifierView summary={result.data.summary} />
-          ) : (
-            <ExperimentView summary={result.data.summary} rows={result.data.rows} />
-          ))}
+        {result.data && <ResultView result={result.data} />}
       </div>
     </div>
   );
+}
+
+function ResultView({ result }: { result: EvaluationResult }) {
+  const { summary, rows } = result;
+  switch (summary.kind) {
+    case "verifier":
+      return <VerifierView summary={summary} />;
+    case "selfcheck":
+      return <SelfCheckView summary={summary} rows={rows as unknown as SelfCheckRow[]} />;
+    case "experiment":
+    case undefined: // results written before `kind` existed
+      return <ExperimentView summary={summary} rows={rows} />;
+    default:
+      return <EmptyState title="Unknown result type">This result was written by a newer version; see its report.md.</EmptyState>;
+  }
 }
 
 function HowToRun() {

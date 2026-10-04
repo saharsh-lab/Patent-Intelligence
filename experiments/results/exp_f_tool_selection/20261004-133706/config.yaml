@@ -1,0 +1,20 @@
+name: exp_f_tool_selection
+description: Agent with tool selection vs. every available tool on every question
+  (Experiment F).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/real_test_v1/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings: {}
+variants:
+- name: select
+  pipeline: agentic
+  settings:
+    agent_tool_policy: select
+  description: ''
+- name: all_tools
+  pipeline: agentic
+  settings:
+    agent_tool_policy: all
+  description: ''
+items: null

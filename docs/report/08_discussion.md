@@ -24,10 +24,16 @@ grounding score.
   absolute numbers and the size of the agent's advantage.
 - **Labels.** Written by the project team; mitigated by two-person checking and an
   independent test set, but relevance judgements remain partly subjective.
-- **Key-fact recall** is exact matching and misses paraphrases.
-- **Single source implemented.** EPO OPS only; USPTO and Lens clients are designed but not
-  implemented; Experiment E [depends on EPO access].
-- **Prototype scope.** No user authentication; single-user deployment.
+- **Key-fact recall** is exact matching and misses paraphrases (e.g. "the temperature at
+  arrival" vs. the key fact "estimated temperature at arrival"), so it is conservative.
+- **False premises.** A question that presupposes something absent from the patent ("which
+  neural network does the Kalman-filter patent train?") was answered about what the patent
+  does contain instead of rejecting the premise; verification flagged most of that answer.
+- **Single source implemented.** EPO OPS (verified live) only; USPTO and Lens clients are
+  designed but not implemented. Retrieval quality on live EPO patents is not measured,
+  because no labelled questions about them exist (Experiment E, future work).
+- **Deployment scope.** Accounts with private data per user, but no email verification,
+  password reset by email or multi-factor login (docs/security.md).
 
 ## 7.4 Threats to validity
 - *Internal:* tuning on the dev questions is separated from reporting on test questions;

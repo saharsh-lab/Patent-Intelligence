@@ -40,6 +40,9 @@ def _point_everything_at_test_databases() -> None:
     os.environ["EVAL_DATABASE_URL"] = main.test_database_url
     os.environ["AUTH_DATABASE_URL"] = auth.auth_test_database_url
     os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="patent-rag-test-uploads-")
+    # Tests never call live patent services, whatever credentials the developer's .env has.
+    for name in ("EPO_OPS_KEY", "EPO_OPS_SECRET", "USPTO_API_KEY", "LENS_API_TOKEN"):
+        os.environ[name] = ""
 
 
 _point_everything_at_test_databases()

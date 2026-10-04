@@ -311,6 +311,48 @@ def cmd_export_claims(args) -> int:
     return 0
 
 
+def cmd_selfcheck(args) -> int:
+    """Invention-analysis self-check (label-free) on a dataset's corpus."""
+    from app.evaluation.runner import ExperimentRunner
+    from app.evaluation.selfcheck import load_selfcheck_config, run_selfcheck
+    from app.invention.analysis import InventionAnalyzer
+    from app.llm.providers import build_llm
+    from app.rag.embeddings import build_embedder
+
+    config = load_selfcheck_config(args.config)
+    dataset = load_dataset(config.dataset)
+    settings = get_settings().model_copy(
+        update={"upload_dir": PROJECT_ROOT / "data" / "eval_uploads"}
+    )
+    engine = prepare_eval_database(settings.eval_database_url, settings.database_url)
+
+    def vacuum() -> None:
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            conn.execute(text("VACUUM chunks"))
+
+    with Session(engine, expire_on_commit=False) as session:
+        embedder = build_embedder(settings)
+        runner = ExperimentRunner(
+            session,
+            settings,
+            settings.experiments_dir / "results",
+            log=_log,
+            after_corpus_load=vacuum,
+        )
+        runner._ensure_corpus(dataset, settings, embedder)  # same isolated corpus as experiments
+        analyzer = InventionAnalyzer(session, settings, embedder, build_llm(settings), {})
+        run_selfcheck(
+            session,
+            analyzer,
+            config,
+            runner._corpus_ids,
+            settings.experiments_dir / "results",
+            dataset=dataset,
+            log=_log,
+        )
+    return 0
+
+
 def cmd_verifier(args) -> int:
     from app.evaluation.verifier_eval import evaluate_verifiers, load_verifier_config
 
@@ -366,6 +408,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--sample", type=int, help="random sample of this many statements")
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(func=cmd_export_claims)
+
+    p = sub.add_parser("selfcheck", help="invention-analysis self-check (no labels needed)")
+    p.add_argument("--config", required=True, type=Path)
+    p.set_defaults(func=cmd_selfcheck)
 
     p = sub.add_parser("verifier", help="score verifier methods against human labels")
     p.add_argument("--config", required=True, type=Path)

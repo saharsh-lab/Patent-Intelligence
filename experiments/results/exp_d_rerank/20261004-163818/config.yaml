@@ -1,0 +1,22 @@
+name: exp_d_rerank
+description: Hybrid retrieval without vs. with cross-encoder reranking (Experiment
+  D).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/real_test_v1/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings:
+  retrieval_candidate_k: 30
+variants:
+- name: no_rerank
+  pipeline: baseline
+  settings:
+    reranker_enabled: false
+  description: ''
+- name: rerank
+  pipeline: baseline
+  settings:
+    reranker_enabled: true
+    reranker_provider: local
+  description: ''
+items: null

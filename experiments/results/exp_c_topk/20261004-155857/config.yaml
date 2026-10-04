@@ -1,0 +1,24 @@
+name: exp_c_topk
+description: "top-k passages given to the LLM \u2208 {3, 6, 10} (Experiment C)."
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/real_test_v1/dataset.yaml
+repeats: 1
+eval_k: 3
+seed: 0
+settings: {}
+variants:
+- name: k3
+  pipeline: baseline
+  settings:
+    retrieval_top_k: 3
+  description: ''
+- name: k6
+  pipeline: baseline
+  settings:
+    retrieval_top_k: 6
+  description: ''
+- name: k10
+  pipeline: baseline
+  settings:
+    retrieval_top_k: 10
+  description: ''
+items: null

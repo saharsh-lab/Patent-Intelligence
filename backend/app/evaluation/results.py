@@ -47,7 +47,9 @@ def read_result(experiments_dir: Path, experiment: str, run: str) -> dict | None
     if root not in folder.parents or not (folder / "summary.json").is_file():
         return None
     summary = json.loads((folder / "summary.json").read_text(encoding="utf-8"))
-    rows_file = "predictions.jsonl" if summary.get("kind") == "verifier" else "runs.jsonl"
+    rows_file = {"verifier": "predictions.jsonl", "selfcheck": "rows.jsonl"}.get(
+        summary.get("kind", "experiment"), "runs.jsonl"
+    )
     rows = []
     if (folder / rows_file).is_file():
         with (folder / rows_file).open(encoding="utf-8") as f:

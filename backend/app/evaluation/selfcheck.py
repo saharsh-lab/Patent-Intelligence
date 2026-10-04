@@ -19,6 +19,7 @@ which remain the main evidence (self-check questions are easier: they share word
 """
 
 import json
+import re
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -58,13 +59,23 @@ def load_selfcheck_config(path: Path) -> SelfCheckConfig:
     return config
 
 
-def claim_1(session: Session, document: Document) -> str | None:
-    chunk = session.scalar(
+_DEPENDENT = re.compile(r"\b(?:of|to|in) claims? \d", re.IGNORECASE)
+_CANCELED = re.compile(r"\((?:canceled|cancelled)\)", re.IGNORECASE)
+
+
+def first_independent_claim(session: Session, document: Document) -> str | None:
+    """Claim 1 normally; the first claim that is neither cancelled nor dependent otherwise
+    (e.g. after "1.-14. (canceled)" in a continuation)."""
+    chunks = session.scalars(
         select(Chunk)
         .where(Chunk.document_id == document.id)
-        .where(Chunk.meta["claim_number"].as_integer() == 1)
+        .where(Chunk.meta["claim_number"].isnot(None))
+        .order_by(Chunk.meta["claim_number"].as_integer())
     )
-    return chunk.text if chunk else None
+    for chunk in chunks:
+        if not _CANCELED.search(chunk.text) and not _DEPENDENT.search(chunk.text):
+            return chunk.text
+    return None
 
 
 def run_selfcheck(
@@ -88,9 +99,9 @@ def run_selfcheck(
     rows = []
     for entry in dataset.corpus:
         document = session.get(Document, document_ids[entry.id])
-        text = claim_1(session, document)
+        text = first_independent_claim(session, document)
         if not text:
-            log(f"  {entry.id}: no claim 1 found, skipped")
+            log(f"  {entry.id}: no independent claim found, skipped")
             continue
         row: dict[str, Any] = {"doc": entry.id, "domain": config.domains[entry.id]}
 

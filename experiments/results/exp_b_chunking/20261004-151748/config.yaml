@@ -1,0 +1,19 @@
+name: exp_b_chunking
+description: Section-aware vs. fixed-size chunking (Experiment B).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/real_test_v1/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings: {}
+variants:
+- name: section_aware
+  pipeline: baseline
+  settings:
+    chunking_strategy: section_aware
+  description: ''
+- name: fixed
+  pipeline: baseline
+  settings:
+    chunking_strategy: fixed
+  description: ''
+items: null

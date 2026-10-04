@@ -11,7 +11,6 @@ from app.core.config import get_settings
 from app.database.session import get_db
 from app.main import create_app
 from app.models import Patent
-from app.models.watch import WatchHit
 from app.patents import demo
 from app.patents.demo import DemoPatentSource
 from app.rag.embeddings import FakeEmbedder, get_embedder
@@ -35,7 +34,9 @@ def test_watch_finds_publications_once_and_imports_the_top(service, db_session):
     first = service.check(watch.id)
     assert first.error is None and first.new_hits >= 1
     assert len(first.imported) == 1  # only the top hit is imported
-    assert db_session.get(Patent, db_session.get(WatchHit, watch.hits[0].id).imported_patent_id)
+    [imported] = [h for h in service.get(watch.id).hits if h.imported_patent_id]
+    assert imported.publication_number in first.imported
+    assert db_session.get(Patent, imported.imported_patent_id)
 
     second = service.check(watch.id)  # nothing new published since
     assert second.new_hits == 0 and len(service.get(watch.id).hits) == first.new_hits

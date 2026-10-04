@@ -304,3 +304,81 @@ characters) for EP4815257A1; importing it produced 63 passages with all sections
 and one passage per claim (26). The real responses are recorded in
 `tests/fixtures/epo/recorded_*.json` and parsed by the test suite (the formerly skipped
 test now runs), so a future change in EPO's response format shows up as a failing test.
+
+### 2026-10-04 — Experiment F (tool selection) on the frozen test set: what the numbers hide
+
+**Result (draft labels, not reportable yet):** choosing tools per question vs. calling
+every tool gave the same answers (key facts, abstention, grounding: no clear difference)
+with cleaner context: passages from the right sources +8.7 points (clear, 11 wins / 0
+losses), context precision +1.6 points (clear), and fewer LLM calls (2.4 vs 2.7) and tokens.
+Latency did not differ (p50 28.0 s vs 27.9 s).
+
+**Inspected the 4 "intent errors" (92.5% intent accuracy):**
+1. **n01, n03, n04: a labelling convention, not an error.** The questions name a patent
+   ("claim 1 of US20190315232A1") that is already in the uploaded corpus. The agent
+   resolved the number to the uploaded document and labelled the intent `document_qa`; the
+   answer key expects `patent_lookup`. The tools used were exactly the expected ones and
+   the right claim was retrieved in all three. Report intent accuracy with this caveat
+   (49/53 strict; 52/53 counting these as correct). The test set is frozen, so the labels
+   stay as they are.
+2. **n04 key fact "missed": a strict string match.** The answer says "estimate the
+   temperature at arrival of the battery"; the key fact is "estimated temperature at
+   arrival". Key-fact recall is a normalised substring match, so it under-counts
+   paraphrases. Mention this as a limitation of the metric (it is conservative).
+3. **u04: a real failure, false premise.** "Which neural network does the Kalman filter
+   battery patent train on cell temperatures?" The patent uses an extended Kalman filter
+   and no neural network. The system did not reject the premise: it answered about the EKF
+   ("trains on cell temperatures using an extended Kalman filter"). It never invented a
+   neural network, and verification marked most of the answer unsupported (grounding 0.4),
+   but it should have said the patent describes no neural network. **Limitation /
+   future work:** a premise check before answering ("does the evidence mention the thing
+   the question presupposes?"). Not changed now, so the measured system stays the one
+   described in the report.
+
+### 2026-10-04 — Experiments H, B, C, D on the frozen test set (draft labels)
+
+All 477 runs succeeded. Points to keep in mind when writing them up:
+
+1. **H (rules vs LLM planner):** the LLM planner was no better and is clearly worse on
+   intent (4 losses, 0 wins), costs one extra LLM call (+318 tokens) and +2.4 s at the
+   median. Supports keeping the rules planner as default.
+2. **B (section-aware vs fixed chunks): read the precision carefully.** Fixed windows
+   score slightly *higher* precision@k (+3.4 points, clear), but part of this is an
+   artefact: windows are 400 tokens with 60 overlapping, so two neighbouring windows can
+   both contain the opening of the same labelled claim and both count as relevant (5
+   questions had more than one matching passage vs 1 for section-aware). The answer-side
+   result is large and clear: grounding −18.5 points with fixed chunks (25 losses / 10
+   wins), more invalid citations, +751 tokens and +5.3 s per answer.
+3. **C (top-k):** more passages raise recall (k10: context recall +12.8 points) and k6
+   improves key facts (+9.5) and grounding (+6.2), but dilute the context (passages from
+   the right sources −6 to −12 points) and cost +4–6 s. A trade-off, no single winner.
+4. **D (reranker):** the largest retrieval effect of all experiments: MRR +0.26, recall
+   +14.5 points, key-fact recall +17.6 points, at +15 s per answer (p50 24 s → 42 s on a
+   laptop CPU). Worth stating as "best quality, at a latency cost".
+
+### 2026-10-04 — Invention self-check on 16 patents
+
+**Seen:** first run (`selfcheck_invention/20261004-174507`) checked 15 of 16 patents:
+US20220115917A1 was skipped because its claims 1–14 are "(canceled)" (a continuation;
+claim 15 is the first real claim). **Change:** the self-check now takes the first claim
+that is neither cancelled nor dependent ("of claim N"); test added. Re-run
+(`20261004-175038`, the one to report): 16/16 found themselves first, all own features
+disclosed, nearest other document always same-domain, top-3 same-domain 92.7%, 7.7 s per
+analysis. The 15-patent run is kept for the record but superseded.
+
+### 2026-10-04 — Final checks: Docker, browser, tests
+
+- **Docker** (rebuilt, run on isolated databases): migrations of both databases, register →
+  401 before login, upload into a chat, answer, live EPO search from inside the container,
+  second user sees nothing of the first, no secrets in the web container. All passed.
+- **Browser pass over every page** (production build): 13/13 steps passed, but the
+  Evaluation page **crashed** once a self-check result existed: the page knew only
+  experiment and verifier results and sent the self-check to the experiment view. Fixed:
+  a self-check view, the right rows file in the API, and an "unknown result type" notice
+  instead of a crash for any future kind.
+- **Two tests failed after the EPO keys were added to `.env`:** tests read the developer's
+  `.env`, so real credentials changed which code ran. Test setup now blanks all patent
+  credentials (tests can never reach live services). The second failure exposed a real
+  ordering bug: all hits from one watch check share a timestamp, so their order was
+  arbitrary; hits are now ordered by check, then similarity (the import order), which
+  also fixes the order shown on the Patent watch page. 354 backend tests pass.

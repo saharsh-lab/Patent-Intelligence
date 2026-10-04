@@ -15,7 +15,7 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader
-        title="Settings"
+        title="System status"
         description={
           <>
             Read-only view of the active configuration. Change values in the backend <code className="font-mono">.env</code> file and restart the API. API keys are never shown here.

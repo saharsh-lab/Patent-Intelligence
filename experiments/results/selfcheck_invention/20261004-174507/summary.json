@@ -1,0 +1,72 @@
+{
+  "kind": "selfcheck",
+  "experiment": "selfcheck_invention",
+  "run": "20261004-174507",
+  "description": "Invention analysis self-check over the 16 real patents (label-free).",
+  "finished_at": "2026-10-04T12:15:07.960449+00:00",
+  "dataset": {
+    "name": "real_test_v1",
+    "items": 15,
+    "synthetic": false,
+    "sha256": "06f8107e44dcd91551b4da07284abc6d6777de2510b6dce030b58315ad328972"
+  },
+  "verifier": "nli",
+  "models": {
+    "llm": "qwen3:8b",
+    "embeddings": "BAAI/bge-m3"
+  },
+  "results": {
+    "self_found_at_1": {
+      "n": 15,
+      "mean": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "label": "Own patent ranked first"
+    },
+    "self_in_candidates": {
+      "n": 15,
+      "mean": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "label": "Own patent among candidates"
+    },
+    "self_disclosed_rate": {
+      "n": 15,
+      "mean": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "label": "Own claim features marked disclosed"
+    },
+    "same_domain_at_1": {
+      "n": 15,
+      "mean": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "label": "Closest other document from same domain"
+    },
+    "same_domain_at_3": {
+      "n": 15,
+      "mean": 0.9222222222222223,
+      "ci_low": 0.8330555555555561,
+      "ci_high": 1.0,
+      "label": "Top-3 other documents from same domain"
+    },
+    "features_found_elsewhere": {
+      "n": 15,
+      "mean": 1.0,
+      "ci_low": 1.0,
+      "ci_high": 1.0,
+      "label": "Features found in another document"
+    },
+    "latency_included_ms": {
+      "n": 15,
+      "mean": 7877.333333333333,
+      "ci_low": 5935.113333333334,
+      "ci_high": 10163.585000000001,
+      "label": "Latency per analysis (ms)"
+    }
+  },
+  "warnings": [
+    "Self-check uses each patent's own claim as the query: easier than real user descriptions (shared wording). It tests the machinery at scale; the labelled question sets remain the main evidence."
+  ]
+}

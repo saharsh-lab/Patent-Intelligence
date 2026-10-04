@@ -1,11 +1,14 @@
 flowchart LR
     user([User in a browser])
     subgraph UI["Frontend · Next.js"]
-        pages["Pages: Dashboard · Documents · Ask AI ·<br/>Patent Search · Comparison · Invention Analysis ·<br/>Evaluation · Settings"]
+        pages["Login · Chat (conversations) ·<br/>Library · Invention analysis · Patent watch ·<br/>Evaluation results"]
         proxy["/api proxy<br/>(server-side)"]
     end
     subgraph API["Backend · FastAPI"]
         mw["Security layer<br/>rate limits · size limits · headers"]
+        auth["Accounts<br/>sessions · per-user owner scope"]
+        chat["Chat<br/>memory: follow-up → standalone question"]
+        watch["Patent watch<br/>scheduled EPO checks"]
         ingest["Ingestion<br/>extract → sections → chunks → embeddings"]
         agent["Agent · LangGraph<br/>analyze → plan → tools → generate"]
         verify["Verification<br/>claim-level NLI check + regeneration"]
@@ -13,7 +16,8 @@ flowchart LR
         eval["Evaluation framework<br/>(command line)"]
     end
     subgraph Data["Storage"]
-        pg[("PostgreSQL + pgvector<br/>documents · chunks · runs · verdicts")]
+        pg[("PostgreSQL + pgvector<br/>documents · chunks · runs · verdicts · chats")]
+        authdb[("Separate auth database<br/>users · sessions")]
     end
     subgraph Models["Models (local, free)"]
         llm["Qwen3-8B via Ollama<br/>(answers)"]
@@ -24,7 +28,12 @@ flowchart LR
     epo["EPO Open Patent Services<br/>(live patents)"]
 
     user --> pages --> proxy --> mw
-    mw --> ingest & agent & inv
+    mw --> auth --> authdb
+    auth --> chat & ingest & inv & watch
+    chat --> agent
+    chat --> llm
+    watch --> epo
+    watch --> pg
     agent --> verify
     ingest --> emb
     ingest --> pg

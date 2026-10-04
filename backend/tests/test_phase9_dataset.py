@@ -153,6 +153,21 @@ def test_result_reader_rejects_path_tricks(tmp_path, experiment, run):
     assert read_result(tmp_path, experiment, run) is None
 
 
+def test_result_reader_returns_each_kind_with_its_rows(tmp_path):
+    import json
+
+    from app.evaluation.results import list_results
+
+    for kind, rows_file in [("selfcheck", "rows.jsonl"), ("verifier", "predictions.jsonl")]:
+        folder = tmp_path / "results" / f"exp_{kind}" / "20260101-000000"
+        folder.mkdir(parents=True)
+        summary = {"kind": kind, "finished_at": "2026-01-01", "dataset": {"items": 2}}
+        (folder / "summary.json").write_text(json.dumps(summary))
+        (folder / rows_file).write_text('{"doc": "a"}\n')
+        assert read_result(tmp_path, f"exp_{kind}", "20260101-000000")["rows"] == [{"doc": "a"}]
+    assert {e["kind"] for e in list_results(tmp_path)} == {"selfcheck", "verifier"}
+
+
 def test_claim_labels_also_match_fixed_chunks_by_their_opening_text():
     # Fixed-size chunks carry no claim number; without the anchor, claim labels could
     # never match them and Experiment B would be biased against fixed chunking.

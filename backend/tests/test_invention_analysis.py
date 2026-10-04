@@ -150,6 +150,24 @@ def test_report_and_validation(db_session, corpus):
 
 
 @pytestmark_db
+def test_selfcheck_uses_first_independent_claim_when_claim_1_is_cancelled(db_session, corpus):
+    from app.evaluation.selfcheck import first_independent_claim
+
+    settings, embedder, docs = corpus
+    text = (
+        "TITLE\nContinuation patent\n\nCLAIMS\n\n1.-14. (canceled)\n\n"
+        "15. A system for detecting an object, comprising: a resonant circuit; and a "
+        "controller.\n\n16. The system of claim 15, wherein the circuit is an L-C circuit.\n"
+    )
+    document, _ = DocumentService(db_session, settings, embedder).upload(
+        "continuation.txt", text.encode()
+    )
+    assert first_independent_claim(db_session, document).startswith("15. A system")
+    battery = first_independent_claim(db_session, docs["battery_patent.txt"])
+    assert battery.startswith("1.")
+
+
+@pytestmark_db
 def test_selfcheck_on_the_dev_corpus(db_session, corpus, tmp_path):
     import json
 

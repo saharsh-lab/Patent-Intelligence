@@ -76,7 +76,33 @@ export interface VerifierSummary {
   warnings: string[];
 }
 
-export type Summary = ExperimentSummary | VerifierSummary;
+export interface SelfCheckSummary {
+  kind: "selfcheck";
+  experiment: string;
+  run: string;
+  description: string;
+  finished_at: string;
+  dataset: { name: string; items: number; synthetic: boolean; sha256: string };
+  verifier: string;
+  models: { llm: string; embeddings: string };
+  results: Record<string, Stat & { label: string }>;
+  warnings: string[];
+}
+
+/** One patent in a self-check (rows.jsonl). */
+export interface SelfCheckRow {
+  doc: string;
+  domain: string;
+  self_rank: number | null;
+  self_coverage?: number | null;
+  same_domain_at_1: number;
+  same_domain_at_3?: number;
+  top_candidates: string[];
+  latency_included_ms: number;
+  [field: string]: unknown;
+}
+
+export type Summary = ExperimentSummary | VerifierSummary | SelfCheckSummary;
 
 /** One scored run (runs.jsonl). Metric values are null when not applicable. */
 export interface RunRow {

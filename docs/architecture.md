@@ -44,7 +44,7 @@ Final Answer + citations + grounding score + sources/tools used
 ## 3. Layers and code modules
 
 ```
-frontend/  Next.js 16 UI      Dashboard · Documents · Ask AI · Settings  (browser → /api/* →)
+frontend/  Next.js 16 UI      Login · Chat · Library · Invention analysis · Patent watch  (browser → /api/* →)
     │  HTTP/JSON (forwarded by Next.js rewrites; types generated from OpenAPI)
     ▼
 backend/app/

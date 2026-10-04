@@ -20,4 +20,6 @@ that would otherwise have produced misleading conclusions.
   several sources for comparative statements.
 - Claim-element-level comparison (mapping each element of a claim to evidence in another
   patent), presented strictly as technical similarity.
-- User accounts and shared workspaces for multi-user deployment.
+- Shared team workspaces on top of the existing per-user accounts; email verification.
+- A premise check before answering: detect when a question presupposes something the
+  evidence does not mention, and say so.

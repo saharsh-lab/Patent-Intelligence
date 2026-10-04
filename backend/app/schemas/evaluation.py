@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class EvaluationListItem(BaseModel):
     experiment: str
     run: str
-    kind: str  # experiment | verifier
+    kind: str  # experiment | verifier | selfcheck
     description: str
     finished_at: str | None
     dataset: str | None
