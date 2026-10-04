@@ -69,6 +69,9 @@ measure.
   an AI assistant and audited by the same assistant, not checked by people. An
   independent test set and content-based labels limit, but do not remove, the risk of
   systematic labelling errors. Retrieval metrics and key-fact recall depend on them.
+- **Small local context window.** Ollama ran Qwen3-8B with a 4,096-token context; the
+  largest answer prompts (10 passages) reached about 3,800 tokens, close to the limit
+  where text is silently dropped. No single-call run exceeded it (largest total 3,887).
 - **Verifier validated only weakly.** Experiment I used 150 statements labelled by a single
   team member with AI assistance (no second annotator, so no inter-annotator agreement),
   with only 9 unsupported statements; grounding scores remain the NLI verifier's

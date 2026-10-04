@@ -305,12 +305,37 @@ statement, read ONLY the passages listed under it and reply with ONLY a JSON arr
 Judge only against the passages, not your own knowledge. Reasons under 15 words."""
 
 
+# Second opinion on statements the NLI stage could not confirm: strict about facts,
+# tolerant of wording (the NLI stage's weakness).
+_SECOND_OPINION_PROMPT = """\
+You check statements that an automatic checker could not confirm. For each numbered
+statement, read ONLY the passages listed under it and reply with ONLY a JSON array:
+[{"id": 1, "verdict": "supported" | "partially_supported" | "unsupported", "reason": "..."}]
+- supported: every fact, number, name and relation in the statement is stated in, or
+  directly implied by, the passages. Different wording and synonyms are fine (e.g.
+  "likelihood" for "probability"); "these"/"it" refer to what the statement is about.
+- partially_supported: some of it is stated, but a detail (a number, a name, a purpose,
+  a cause, a comparison) is not. A statement that adds a reason ("because ..."), an
+  effect ("may cause ...", "leading to ..."), an implication ("implies ...") or a
+  generalisation that the passages do not themselves state is partially_supported at
+  most, even if its topic appears in the passages.
+- unsupported: not stated, contradicted, or about a different document than the passages.
+Judge only against the passages, never your own knowledge. Reasons under 15 words."""
+
+
+_VERDICT_OBJECT = re.compile(
+    r'\{\s*"id"\s*:\s*(\d+)\s*,\s*"verdict"\s*:\s*"(\w+)"(?:\s*,\s*"reason"\s*:\s*"([^"]*)")?'
+)
+
+
 class LlmJudgeVerifier(Verifier):
     name = "llm_judge"
     _SCORES = {SUPPORTED: 1.0, PARTIAL: 0.5, UNSUPPORTED: 0.0}
 
-    def __init__(self, llm: LLMProvider):
+    def __init__(self, llm: LLMProvider, prompt: str | None = None, tokens_per_claim: int = 80):
         self.llm = llm
+        self.prompt = prompt or _JUDGE_PROMPT
+        self.tokens_per_claim = tokens_per_claim
         self.last_usage: tuple[int, int] = (0, 0)
 
     def judge(self, claims, passages_per_claim):
@@ -321,9 +346,9 @@ class LlmJudgeVerifier(Verifier):
             evidence = "\n".join(f"  [P{j + 1}] {p}" for j, p in enumerate(passages)) or "  (none)"
             blocks.append(f"Statement {i}: {claim}\nPassages:\n{evidence}")
         response = self.llm.complete(
-            [ChatMessage("system", _JUDGE_PROMPT), ChatMessage("user", "\n\n".join(blocks))],
+            [ChatMessage("system", self.prompt), ChatMessage("user", "\n\n".join(blocks))],
             temperature=0.0,
-            max_tokens=80 * len(claims) + 50,
+            max_tokens=self.tokens_per_claim * len(claims) + 50,
         )
         self.last_usage = (response.prompt_tokens, response.completion_tokens)
         verdicts: dict[int, tuple[str, str]] = {}
@@ -333,11 +358,135 @@ class LlmJudgeVerifier(Verifier):
                 if item.get("verdict") in self._SCORES:
                     verdicts[int(item["id"])] = (item["verdict"], str(item.get("reason", "")))
         except (AttributeError, ValueError, TypeError, KeyError):
-            logger.info("LLM judge reply was not valid JSON")
+            # Observed: a reply cut off at max_tokens loses every verdict; keep the
+            # complete {"id": .., "verdict": ..} objects that did arrive.
+            for m in _VERDICT_OBJECT.finditer(response.text):
+                if m.group(2) in self._SCORES:
+                    verdicts[int(m.group(1))] = (m.group(2), m.group(3) or "")
+            if not verdicts:
+                logger.info("LLM judge reply was not valid JSON")
         out = []
         for i, passages in enumerate(passages_per_claim, 1):
             verdict, reason = verdicts.get(i, (UNSUPPORTED, "judge gave no valid verdict"))
             out.append(Judgement(verdict, self._SCORES[verdict], 0 if passages else None, reason))
+        return out
+
+
+class SecondOpinionVerifier(Verifier):
+    """Two stages: a fast verifier, then an LLM judge for what it could not confirm.
+
+    Observed (2026-10-04, user report): "The system then combines these likelihoods to
+    select the final token" was flagged although the abstract says "a combined probability
+    ... may be used to select the token"; NLI scored it 0.02 even with the preceding
+    sentence as context. The LLM judge confirmed it and rejected a fabricated variant
+    ("... averages these likelihoods using a neural network"). Only flagged statements
+    reach the LLM (one call for all of them), so cost stays proportional to doubt.
+    The LLM can only confirm or downgrade-to-partial; when it says unsupported, the
+    first stage's verdict stands."""
+
+    name = "nli_llm"
+
+    batch_size = 4
+    max_passages = 3
+    max_chars = 2500  # per passage, about 600 tokens
+
+    def __init__(self, first: Verifier, judge: LlmJudgeVerifier):
+        self.first = first
+        self.judge_llm = judge
+        self.last_usage: tuple[int, int] = (0, 0)
+
+    def _focus(self, claim: str, passages: list[str]) -> list[str]:
+        """The passages that share most key words with the statement, trimmed."""
+        words = _content_words(claim)
+        ranked = sorted(passages, key=lambda p: -len(words & _content_words(p)))
+        return [p[: self.max_chars] for p in ranked[: self.max_passages]]
+
+    def judge(self, claims, passages_per_claim):
+        out = list(self.first.judge(claims, passages_per_claim))
+        doubtful = [
+            i for i, j in enumerate(out) if j.verdict != SUPPORTED and passages_per_claim[i]
+        ]
+        self.last_usage = (0, 0)
+        if not doubtful:
+            return out
+        # Small batches with only the most relevant passages: the local LLM has a 4,096-token
+        # window, and a 14-statement batch was cut off at max_tokens (no verdicts at all).
+        second, prompt_tokens, completion_tokens = [], 0, 0
+        for start in range(0, len(doubtful), self.batch_size):
+            batch = doubtful[start : start + self.batch_size]
+            second += self.judge_llm.judge(
+                [claims[i] for i in batch],
+                [self._focus(claims[i], passages_per_claim[i]) for i in batch],
+            )
+            prompt_tokens += self.judge_llm.last_usage[0]
+            completion_tokens += self.judge_llm.last_usage[1]
+        self.last_usage = (prompt_tokens, completion_tokens)
+        for i, opinion in zip(doubtful, second, strict=True):
+            first = out[i]
+            if opinion.verdict == SUPPORTED:
+                out[i] = Judgement(
+                    SUPPORTED,
+                    max(first.score, 0.75),
+                    first.best_passage if first.best_passage is not None else 0,
+                    f"confirmed by LLM judge: {opinion.reason} (NLI p={first.score:.2f})",
+                    contradiction=first.contradiction,
+                )
+            elif opinion.verdict == PARTIAL and first.verdict == UNSUPPORTED:
+                out[i] = Judgement(
+                    PARTIAL,
+                    0.5,
+                    first.best_passage if first.best_passage is not None else 0,
+                    f"partly confirmed by LLM judge: {opinion.reason}",
+                    contradiction=first.contradiction,
+                )
+        return out
+
+
+_PUBLICATION = re.compile(r"\b(?:US|EP|WO|CN|JP|KR|DE|GB|FR)\s?\d{4,}\s?[A-Z]\d?\b")
+_SOURCE_LINE = re.compile(r"^Source:\s*([^,\n]+)")
+
+
+def _numbers_in(text: str) -> set[str]:
+    return {re.sub(r"\s", "", m.group(0)).upper() for m in _PUBLICATION.finditer(text)}
+
+
+class AttributionGuard(Verifier):
+    """A statement that names a patent number cannot be supported by a passage from a
+    different patent, however well the wording matches.
+
+    Observed: "The problem addressed by US20230369708A1 is ..." was entailed (p=0.93) by a
+    passage from US12563707B2 (Experiment I), and the agent once attributed one patent's
+    claim to another (Experiment E). Word- and meaning-based checks cannot see this."""
+
+    def __init__(self, inner: Verifier):
+        self.inner = inner
+        self.name = inner.name
+
+    @property
+    def last_usage(self):
+        return getattr(self.inner, "last_usage", (0, 0))
+
+    def judge(self, claims, passages_per_claim):
+        out = list(self.inner.judge(claims, passages_per_claim))
+        for i, (claim, passages) in enumerate(zip(claims, passages_per_claim, strict=True)):
+            named = _numbers_in(claim)
+            j = out[i]
+            if not named or j.verdict == UNSUPPORTED or j.best_passage is None:
+                continue
+            if j.best_passage >= len(passages):
+                continue
+            source = _SOURCE_LINE.match(passages[j.best_passage])
+            source_numbers = _numbers_in(source.group(1)) if source else set()
+            if source_numbers and not (named & source_numbers):
+                out[i] = Judgement(
+                    UNSUPPORTED,
+                    0.0,
+                    j.best_passage,
+                    f"names {', '.join(sorted(named))} but the supporting passage is from "
+                    f"{', '.join(sorted(source_numbers))}",
+                    contradicted=False,
+                    contradiction=j.contradiction,
+                )
         return out
 
 
@@ -346,13 +495,25 @@ def build_verifier(method: str, *, nli_model: str, llm: LLMProvider | None) -> V
         try:
             import sentence_transformers  # noqa: F401
 
-            method = "nli_lexical"
+            # With a real LLM: NLI + its second opinion (fewest false alarms, Experiment I
+            # follow-up); with the test stand-in: NLI + lexical rescue
+            real_llm = llm is not None and not str(getattr(llm, "model", "")).startswith("fake")
+            method = "nli_llm" if real_llm else "nli_lexical"
         except ImportError:
             method = "lexical"
     if method == "nli":
         return _shared_nli(nli_model)
     if method == "nli_lexical":
-        return NliLexicalVerifier(_shared_nli(nli_model))
+        return AttributionGuard(NliLexicalVerifier(_shared_nli(nli_model)))
+    if method == "nli_llm":
+        first = NliLexicalVerifier(_shared_nli(nli_model))
+        if llm is None:  # no LLM: the first stage alone
+            return AttributionGuard(first)
+        return AttributionGuard(
+            SecondOpinionVerifier(
+                first, LlmJudgeVerifier(llm, _SECOND_OPINION_PROMPT, tokens_per_claim=160)
+            )
+        )
     if method == "llm_judge":
         if llm is None:
             raise ConfigurationError("The LLM judge verifier needs an LLM.")

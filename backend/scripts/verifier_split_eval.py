@@ -4,7 +4,10 @@
 
 The 150 labelled statements are split by a hash of their id (fixed, not random): the
 development half was used to design the NLI + lexical rescue and its guards, the test half
-was not looked at until the design was fixed. Writes
+was not looked at until the design was fixed. The LLM second opinion (nli_llm) was added
+after a user report; its prompt (no added reasons/implications) and the patent-number
+attribution guard were then revised after error analysis over ALL labels, so their numbers
+here are optimistic. Run with the real LLM configured. Writes
 experiments/results/exp_i_verifier_choice/<timestamp>/report.md and split.json.
 """
 
@@ -20,11 +23,12 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.core.config import get_settings  # noqa: E402
 from app.evaluation.metrics import agreement  # noqa: E402
 from app.evaluation.verifier_eval import load_labels  # noqa: E402
+from app.llm.providers import build_llm  # noqa: E402
 from app.verification.verifiers import (  # noqa: E402
     SUPPORTED,
     UNSUPPORTED,
-    NliLexicalVerifier,
     NliVerifier,
+    build_verifier,
 )
 
 LABELS = ROOT / "experiments" / "labels" / "test_claims_A_labeled.csv"
@@ -35,8 +39,18 @@ def half_of(claim_id: str) -> str:
 
 
 def main() -> int:
-    nli = NliVerifier(get_settings().verifier_nli_model)
-    methods = {"nli": nli, "nli_lexical": NliLexicalVerifier(nli)}
+    settings = get_settings()
+    nli = NliVerifier(settings.verifier_nli_model)
+    methods = {
+        "nli": nli,
+        "nli_lexical": build_verifier(
+            "nli_lexical", nli_model=settings.verifier_nli_model, llm=None
+        ),
+    }
+    if settings.llm_provider != "fake":  # the second opinion needs the real LLM
+        methods["nli_llm"] = build_verifier(
+            "nli_llm", nli_model=settings.verifier_nli_model, llm=build_llm(settings)
+        )
     rows = load_labels(LABELS)
     results = {}
     for part in ("development", "test", "all"):

@@ -8,7 +8,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  preferences: { theme?: "light" | "dark" | "system"; answer_detail?: "concise" | "detailed"; default_pipeline?: "agentic" | "baseline" };
+  preferences: { theme?: "light" | "dark" | "system"; answer_detail?: "concise" | "detailed"; default_pipeline?: "agentic" | "baseline"; verification?: "balanced" | "strict" };
   created_at: string;
 }
 

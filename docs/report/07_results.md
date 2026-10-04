@@ -383,26 +383,48 @@ Confusion matrix of the NLI verifier used in the system (rows: label, columns: v
 - **Word overlap** reached the highest κ (0.24) and detection F1 (0.42), but with only 9
   unsupported statements these differences between methods are within noise.
 
-**Follow-up: reducing false alarms (after the main experiments).** A verifier variant was
-designed on half of these labels and measured on the other half (split by a hash of the
-statement id; `experiments/results/exp_i_verifier_choice/20261004-160727`). `nli_lexical`
-keeps the NLI verdict but rescues a rejected statement when at least 75% of its key words
-appear in one passage, its numbers all appear there, and it adds no negation or opposite
-direction word.
+**Follow-up: reducing false alarms (after the main experiments).** Users saw correct
+sentences flagged (Section 6.9), so two verifier variants were built and measured on a
+fixed split of these labels (by a hash of the statement id;
+`experiments/results/exp_i_verifier_choice/20261004-172043`):
+
+- `nli_lexical` (**strict**): NLI, plus a guarded rescue of rejected statements when at least
+  75% of their key words appear in one passage, all their numbers match and they add no
+  negation or opposite direction word;
+- `nli_llm` (**balanced**, the application default): the same, then Qwen3-8B re-checks only
+  the statements still flagged (batches of 4, the 3 most relevant passages each), with a
+  prompt that accepts synonyms but treats an added reason, effect or implication as
+  partially supported at most.
+
+Both also reject a statement that names a patent number when its supporting passage
+comes from a different patent ("attribution guard").
 
 | Half | Method | Accuracy | κ | False alarms | Unsupported caught |
 |---|---|---|---|---|---|
 | development (72) | nli | 0.653 | 0.114 | 24/69 | 3/3 |
-| development (72) | nli_lexical | 0.833 | 0.250 | 11/69 | 3/3 |
+| development (72) | strict | 0.833 | 0.250 | 11/69 | 3/3 |
+| development (72) | balanced | 0.917 | 0.217 | 4/69 | 1/3 |
 | test (78) | nli | 0.718 | 0.249 | 17/68 | 4/6 |
-| test (78) | nli_lexical | 0.744 | 0.278 | 15/68 | 4/6 |
+| test (78) | strict | 0.756 | 0.333 | 15/68 | 5/6 |
+| test (78) | balanced | 0.897 | 0.458 | 2/68 | 4/6 |
+| all (150) | nli | 0.687 | 0.178 | 41/137 | 7/9 |
+| all (150) | strict | 0.793 | 0.311 | 26/137 | 8/9 |
+| all (150) | balanced | 0.907 | 0.422 | 7/137 | 5/9 |
 
-On the held-out half the gain is small (two fewer false alarms, no change in detection);
-the larger development-half gain partly reflects that the guards were designed there.
-Two further changes that do not depend on these labels were made at the same time:
-uncited statements that a passage supports now count as supported (citation coverage is
-reported separately), and each premise states the document title. The application uses
-these changes; the experiments in 6.1–6.5 were measured with the original verifier.
+**How far to trust these numbers.** The lexical rescue was designed on the development half
+only. The second-opinion prompt and the attribution guard were revised after an error
+analysis that looked at all nine unsupported statements, including the test half, so the
+test-half numbers for those two changes are optimistic; an unbiased estimate needs new
+labels. With nine unsupported statements, "caught" counts are very uncertain.
+
+**The trade-off.** Balanced cuts false alarms from 41 to 7 of 137 but catches fewer of the
+labelled problems (5 vs. 8 of 9). Of the four it misses, two add a reason or implication
+the passage does not state ("This is because prolonged exposure ... degrades the battery's
+life"; "it implies that any object ..."), and two were labelled unsupported because they do
+not answer the question asked, although their facts are in the passage. Strict catches
+almost everything but flags about one correct sentence in five. The application therefore
+uses balanced by default and offers strict as a per-user setting (profile page). The
+experiments in 6.1–6.5 were measured with the original `nli` verifier.
 
 RQ4 is therefore answered only partially and with caution: on this sample, none of the
 three automatic verifiers agrees well with the (AI-assisted, single-annotator) labels,

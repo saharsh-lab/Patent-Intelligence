@@ -127,8 +127,11 @@ class Settings(BaseSettings):
     verify_mode: Literal["off", "report", "regenerate"] = "regenerate"
     # nli: local entailment model (free) | llm_judge: ask the LLM | lexical: word overlap
     # auto: nli if sentence-transformers is installed, else lexical
-    # auto = nli_lexical when the ML extras are installed (NLI + guarded word-overlap check)
-    verifier_method: Literal["auto", "nli", "nli_lexical", "llm_judge", "lexical"] = "auto"
+    # auto: nli_llm with a real LLM (NLI, guarded word-overlap rescue, LLM second opinion on
+    # what is still flagged), nli_lexical with the fake LLM, lexical without the ML extras
+    verifier_method: Literal["auto", "nli", "nli_lexical", "nli_llm", "llm_judge", "lexical"] = (
+        "auto"
+    )
     # An uncited statement that a passage supports counts as supported (see checker.py)
     verifier_uncited_supported: bool = True
     verifier_nli_model: str = "cross-encoder/nli-deberta-v3-xsmall"

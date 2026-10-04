@@ -130,6 +130,21 @@ export default function ProfilePage() {
                 onChange={(p) => update({ preferences: { default_pipeline: p } }, "Preference saved.")}
               />
             </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                <span className="block font-medium">Hallucination checks</span>
+                <span className="text-xs text-muted">
+                  Balanced asks the language model to re-check flagged sentences (few false alarms). Strict flags
+                  more sentences and misses fewer unsupported ones.
+                </span>
+              </span>
+              <Choice
+                label="Hallucination checks"
+                value={prefs.verification ?? "balanced"}
+                options={[["balanced", "Balanced"], ["strict", "Strict"]]}
+                onChange={(v) => update({ preferences: { verification: v } }, "Preference saved.")}
+              />
+            </div>
           </div>
         </Panel>
 

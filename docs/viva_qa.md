@@ -125,10 +125,12 @@ Our NLI verifier caught 5 of the 9 unsupported statements, more than the LLM jud
 strict: our grounding scores are conservative. Agreement beyond chance was low for all
 methods (κ 0.16–0.24). Limits: one annotator, AI-assisted, and only 9 unsupported
 statements, so this is indicative. The planned fix is a second independent labeller
-(the tooling, `make eval-agreement`, is ready). We then reduced false alarms with a
-guarded word-overlap second look (`nli_lexical`), designed on one half of the labels and
-measured on the other: on the held-out half false alarms fell only from 17 to 15 of 68,
-with the same 4 of 6 problems caught, so we report it as a modest improvement.
+(the tooling, `make eval-agreement`, is ready). After users saw correct sentences flagged, we
+added two modes. Strict (a guarded word-overlap second look) cut false alarms from 41 to
+26 of 137 and caught 8 of 9 problems; balanced (Qwen re-checks only the flagged sentences)
+cut false alarms to 7 of 137 but caught 5 of 9. Balanced is the default, strict is a
+profile setting. These numbers are partly optimistic: some fixes were designed after
+looking at all labels.
 
 **26. What is Cohen's κ?**
 Agreement corrected for chance. 1 = perfect, 0 = no better than chance.
@@ -314,3 +316,15 @@ the model finds the library's passages insufficient, it rewrites the question in
 terms, searches EP and WO publications first (they come with claims), ranks the hits
 against the whole question, imports the best three and answers from them. A "Patent DBs"
 switch in the chat does this for every question.
+
+**57. Why not just use the LLM to check everything?**
+It is slower (about 4 s per statement on a laptop) and it is lenient: on its own it found
+only 2 of 9 unsupported statements, because it accepts plausible reasons and implications.
+NLI is fast and strict but misses paraphrases ("likelihood" for "probability"). So NLI
+checks everything, and only the sentences it cannot confirm go to the LLM, with a prompt
+that accepts synonyms but not added reasons. That keeps cost proportional to doubt.
+
+**58. Can the checker catch an answer that talks about the wrong patent?**
+Yes, since this fix: if a sentence names a patent number and its supporting passage comes
+from a different patent, it is marked unsupported, however well the words match. Meaning-
+based checks alone cannot see this, because the text itself is correct.

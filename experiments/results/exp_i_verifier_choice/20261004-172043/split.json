@@ -1,0 +1,89 @@
+{
+  "development": {
+    "nli": {
+      "n": 72,
+      "accuracy": 0.653,
+      "cohen_kappa": 0.114,
+      "false_alarms": 24,
+      "labelled_supported": 69,
+      "unsupported_caught": 3,
+      "labelled_unsupported": 3
+    },
+    "nli_lexical": {
+      "n": 72,
+      "accuracy": 0.833,
+      "cohen_kappa": 0.25,
+      "false_alarms": 11,
+      "labelled_supported": 69,
+      "unsupported_caught": 3,
+      "labelled_unsupported": 3
+    },
+    "nli_llm": {
+      "n": 72,
+      "accuracy": 0.917,
+      "cohen_kappa": 0.217,
+      "false_alarms": 4,
+      "labelled_supported": 69,
+      "unsupported_caught": 1,
+      "labelled_unsupported": 3
+    }
+  },
+  "test": {
+    "nli": {
+      "n": 78,
+      "accuracy": 0.718,
+      "cohen_kappa": 0.249,
+      "false_alarms": 17,
+      "labelled_supported": 68,
+      "unsupported_caught": 4,
+      "labelled_unsupported": 6
+    },
+    "nli_lexical": {
+      "n": 78,
+      "accuracy": 0.756,
+      "cohen_kappa": 0.333,
+      "false_alarms": 15,
+      "labelled_supported": 68,
+      "unsupported_caught": 5,
+      "labelled_unsupported": 6
+    },
+    "nli_llm": {
+      "n": 78,
+      "accuracy": 0.897,
+      "cohen_kappa": 0.458,
+      "false_alarms": 2,
+      "labelled_supported": 68,
+      "unsupported_caught": 4,
+      "labelled_unsupported": 6
+    }
+  },
+  "all": {
+    "nli": {
+      "n": 150,
+      "accuracy": 0.687,
+      "cohen_kappa": 0.178,
+      "false_alarms": 41,
+      "labelled_supported": 137,
+      "unsupported_caught": 7,
+      "labelled_unsupported": 9
+    },
+    "nli_lexical": {
+      "n": 150,
+      "accuracy": 0.793,
+      "cohen_kappa": 0.311,
+      "false_alarms": 26,
+      "labelled_supported": 137,
+      "unsupported_caught": 8,
+      "labelled_unsupported": 9
+    },
+    "nli_llm": {
+      "n": 150,
+      "accuracy": 0.907,
+      "cohen_kappa": 0.422,
+      "false_alarms": 7,
+      "labelled_supported": 137,
+      "unsupported_caught": 5,
+      "labelled_unsupported": 9
+    }
+  }
+}

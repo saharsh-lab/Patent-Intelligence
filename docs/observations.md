@@ -487,3 +487,22 @@ own contradiction score was not usable as a guard (0.8–0.99 on correct paraphr
 The screenshot answer re-verified: 1/6 → 5/6; the remaining flag is a true paraphrase
 ("likelihoods") that word overlap cannot match. An LLM second opinion cut false alarms to
 4 of 69 on the development half but let 1 of 3 unsupported statements through; not used.
+
+### 2026-10-04 — Second user report: a correct paraphrase still flagged
+
+"The system then combines these likelihoods to select the final token" stayed unsupported
+after the first fixes (the abstract says "a combined probability ... may be used to select
+the token"). NLI scored it 0.02 alone and 0.04 with the preceding sentence as context; a
+larger NLI model gave 0.00. Qwen as judge confirmed it and rejected a fabricated variant.
+**Added** `nli_llm` (balanced): only statements still flagged go to Qwen. First attempt
+changed nothing: 14 statements in one call hit max_tokens mid-JSON and every verdict was
+lost; now batches of 4, the 3 most relevant passages each, 160 tokens per statement, and
+complete verdict objects are salvaged from a cut-off reply. Error analysis over all nine
+unsupported labels (so optimistic afterwards) led to a stricter prompt (added reasons,
+effects and implications are partial at most) and an attribution guard (a statement that
+names a patent number cannot be supported by a passage from another patent). Balanced:
+7/137 false alarms, 5/9 caught; strict: 26/137, 8/9. Balanced is the default, strict a
+profile setting. The user's answer: 6/6 verified in balanced mode, 5/6 in strict.
+
+Also found: Ollama serves qwen3:8b with a 4,096-token context; the largest experiment
+prompts reached ~3,800 tokens (no run exceeded the limit, largest total 3,887).

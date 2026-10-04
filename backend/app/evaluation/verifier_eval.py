@@ -237,7 +237,7 @@ class VerifierExperiment(BaseModel):
     @field_validator("methods")
     @classmethod
     def _known(cls, methods: list[str]) -> list[str]:
-        unknown = set(methods) - {"nli", "nli_lexical", "llm_judge", "lexical"}
+        unknown = set(methods) - {"nli", "nli_lexical", "nli_llm", "llm_judge", "lexical"}
         if unknown:
             raise ValueError(f"unknown verifier methods {sorted(unknown)}")
         return methods
@@ -299,7 +299,7 @@ def evaluate_verifiers(
         elapsed = (time.perf_counter() - started) * 1000
         predicted = [r["predicted"] for r in rows]
         correct = [float(h == p) for h, p in zip(human, predicted, strict=True)]
-        model = settings.verifier_nli_model if method in ("nli", "nli_lexical") else None
+        model = settings.verifier_nli_model if method in ("nli", "nli_lexical", "nli_llm") else None
         if method == "llm_judge":
             model = settings.llm_model if settings.llm_provider != "fake" else "fake"
         methods[method] = agreement(human, predicted) | {

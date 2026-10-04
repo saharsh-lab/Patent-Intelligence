@@ -123,7 +123,11 @@ def get_chat_service(
     sources: Annotated[dict[str, PatentSource], Depends(get_patent_sources)],
     user: CurrentUser,
 ) -> ChatService:
-    pipeline = ((user.preferences or {}).get("default_pipeline") if user else None) or "agentic"
+    preferences = (user.preferences or {}) if user else {}
+    pipeline = preferences.get("default_pipeline") or "agentic"
+    checks = {"strict": "nli_lexical", "balanced": "nli_llm"}.get(preferences.get("verification"))
+    if checks and settings.verifier_method in ("auto", "nli_llm", "nli_lexical"):
+        settings = settings.model_copy(update={"verifier_method": checks})
     return ChatService(
         session, settings, embedder, llm, sources, owner_id=current_owner(), pipeline=pipeline
     )

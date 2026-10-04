@@ -283,7 +283,10 @@ class AlwaysUnsure(verifiers_module.Verifier):
     name = "unsure"
 
     def judge(self, claims, passages_per_claim):
-        return [verifiers_module.Judgement(UNSUPPORTED, 0.05, 0, "unsure", contradiction=0.9)]
+        return [
+            verifiers_module.Judgement(UNSUPPORTED, 0.05, 0, "unsure", contradiction=0.9)
+            for _ in claims
+        ]
 
 
 PASSAGE = (
@@ -321,3 +324,64 @@ def test_nli_lexical_known_limit_one_unstated_word_can_pass():
     claim = "The second probability is determined quickly for the token."
     assert "quickly" not in PASSAGE
     assert verifier.judge([claim], [[PASSAGE]])[0].verdict == SUPPORTED
+
+
+# ------------------------------------------------------------------ second opinion (2026-10-04)
+
+
+class ScriptedJudge(FakeLLM):
+    model = "scripted"
+
+    def __init__(self, replies):
+        self.replies = list(replies)
+        self.calls = []
+
+    def complete(self, messages, *, temperature, max_tokens):
+        self.calls.append(messages[1].content)
+        return LLMResponse(self.replies.pop(0), "scripted", 10, 10, 1)
+
+
+def test_second_opinion_confirms_paraphrases_and_keeps_rejections():
+    llm = ScriptedJudge(
+        [
+            '[{"id": 1, "verdict": "supported", "reason": "probability = likelihood"},'
+            ' {"id": 2, "verdict": "unsupported", "reason": "no neural network"},'
+            ' {"id": 3, "verdict": "partially_supported", "reason": "cause not stated"}]'
+        ]
+    )
+    verifier = verifiers_module.SecondOpinionVerifier(
+        AlwaysUnsure(), LlmJudgeVerifier(llm, verifiers_module._SECOND_OPINION_PROMPT)
+    )
+    out = verifier.judge(["a b c d", "e f g h", "i j k l"], [[PASSAGE]] * 3)
+    assert [j.verdict for j in out] == [SUPPORTED, UNSUPPORTED, PARTIAL]
+    assert out[0].reason.startswith("confirmed by LLM judge")
+
+
+def test_second_opinion_batches_and_survives_cut_off_replies():
+    cut_off = '[{"id": 1, "verdict": "supported", "reason": "ok"}, {"id": 2, "verd'
+    llm = ScriptedJudge([cut_off, '[{"id": 1, "verdict": "supported", "reason": "ok"}]'])
+    verifier = verifiers_module.SecondOpinionVerifier(AlwaysUnsure(), LlmJudgeVerifier(llm))
+    out = verifier.judge([f"statement {i} here" for i in range(5)], [[PASSAGE]] * 5)
+    assert len(llm.calls) == 2  # 4 + 1 statements
+    assert [j.verdict for j in out] == [SUPPORTED, UNSUPPORTED, UNSUPPORTED, UNSUPPORTED, SUPPORTED]
+
+
+def test_statement_naming_another_patent_is_unsupported():
+    guard = verifiers_module.AttributionGuard(LexicalVerifier())
+    passage = "Source: US12563707B2.txt, abstract.\nStagnant fluid reduces the cooling capacity."
+    claim = (
+        "The problem addressed by US20230369708A1 is that stagnant fluid reduces cooling capacity."
+    )
+    [j] = guard.judge([claim], [[passage]])
+    assert j.verdict == UNSUPPORTED and "from US12563707B2" in j.reason
+    right = "The problem addressed by US12563707B2 is that stagnant fluid reduces cooling capacity."
+    assert guard.judge([right], [[passage]])[0].verdict == SUPPORTED
+
+
+def test_auto_uses_the_second_opinion_only_with_a_real_llm(monkeypatch):
+    monkeypatch.setitem(
+        sys.modules, "sentence_transformers", types.SimpleNamespace(CrossEncoder=FakeCrossEncoder)
+    )
+    verifiers_module._shared_nli.cache_clear()
+    assert build_verifier("auto", nli_model="x", llm=FakeLLM()).name == "nli_lexical"
+    assert build_verifier("auto", nli_model="x", llm=ScriptedJudge([])).name == "nli_llm"

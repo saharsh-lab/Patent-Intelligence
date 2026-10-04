@@ -21,6 +21,8 @@ ALLOWED_PREFERENCES = {
     "theme": {"light", "dark", "system"},
     "answer_detail": {"concise", "detailed"},
     "default_pipeline": {"agentic", "baseline"},
+    # balanced: LLM second opinion on flagged statements; strict: flags more, misses fewer
+    "verification": {"balanced", "strict"},
 }
 # Burns the same time as a real check when the email is unknown (no timing oracle)
 _DUMMY_HASH = hash_password("dummy-password-for-timing")
