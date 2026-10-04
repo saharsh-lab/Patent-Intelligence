@@ -7,19 +7,16 @@ behaviour carries over; rehearse once in the chat UI to confirm timings.
 
 ## Before the demo (do this 30 minutes ahead)
 
-1. `ollama serve` is running and `ollama list` shows `qwen3:8b`.
-2. `.env` uses the real models (keep a copy of the fake-model `.env` as a fallback):
+1. Open the Ollama app (it serves `qwen3:8b`).
+2. Start the database and the app with the real models, in one terminal:
    ```
-   LLM_PROVIDER=openai_compatible
-   LLM_BASE_URL=http://localhost:11434/v1
-   LLM_API_KEY=ollama
-   LLM_MODEL=qwen3:8b
-   LLM_REASONING_EFFORT=none
-   EMBEDDING_PROVIDER=local
-   VERIFIER_METHOD=nli
+   make db-up
+   make demo
    ```
-3. Start the app: `make db-up`, `make run` (API), `make web` (UI) and open
-   http://localhost:3000 and log in. The bottom of the sidebar should show **Connected**.
+   `make demo` starts the API on port 8100 with Qwen3-8B, BGE-M3 and the balanced
+   hallucination checks, and the web UI on port 3000 connected to it (Ctrl+C stops both).
+   It does not change `.env`. Port 8000 is left alone (another project uses it).
+3. Open http://localhost:3000 and log in. The bottom of the sidebar should show **Connected**.
 4. **Library → My documents:** these four patents should be listed as Ready. If not, upload them
    from `experiments/datasets/real_v1/corpus/`. Delete any test files (e.g.
    `wireless_patent.txt`) so only real patents are searched.
