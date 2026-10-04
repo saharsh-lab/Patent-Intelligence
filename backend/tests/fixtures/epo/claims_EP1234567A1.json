@@ -1,0 +1,17 @@
+{
+  "_comment": "Hand-made fixture in OPS v3.2 JSON format; fictional patent.",
+  "ops:world-patent-data": {
+    "ftxt:fulltext-documents": {
+      "ftxt:fulltext-document": {
+        "@system": "ops.epo.org",
+        "claims": [
+          {"@lang": "DE", "claim": {"claim-text": [{"$": "1. Batteriesystem ..."}]}},
+          {"@lang": "EN", "claim": {"claim-text": [
+            {"$": "1. A battery thermal management system comprising a temperature sensor on each cell and a controller configured to estimate a core temperature of each cell."},
+            {"$": "2. The system of claim 1, wherein the controller increases a coolant flow rate when the estimated core temperature exceeds a limit."}
+          ]}}
+        ]
+      }
+    }
+  }
+}

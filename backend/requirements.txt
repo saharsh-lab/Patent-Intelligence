@@ -1,0 +1,25 @@
+# Backend runtime dependencies. Versions are pinned so experiments are reproducible.
+# Install: pip install -r requirements-dev.txt   (includes these + test tools)
+
+# --- Web API ---
+fastapi==0.142.2
+uvicorn[standard]==0.54.0
+pydantic-settings==2.15.0
+httpx==0.28.1
+python-multipart==0.0.32
+
+# --- Database: PostgreSQL + pgvector ---
+sqlalchemy==2.1.3
+psycopg[binary]==3.3.6
+pgvector==0.5.0
+alembic==1.20.0
+
+# --- Agent orchestration ---
+langgraph==1.2.12
+
+# --- Evaluation (datasets and experiment configs are YAML) ---
+pyyaml==6.0.3
+
+# --- Document processing ---
+pymupdf==1.28.2
+python-docx==1.2.0

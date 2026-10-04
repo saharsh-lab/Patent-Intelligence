@@ -1,0 +1,36 @@
+[project]
+name = "patent-intelligence-backend"
+version = "0.1.0"
+description = "Agentic RAG for multi-source patent intelligence (backend)"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "db: needs the PostgreSQL test database (docker compose up -d db)",
+    "external: calls a real external API (skipped unless credentials are set)",
+]
+filterwarnings = [
+    "error::DeprecationWarning:app.*",
+    # Third-party notice from starlette's TestClient; not our code
+    "ignore:Using `httpx` with `starlette.testclient`",
+    # PyMuPDF's SWIG bindings; not our code
+    "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "BLE", "SIM"]
+# SIM905: prefer "a b c".split() for long word lists; it reads better than a list literal
+ignore = ["SIM905"]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]

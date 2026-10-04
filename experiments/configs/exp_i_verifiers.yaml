@@ -1,0 +1,8 @@
+# Experiment I: which verifier agrees best with human judgement?
+# 1. python -m app.evaluation export-claims --result ../experiments/results/<exp>/<run>
+# 2. fill in human_verdict in the CSV (docs/labelling_guide.md)
+# 3. point `labels` at it and run: python -m app.evaluation verifier --config <this file>
+name: exp_i_verifiers
+description: NLI vs. LLM judge vs. lexical overlap, scored against human labels (Experiment I).
+labels: ../labels/dev_claims.csv
+methods: [lexical, nli, llm_judge]

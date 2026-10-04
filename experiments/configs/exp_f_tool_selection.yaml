@@ -1,0 +1,11 @@
+# Experiment F: does choosing tools per question matter, or would running every
+# available tool on every question do as well? Same agent, same intent classification
+# (used only to format answers), same tools; only tool selection differs.
+# Expect "all" to cost more (extra tool calls, larger contexts) - the question is whether
+# selection loses quality, and whether irrelevant evidence hurts grounding.
+name: exp_f_tool_selection
+description: Agent with tool selection vs. every available tool on every question (Experiment F).
+dataset: ../datasets/dev/dataset.yaml
+variants:
+  - {name: select, pipeline: agentic, settings: {agent_tool_policy: select}}
+  - {name: all_tools, pipeline: agentic, settings: {agent_tool_policy: all}}

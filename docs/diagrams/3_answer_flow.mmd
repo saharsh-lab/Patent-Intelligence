@@ -1,0 +1,13 @@
+flowchart TD
+    q(["Question"]) --> a["1 · Analyze<br/>intent: fact · claim · compare · similar · legal"]
+    a --> r["2 · Resolve targets<br/>'my battery patent', 'EP1234567'"]
+    r --> p["3 · Plan tools"]
+    p --> t["4 · Run tools<br/>hybrid search · fetch claim · EPO search · compare"]
+    t --> s{"Enough<br/>evidence?"}
+    s -- "no, retry possible" --> rec["Recover<br/>broader search"] --> t
+    s -- no --> ins["Answer: insufficient evidence<br/>(no LLM guess)"]
+    s -- yes --> g["5 · Generate<br/>LLM writes only from passages, cites [E1] [E2]"]
+    g --> v["6 · Verify<br/>each sentence vs. its cited passage (NLI)"]
+    v --> d{"Grounding<br/>below 0.8?"}
+    d -- "yes (max 1 retry)" --> rg["7 · Regenerate<br/>extra evidence + feedback, rewrite"] --> v
+    d -- no --> out(["Answer with citations,<br/>verdicts, grounding score, steps"])

@@ -1,0 +1,11 @@
+# Experiment C: how many passages should the LLM see?
+# Precision/recall@k use the fixed cutoff eval_k; compare context precision / context
+# recall (over everything given to the LLM), grounding, tokens and latency.
+name: exp_c_topk
+description: top-k passages given to the LLM ∈ {3, 6, 10} (Experiment C).
+dataset: ../datasets/dev/dataset.yaml
+eval_k: 3
+variants:
+  - {name: k3, pipeline: baseline, settings: {retrieval_top_k: 3}}
+  - {name: k6, pipeline: baseline, settings: {retrieval_top_k: 6}}
+  - {name: k10, pipeline: baseline, settings: {retrieval_top_k: 10}}

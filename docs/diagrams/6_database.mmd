@@ -1,0 +1,60 @@
+erDiagram
+    DOCUMENTS ||--o{ CHUNKS : "split into"
+    PATENTS ||--o{ CHUNKS : "split into"
+    QUERIES ||--o{ AGENT_RUNS : "answered by"
+    AGENT_RUNS ||--o{ TOOL_CALLS : "used"
+    AGENT_RUNS ||--o{ RETRIEVAL_RESULTS : "retrieved"
+    AGENT_RUNS ||--o{ CLAIM_VERIFICATIONS : "verified"
+    AGENT_RUNS ||--o{ EVALUATIONS : "scored by"
+    CHUNKS |o--o{ RETRIEVAL_RESULTS : "copy of"
+    DOCUMENTS {
+        uuid id
+        text filename
+        text sha256
+        text status
+    }
+    PATENTS {
+        uuid id
+        text publication_number
+        text source
+        text title
+    }
+    CHUNKS {
+        uuid id
+        text text
+        text section
+        vector embedding
+        tsvector tsv
+    }
+    AGENT_RUNS {
+        uuid id
+        text pipeline
+        text status
+        float grounding_score
+        int latency_ms
+        json config
+    }
+    TOOL_CALLS {
+        text tool_name
+        bool success
+        int latency_ms
+    }
+    RETRIEVAL_RESULTS {
+        int rank
+        float score
+        bool cited_in_answer
+    }
+    CLAIM_VERIFICATIONS {
+        text claim_text
+        text verdict
+        float support_score
+    }
+    EVALUATIONS {
+        text experiment
+        text metric_name
+        float metric_value
+    }
+    API_CACHE {
+        text key
+        json response
+    }

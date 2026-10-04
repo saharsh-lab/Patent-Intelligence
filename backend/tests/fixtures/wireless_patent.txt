@@ -1,0 +1,19 @@
+SYNTHETIC TEST DOCUMENT - not a real patent. Created for automated tests.
+
+TITLE OF INVENTION
+
+Inductive Wireless Charging Pad with Foreign Object Detection
+
+ABSTRACT
+
+A wireless charging pad transfers power to a mobile device through inductive coupling between a transmitter coil and a receiver coil. A detection circuit measures the quality factor of the transmitter coil before power transfer begins, and stops charging when a metallic foreign object such as a coin or key is detected on the pad.
+
+BACKGROUND
+
+Metal objects placed between a charging pad and a phone absorb energy from the magnetic field and can become dangerously hot.
+
+CLAIMS
+
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.
+
+2. The wireless charging pad of claim 1, wherein the detection circuit measures the quality factor before each power transfer session.

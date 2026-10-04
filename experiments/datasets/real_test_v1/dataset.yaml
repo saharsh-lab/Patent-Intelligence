@@ -1,0 +1,531 @@
+# real_test_v1 — TEST set over the same 16 real patents as real_v1 (the dev set).
+#
+# Written on 2026-10-04 by the AI coding assistant from the patent texts only, BEFORE any
+# system run on these questions, and frozen (see FROZEN.md). It must never be used for
+# tuning. Questions use different facts from the dev set.
+#
+# STATUS: labels await the team's check (REVIEW.md). Corrections to labels are allowed
+# (then rescore the results); changing the questions after seeing results is not.
+name: real_test_v1
+description: TEST set - 53 questions over 16 real patents (wireless-charging foreign object detection, EV battery thermal management, immersion cooling); frozen before any run; labels awaiting the team's check.
+synthetic: false
+labelled_by: "DRAFT: AI coding assistant, awaiting the team's check"
+
+corpus:
+  - {id: fod_coils, file: ../real_v1/corpus/US9178361B2.txt}
+  - {id: peak_freq, file: ../real_v1/corpus/US11646607B2.txt}
+  - {id: sensing_coil, file: ../real_v1/corpus/US11316383B1.txt}
+  - {id: ml_fod, file: ../real_v1/corpus/US20190074730A1.txt}
+  - {id: impedance_fod, file: ../real_v1/corpus/US20220115917A1.txt}
+  - {id: qfactor, file: ../real_v1/corpus/US10804750B2.txt}
+  - {id: parallel_loops, file: ../real_v1/corpus/US11214114B2.txt}
+  - {id: offboard, file: ../real_v1/corpus/US20170297431A1.txt}
+  - {id: pid_chiller, file: ../real_v1/corpus/US20230415612A1.txt}
+  - {id: predictive, file: ../real_v1/corpus/US20190315232A1.txt}
+  - {id: kalman, file: ../real_v1/corpus/US20160079633A1.txt}
+  - {id: hvac_chiller, file: ../real_v1/corpus/US20090249807A1.txt}
+  - {id: runners, file: ../real_v1/corpus/US20250079567A1.txt}
+  - {id: grouped, file: ../real_v1/corpus/US20230369708A1.txt}
+  - {id: sealed, file: ../real_v1/corpus/US8852772B2.txt}
+  - {id: electronics, file: ../real_v1/corpus/US12563707B2.txt}
+
+items:
+  # ================================================================ lookups
+  - id: t01
+    type: lookup
+    question: How can the Q-factor be estimated by simply counting oscillations of the capacitor voltage?
+    relevant:
+      - {doc: qfactor, contains: "counting the number of oscillations"}
+    key_facts: ["V0/2"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t02
+    type: lookup
+    question: Besides detecting foreign objects, what else can an array of small detection coils tell the charger?
+    relevant:
+      - {doc: fod_coils, contains: "determine the location of the foreign object"}
+    key_facts: ["location"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t03
+    type: lookup
+    question: Why is the coil-based foreign object detection preferably done while no power is being transferred?
+    relevant:
+      - {doc: fod_coils, contains: "operated preferably when there is no power being transferred"}
+      - {doc: fod_coils, claim: 19}
+    key_facts: ["suspend"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t04
+    type: lookup
+    question: Why can a second charger nearby make the Q factor measurement unreliable?
+    relevant:
+      - {doc: sensing_coil, contains: "create noise during foreign object detection periods"}
+      - {doc: sensing_coil, section: abstract}
+    key_facts: ["noise"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t05
+    type: lookup
+    question: Which everyday objects are given as examples of foreign objects in the patent that uses a reference peak frequency?
+    relevant:
+      - {doc: peak_freq, contains: "coins, clips, pins, and ballpoint pens"}
+    key_facts: ["clips", "ballpoint pens"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t06
+    type: lookup
+    question: Which kinds of sensors have previously been used to detect objects on electric vehicle wireless charging pads?
+    relevant:
+      - {doc: impedance_fod, contains: "thermistor sensors, thermal cameras, radar sensors"}
+    key_facts: ["thermal cameras", "radar"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t07
+    type: lookup
+    question: Which hazards is object detection on the vehicle charging pad meant to prevent?
+    relevant:
+      - {doc: impedance_fod, contains: "harm to animals such as pets"}
+    key_facts: ["fire", "pets"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t08
+    type: lookup
+    question: Which measurements are gathered from each coil for the machine-learning foreign object detection?
+    relevant:
+      - {doc: ml_fod, claim: 6}
+      - {doc: ml_fod, contains: "inductance measurements and other measurements"}
+    key_facts: ["inductance", "quality factor"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t09
+    type: lookup
+    question: How much heat must the heat exchanger absorb during a 300 kW rapid recharge?
+    relevant:
+      - {doc: offboard, contains: "absorb the 50 or more kW of heat"}
+    key_facts: ["50"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t10
+    type: lookup
+    question: How thick are the on-board coolant pipes in the Tesla Model S example?
+    relevant:
+      - {doc: offboard, contains: "0.5 mm thick"}
+    key_facts: ["0.5 mm"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t11
+    type: lookup
+    question: In which situations may a large electric vehicle battery still need active cooling?
+    relevant:
+      - {doc: predictive, contains: "high-speed driving, continual uphill driving"}
+    key_facts: ["uphill", "hot climates"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t12
+    type: lookup
+    question: Which two models are used in the prediction stage of the battery temperature estimate?
+    relevant:
+      - {doc: kalman, contains: "based on a process model and a measurement model"}
+    key_facts: ["process model", "measurement model"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t13
+    type: lookup
+    question: Does the battery temperature estimation software have to be written in a particular programming language?
+    relevant:
+      - {doc: kalman, contains: "independent of the programming language"}
+    key_facts: ["C++"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Answer is "no particular language" (examples C, C++, Java...). Tests reading a boilerplate passage.
+
+  - id: t14
+    type: lookup
+    question: How is the battery warmed when the cabin air conditioning is off in the combined HVAC and battery system?
+    relevant:
+      - {doc: hvac_chiller, contains: "battery warming (self-heating) is desired"}
+    key_facts: ["heater"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t15
+    type: lookup
+    question: When is the traction battery cooled by the radiator without using the chiller?
+    relevant:
+      - {doc: parallel_loops, contains: "cooled by the radiator without the chiller"}
+    key_facts: ["first position"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t16
+    type: lookup
+    question: What is the condenser fan speed command calculated from?
+    relevant:
+      - {doc: pid_chiller, contains: "calculating a condenser fan speed command using the compressor speed command"}
+    key_facts: ["compressor speed command"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t17
+    type: lookup
+    question: What conditions can cause a battery thermal event in the immersion-cooled traction battery pack?
+    relevant:
+      - {doc: runners, contains: "over-charging conditions, over-discharging conditions"}
+    key_facts: ["over-charging"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t18
+    type: lookup
+    question: How does the grouped-cell immersion cooling system stop thermal runaway from spreading to neighbouring cells?
+    relevant:
+      - {doc: grouped, contains: "prevents hot gas convection to neighboring battery cells"}
+    key_facts: ["hot gas"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t19
+    type: lookup
+    question: Where are the heating element and the cooling element placed inside the sealed battery container?
+    relevant:
+      - {doc: sealed, contains: "located at a base area 36"}
+      - {doc: sealed, contains: "located at an upper area 40"}
+    key_facts: ["base", "upper"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t20
+    type: lookup
+    question: What kind of device is used as the cooling element in the sealed liquid-cooled battery container?
+    relevant:
+      - {doc: sealed, contains: "chilled water condenser"}
+    key_facts: ["chilled water condenser"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t21
+    type: lookup
+    question: Which electronic components is the immersion cooling module with an integrated pump designed to cool?
+    relevant:
+      - {doc: electronics, contains: "central processing units (CPUs), graphical processing units (GPUs)"}
+      - {doc: electronics, claim: 5}
+    key_facts: ["CPU", "GPU"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: t22
+    type: lookup
+    question: Where can the fluid leaving one chip cooling module be sent next?
+    relevant:
+      - {doc: electronics, contains: "inlets of daughter cooling modules"}
+    key_facts: ["daughter"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ================================================================ several passages
+  - id: m01
+    type: multi_passage
+    question: How does the charger with a separate sensing coil measure the Q factor, and when does it take that measurement?
+    relevant:
+      - {doc: sensing_coil, claim: 5}
+      - {doc: sensing_coil, claim: 7}
+      - {doc: sensing_coil, section: abstract}
+    key_facts: ["quality factor", "detection periods"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m02
+    type: multi_passage
+    question: What sensor data feeds the battery temperature estimate, and how does the Kalman gain weight the prediction?
+    relevant:
+      - {doc: kalman, claim: 1}
+      - {doc: kalman, contains: "Kalman gain may be calculated"}
+    key_facts: ["ambient", "Kalman gain"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m03
+    type: multi_passage
+    question: Which measurements are used to control the electronic expansion valve and to compute the compressor speed command?
+    relevant:
+      - {doc: pid_chiller, claim: 1}
+      - {doc: pid_chiller, claim: 7}
+    key_facts: ["refrigerant pressure", "compressor speed command"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m04
+    type: multi_passage
+    question: How does the immersion cooling system control the coolant flow to each battery module, and which sensors support that?
+    relevant:
+      - {doc: runners, claim: 4}
+      - {doc: runners, claim: 5}
+      - {doc: runners, section: abstract}
+    key_facts: ["flow control valve", "temperature sensor"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m05
+    type: multi_passage
+    question: Why does the off-board charging system care about the coolant volume next to the battery pack, and what limits how fast coolant can flow?
+    relevant:
+      - {doc: offboard, contains: "absorbs the heat produced by the battery pack"}
+      - {doc: offboard, contains: "maximum pressure which the pipes"}
+    key_facts: ["pressure"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ================================================================ claims (document selected)
+  - id: c01
+    type: claim_explanation
+    question: Where is the sensing coil located according to claim 2?
+    scope: [sensing_coil]
+    relevant:
+      - {doc: sensing_coil, claim: 2}
+    key_facts: ["interior region"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c02
+    type: claim_explanation
+    question: What does claim 4 add to the control circuitry?
+    scope: [sensing_coil]
+    relevant:
+      - {doc: sensing_coil, claim: 4}
+    key_facts: ["subtract"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c03
+    type: claim_explanation
+    question: Under claim 3, what happens when the probability value is below the threshold?
+    scope: [ml_fod]
+    relevant:
+      - {doc: ml_fod, claim: 3}
+    key_facts: ["alert"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c04
+    type: claim_explanation
+    question: Which additional component does claim 8 add to the immersion cooling system?
+    scope: [runners]
+    relevant:
+      - {doc: runners, claim: 8}
+    key_facts: ["reservoir"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c05
+    type: claim_explanation
+    question: What are the dividers made of according to claim 3?
+    scope: [grouped]
+    relevant:
+      - {doc: grouped, claim: 3}
+    key_facts: ["metal plate", "insulating member"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c06
+    type: claim_explanation
+    question: Which temperature does claim 3 use as the temperature parameter?
+    scope: [kalman]
+    relevant:
+      - {doc: kalman, claim: 3}
+    key_facts: ["inlet coolant temperature"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c07
+    type: claim_explanation
+    question: According to claim 7, where can the fluid collection manifold draw immersion fluid from?
+    scope: [electronics]
+    relevant:
+      - {doc: electronics, claim: 7}
+    key_facts: ["another cooling module"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c08
+    type: claim_explanation
+    question: What does claim 2 specify about the pumps?
+    scope: [offboard]
+    relevant:
+      - {doc: offboard, claim: 2}
+    key_facts: ["second pump"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  # ================================================================ patent numbers in the question
+  - id: n01
+    type: patent_lookup
+    question: What type of pump does claim 2 of US12563707B2 specify?
+    relevant:
+      - {doc: electronics, claim: 2}
+    key_facts: ["positive displacement"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: n02
+    type: patent_lookup
+    question: What problem does US20230369708A1 address?
+    relevant:
+      - {doc: grouped, section: abstract}
+      - {doc: grouped, contains: "prevent thermal runaway propagation"}
+    key_facts: ["thermal runaway"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_evidence]
+
+  - id: n03
+    type: patent_lookup
+    question: Summarize claim 1 of US20090249807A1.
+    relevant:
+      - {doc: hvac_chiller, claim: 1}
+    key_facts: ["chiller", "coolant routing valve"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: n04
+    type: patent_lookup
+    question: What does claim 1 of US20190315232A1 require the processor to estimate?
+    relevant:
+      - {doc: predictive, claim: 1}
+    key_facts: ["estimated temperature at arrival"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  # ================================================================ comparisons (two documents selected)
+  - id: x01
+    type: comparison
+    question: Compare how these two patents use additional coils besides the power transmitting coil.
+    scope: [sensing_coil, fod_coils]
+    relevant:
+      - {doc: sensing_coil, claim: 1}
+      - {doc: fod_coils, claim: 1}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x02
+    type: comparison
+    question: Compare where the battery cooling comes from in these two documents.
+    scope: [offboard, hvac_chiller]
+    relevant:
+      - {doc: offboard, section: abstract}
+      - {doc: hvac_chiller, section: abstract}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x03
+    type: comparison
+    question: What are the technical differences between these two immersion-cooled battery designs?
+    scope: [grouped, sealed]
+    relevant:
+      - {doc: grouped, claim: 1}
+      - {doc: sealed, claim: 1}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x04
+    type: comparison
+    question: Compare how these two documents use the resonance of the coil to detect foreign objects.
+    scope: [peak_freq, qfactor]
+    relevant:
+      - {doc: peak_freq, section: abstract}
+      - {doc: qfactor, section: abstract}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x05
+    type: comparison
+    question: Contrast how these two patents circulate the immersion fluid.
+    scope: [electronics, runners]
+    relevant:
+      - {doc: electronics, section: abstract}
+      - {doc: runners, section: abstract}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  # ================================================================ not answerable from the corpus
+  - id: u01
+    type: unanswerable
+    question: What is the warranty period of the immersion-cooled traction battery pack with intake runners?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Hard negative - the Kalman patent mentions warranty costs in general.
+
+  - id: u02
+    type: unanswerable
+    question: How much does it cost to manufacture the charging pad with small detection coils?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: u03
+    type: unanswerable
+    question: In which countries is the Q-factor detection transmitter sold?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: u04
+    type: unanswerable
+    question: Which neural network does the Kalman filter battery patent train on cell temperatures?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: False premise - the patent uses an extended Kalman filter, no neural network.
+
+  - id: u05
+    type: unanswerable
+    question: What is the best stock to buy this year?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Off-topic.
+
+  - id: u06
+    type: unanswerable
+    question: What is the maximum operating altitude of the off-board rapid charging station?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ================================================================ legal opinions requested
+  - id: l01
+    type: legal
+    question: Would selling a charger based on the machine-learning patent infringe the sensing-coil patent?
+    scope: [ml_fod, sensing_coil]
+    relevant:
+      - {doc: ml_fod, claim: 1}
+      - {doc: sensing_coil, claim: 1}
+    legal: true
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: l02
+    type: legal
+    question: Is US8852772B2 still valid and enforceable today?
+    relevant:
+      - {doc: sealed, section: abstract}
+    legal: true
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_evidence]
+
+  - id: l03
+    type: legal
+    question: Can I copy the thermal management systems in these two patents without infringing them?
+    scope: [pid_chiller, parallel_loops]
+    relevant:
+      - {doc: pid_chiller, claim: 1}
+      - {doc: parallel_loops, claim: 1}
+    legal: true
+    expected_intent: compare
+    expected_tools: [compare_patents]

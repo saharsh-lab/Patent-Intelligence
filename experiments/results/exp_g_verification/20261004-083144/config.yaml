@@ -1,0 +1,25 @@
+name: exp_g_verification
+description: Generation only vs. + verification vs. + verification & regeneration
+  (Experiment G).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/dev/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings: {}
+variants:
+- name: 'off'
+  pipeline: agentic
+  settings:
+    verify_mode: 'off'
+  description: ''
+- name: report
+  pipeline: agentic
+  settings:
+    verify_mode: report
+  description: ''
+- name: regenerate
+  pipeline: agentic
+  settings:
+    verify_mode: regenerate
+  description: ''
+items: null

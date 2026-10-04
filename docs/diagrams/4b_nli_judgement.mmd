@@ -1,0 +1,5 @@
+flowchart LR
+    n1["Premise:<br/>'Source: patent, claim 3.'<br/>+ passage text"] --> n2["Score the whole passage,<br/>each sentence, and each pair<br/>of neighbouring sentences<br/>(NLI model, DeBERTa)"]
+    h["Hypothesis:<br/>the answer's statement"] --> n2
+    n2 --> n3["Take the maximum<br/>P(entailment)"]
+    n3 --> n4["≥ 0.5 → supported<br/>≥ 0.15 → partially supported<br/>otherwise → unsupported"]

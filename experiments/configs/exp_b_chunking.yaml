@@ -1,0 +1,10 @@
+# Experiment B: does section-aware chunking (one chunk per claim) retrieve better than
+# fixed-size windows? Uses the baseline pipeline so only retrieval input changes.
+# The corpus is re-ingested for each variant (relevance labels are content-based,
+# so the same labels score both chunkings).
+name: exp_b_chunking
+description: Section-aware vs. fixed-size chunking (Experiment B).
+dataset: ../datasets/dev/dataset.yaml
+variants:
+  - {name: section_aware, pipeline: baseline, settings: {chunking_strategy: section_aware}}
+  - {name: fixed, pipeline: baseline, settings: {chunking_strategy: fixed}}

@@ -1,0 +1,41 @@
+SYNTHETIC TEST DOCUMENT - not a real patent. Created for the development evaluation set.
+
+TITLE OF INVENTION
+
+Immersion-Cooled Battery Module with Dielectric Fluid Circulation
+
+ABSTRACT
+
+A battery module houses cylindrical cells fully immersed in a non-conductive dielectric fluid inside a sealed enclosure. A circulation pump moves the fluid past the cells and through an external plate heat exchanger. A level sensor detects fluid loss, and the module disconnects the cells from the load when the fluid level drops below a minimum mark.
+
+TECHNICAL FIELD
+
+The present disclosure relates to cooling of high-power battery modules for stationary energy storage.
+
+BACKGROUND
+
+Cold plates cool battery cells only through one face, which leaves large temperature differences across each cell during fast charging. Direct contact between the cells and a coolant removes heat more evenly, but water-based coolants conduct electricity and cannot touch the cell terminals.
+
+SUMMARY
+
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.
+
+DETAILED DESCRIPTION
+
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.
+
+CLAIMS
+
+What is claimed is:
+
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.
+
+2. The battery module of claim 1, wherein the dielectric fluid is a synthetic ester having a breakdown voltage above 60 kV.
+
+3. The battery module of claim 1, further comprising a level sensor and a contactor, wherein the contactor disconnects the cells from a load when the level sensor detects a fluid level below a minimum mark.

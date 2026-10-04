@@ -1,0 +1,49 @@
+SYNTHETIC TEST DOCUMENT - not a real patent. Created for automated tests.
+
+TITLE OF INVENTION
+
+Battery Thermal Management System Using Distributed Temperature Sensors
+
+ABSTRACT
+
+A battery thermal management system includes a plurality of temperature sensors distributed across the cells of a battery pack. A controller receives temperature readings from the sensors, estimates the internal temperature of each cell using a thermal model, and adjusts the flow rate of a liquid coolant through cooling channels to keep every cell within a target temperature range. The system reduces thermal runaway risk and extends battery life.
+
+TECHNICAL FIELD
+
+The present disclosure relates to electric vehicle batteries, and more particularly to monitoring and controlling the temperature of individual lithium-ion cells.
+
+BACKGROUND
+
+Lithium-ion cells degrade quickly when operated above 45 degrees Celsius. Conventional battery packs place a single temperature sensor near the pack outlet, which cannot detect hot spots in individual cells. As a result, a failing cell may overheat before the controller reacts, which can lead to thermal runaway.
+
+SUMMARY
+
+According to one aspect, a battery thermal management system comprises temperature sensors attached to each cell, a coolant pump, and a controller. The controller estimates the core temperature of each cell from its surface temperature and its charging current. When the estimated core temperature of any cell exceeds a threshold, the controller increases the coolant flow rate through the channel adjacent to that cell.
+
+BRIEF DESCRIPTION OF THE DRAWINGS
+
+FIG. 1 is a schematic view of the battery pack. FIG. 2 is a flow chart of the control method.
+
+DETAILED DESCRIPTION
+
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.
+
+CLAIMS
+
+What is claimed is:
+
+1. A battery thermal management system comprising: a plurality of battery cells; a temperature sensor attached to each battery cell; a coolant pump configured to circulate a liquid coolant through cooling channels adjacent to the battery cells; and a controller configured to estimate a core temperature of each cell and to adjust a speed of the coolant pump based on the estimated core temperatures.
+
+2. The system of claim 1, wherein the controller estimates the core temperature using a first-order thermal model based on a surface temperature and a charging current of the cell.
+
+3. The system of claim 1, wherein the controller limits the charging current when the core temperature rises faster than a predetermined rate.
+
+4. The system of claim 1, wherein the temperature sensor is a thermistor bonded to a casing of the cell.
+
+5. A method of cooling a battery pack, comprising: measuring a surface temperature of each cell; estimating a core temperature of each cell; and increasing a coolant flow rate when any estimated core temperature exceeds a threshold.

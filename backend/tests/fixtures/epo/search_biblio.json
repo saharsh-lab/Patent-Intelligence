@@ -1,0 +1,83 @@
+{
+  "_comment": "Hand-made fixture in OPS v3.2 JSON format; fictional patents.",
+  "ops:world-patent-data": {
+    "ops:biblio-search": {
+      "@total-result-count": "2",
+      "ops:query": {"@syntax": "CQL", "$": "ta all \"battery thermal\""},
+      "ops:range": {"@begin": "1", "@end": "2"},
+      "ops:search-result": {
+        "exchange-documents": [
+          {
+            "exchange-document": {
+              "@system": "ops.epo.org",
+              "@family-id": "70001111",
+              "@country": "EP",
+              "@doc-number": "1234567",
+              "@kind": "A1",
+              "bibliographic-data": {
+                "publication-reference": {
+                  "document-id": [
+                    {"@document-id-type": "docdb", "country": {"$": "EP"}, "doc-number": {"$": "1234567"}, "kind": {"$": "A1"}, "date": {"$": "20210304"}},
+                    {"@document-id-type": "epodoc", "doc-number": {"$": "EP1234567"}, "date": {"$": "20210304"}}
+                  ]
+                },
+                "application-reference": {
+                  "@doc-id": "500001",
+                  "document-id": {"@document-id-type": "epodoc", "doc-number": {"$": "EP20190001234"}, "date": {"$": "20190912"}}
+                },
+                "priority-claims": {
+                  "priority-claim": [
+                    {"@sequence": "1", "document-id": {"@document-id-type": "epodoc", "doc-number": {"$": "US201862700000P"}, "date": {"$": "20180915"}}}
+                  ]
+                },
+                "invention-title": [
+                  {"@lang": "de", "$": "Batteriesystem mit Temperaturschätzung"},
+                  {"@lang": "en", "$": "Battery thermal management with core temperature estimation"}
+                ],
+                "parties": {
+                  "applicants": {
+                    "applicant": [
+                      {"@sequence": "1", "@data-format": "epodoc", "applicant-name": {"name": {"$": "EXAMPLE ENERGY CORP [US]"}}},
+                      {"@sequence": "1", "@data-format": "original", "applicant-name": {"name": {"$": "Example Energy Corporation"}}}
+                    ]
+                  },
+                  "inventors": {
+                    "inventor": [
+                      {"@sequence": "1", "@data-format": "epodoc", "inventor-name": {"name": {"$": "DOE JANE [US]"}}},
+                      {"@sequence": "2", "@data-format": "epodoc", "inventor-name": {"name": {"$": "ROE RICHARD [US]"}}}
+                    ]
+                  }
+                },
+                "patent-classifications": {
+                  "patent-classification": [
+                    {"classification-scheme": {"@office": "EP", "@scheme": "CPCI"}, "section": {"$": "H"}, "class": {"$": "01"}, "subclass": {"$": "M"}, "main-group": {"$": "10"}, "subgroup": {"$": "486"}},
+                    {"classification-scheme": {"@office": "EP", "@scheme": "CPCI"}, "section": {"$": "H"}, "class": {"$": "01"}, "subclass": {"$": "M"}, "main-group": {"$": "10"}, "subgroup": {"$": "613"}}
+                  ]
+                }
+              },
+              "abstract": {"@lang": "en", "p": {"$": "A controller estimates the core temperature of each battery cell from surface temperature and current, and adjusts coolant flow."}}
+            }
+          },
+          {
+            "exchange-document": {
+              "@system": "ops.epo.org",
+              "@family-id": "70002222",
+              "@country": "WO",
+              "@doc-number": "2020123456",
+              "@kind": "A1",
+              "bibliographic-data": {
+                "publication-reference": {
+                  "document-id": {"@document-id-type": "docdb", "country": {"$": "WO"}, "doc-number": {"$": "2020123456"}, "kind": {"$": "A1"}, "date": {"$": "20200618"}}
+                },
+                "invention-title": {"@lang": "en", "$": "Thermal sensor array for battery modules"},
+                "parties": {
+                  "applicants": {"applicant": {"@sequence": "1", "@data-format": "original", "applicant-name": {"name": {"$": "Sample Batteries GmbH"}}}}
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

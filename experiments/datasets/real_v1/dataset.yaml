@@ -1,0 +1,547 @@
+# real_v1 — DRAFT evaluation dataset over 16 real, public patents (3 domains).
+#
+# STATUS: DRAFT. Questions and labels were written by the AI coding assistant on
+# 2026-10-04 and have NOT been verified. Before any result on this dataset is reported:
+#   1. two team members check every item (question sensible? labels complete and
+#      correct? key facts right?) and record changes in `notes`;
+#   2. set `labelled_by` to the team members and remove "DRAFT" from this header;
+#   3. use it as the DEV set: the agent was already tuned on it (Phase 10). Write the TEST
+#      questions independently (docs/dataset_guide.md §4) and freeze them.
+#   Labels list only 1-2 passages per question; real patents repeat facts in several
+#   places, so add every passage that answers the question (see REVIEW.md).
+# Corpus: experiments/datasets/real_v1/corpus, built with backend/scripts/build_corpus.py
+# from Google Patents pages (public documents). Similar-patent search items are not
+# included yet: they need EPO credentials.
+name: real_v1
+description: DRAFT - 16 real patents (wireless-charging foreign object detection, EV battery thermal management, immersion cooling); AI-drafted labels awaiting two-person verification.
+synthetic: false
+labelled_by: "DRAFT: AI coding assistant, not yet verified by the team"
+
+corpus:
+  # wireless charging: foreign object detection
+  - {id: fod_coils, file: corpus/US9178361B2.txt}       # small detection coils
+  - {id: peak_freq, file: corpus/US11646607B2.txt}      # receiver reports reference peak frequency
+  - {id: sensing_coil, file: corpus/US11316383B1.txt}   # separate sensing coil vs. interference
+  - {id: ml_fod, file: corpus/US20190074730A1.txt}      # machine-learning FOD
+  - {id: impedance_fod, file: corpus/US20220115917A1.txt}  # detection-coil impedance (EV pad)
+  - {id: qfactor, file: corpus/US10804750B2.txt}        # Q-factor by free oscillation
+  # EV battery thermal management
+  - {id: parallel_loops, file: corpus/US11214114B2.txt} # battery + motor loops, radiator
+  - {id: offboard, file: corpus/US20170297431A1.txt}    # off-board coolant while charging
+  - {id: pid_chiller, file: corpus/US20230415612A1.txt} # PID control of chiller/EXV/pump
+  - {id: predictive, file: corpus/US20190315232A1.txt}  # route/weather predictive control
+  - {id: kalman, file: corpus/US20160079633A1.txt}      # EKF temperature estimation
+  - {id: hvac_chiller, file: corpus/US20090249807A1.txt} # HVAC + battery chiller loop
+  # immersion cooling
+  - {id: runners, file: corpus/US20250079567A1.txt}     # manifolds/runners per module
+  - {id: grouped, file: corpus/US20230369708A1.txt}     # cell groups, dividers, gas manifold
+  - {id: sealed, file: corpus/US8852772B2.txt}          # sealed modules, heater + cooler inside
+  - {id: electronics, file: corpus/US12563707B2.txt}    # chip cooling (near neighbour, not batteries)
+
+items:
+  # ================================================================ single-fact lookups
+  - id: r01
+    type: lookup
+    question: In the Q-factor measurement method, how is the coil circuit made to ring on its own?
+    relevant:
+      - {doc: qfactor, section: abstract}
+    key_facts: ["ground"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r02
+    type: lookup
+    question: Over what frequency range might a wireless charger sweep when it measures the Q-factor?
+    relevant:
+      - {doc: qfactor, contains: "from a low frequency (for example 80 kHz)"}
+    key_facts: ["80 kHz", "120 kHz"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r03
+    type: lookup
+    question: By default, how long does each foreign object detection window last in the charger that uses a separate sensing coil?
+    relevant:
+      - {doc: sensing_coil, contains: "periods TP of about 100 microseconds"}
+    key_facts: ["100 microseconds"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r04
+    type: lookup
+    question: What does the charger do when the measured Q factor drifts too far from its baseline value?
+    relevant:
+      - {doc: sensing_coil, contains: "deviates by more than a threshold amount from the baseline"}
+    key_facts: ["halted"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r05
+    type: lookup
+    question: How does the machine-learning based charging pad decide whether a foreign object is present?
+    relevant:
+      - {doc: ml_fod, section: abstract}
+      - {doc: ml_fod, contains: "probability value indicative of whether a foreign object is present"}
+    key_facts: ["probability", "threshold"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r06
+    type: lookup
+    question: At roughly what frequency does the machine-learning charging pad transmit power?
+    relevant:
+      - {doc: ml_fod, contains: "a predetermined frequency of about 125 kHz"}
+    key_facts: ["125 kHz"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r07
+    type: lookup
+    question: Which everyday metal objects are given as examples of foreign objects that heat up from eddy currents in the detection-coil patent?
+    relevant:
+      - {doc: fod_coils, contains: "(e.g. a ring or a coin)"}
+    key_facts: ["ring", "coin"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Several patents mention coins; the ring example is specific to fod_coils.
+
+  - id: r08
+    type: lookup
+    question: Why are the foreign object detection coils made smaller than the power transmitter coil?
+    relevant:
+      - {doc: fod_coils, section: abstract}
+    key_facts: ["smaller"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r09
+    type: lookup
+    question: How does the inductive charging system with a detection coil layer confirm that an object is near the charging area?
+    relevant:
+      - {doc: impedance_fod, contains: "between input impedance 605 and input impedance 609"}
+      - {doc: impedance_fod, contains: "detect a change in impedances of the detection coils"}
+    key_facts: ["impedance", "threshold"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r10
+    type: lookup
+    question: How much driving range can an electric vehicle lose because of poor battery thermal management?
+    relevant:
+      - {doc: predictive, contains: "reduced by up to 10-15%"}
+    key_facts: ["10-15%"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r11
+    type: lookup
+    question: Which estimation technique is used to compute the average temperature of a battery system from sensor and ambient readings?
+    relevant:
+      - {doc: kalman, section: abstract}
+      - {doc: kalman, claim: 1}
+    key_facts: ["extended Kalman filter"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r12
+    type: lookup
+    question: What coolant mixture is suggested for the coolant loop of the combined HVAC and battery thermal system?
+    relevant:
+      - {doc: hvac_chiller, contains: "ethylene glycol and water mix"}
+    key_facts: ["ethylene glycol"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r13
+    type: lookup
+    question: How can a rapid charging station identify which vehicle has just arrived?
+    relevant:
+      - {doc: offboard, contains: "scanning an RFID tag or VIN number"}
+    key_facts: ["RFID", "VIN"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r14
+    type: lookup
+    question: Which type of control is used to compute the electronic expansion valve position from chiller outlet measurements?
+    relevant:
+      - {doc: pid_chiller, section: abstract}
+    key_facts: ["proportional-integral-derivative"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r15
+    type: lookup
+    question: How are the battery cooling loop and the motor cooling loop arranged with respect to the radiator?
+    relevant:
+      - {doc: parallel_loops, section: abstract}
+      - {doc: parallel_loops, claim: 1}
+    key_facts: ["parallel"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r16
+    type: lookup
+    question: In the compartmentalized immersion-cooled pack, why can't vent gases from one battery module reach another module?
+    relevant:
+      - {doc: runners, contains: "fluidly isolated from the other battery modules"}
+    key_facts: ["isolated"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r17
+    type: lookup
+    question: What does the control module use to set the position of the flow control valve in an intake runner?
+    relevant:
+      - {doc: runners, section: abstract}
+    key_facts: ["temperature"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r18
+    type: lookup
+    question: How are vent gases removed in the immersion cooling system that arranges cells in groups separated by dividers?
+    relevant:
+      - {doc: grouped, section: abstract}
+      - {doc: grouped, claim: 1}
+    key_facts: ["gas manifold"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r19
+    type: lookup
+    question: Which charging capability does the improved immersion cooling of grouped battery cells make possible?
+    relevant:
+      - {doc: grouped, contains: "enables DC fast charging"}
+    key_facts: ["DC fast charging"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r20
+    type: lookup
+    question: What should the boiling point of the dielectric coolant be in the sealed liquid-cooled battery modules?
+    relevant:
+      - {doc: sealed, contains: "boiling point at or near a desired operating temperature"}
+    key_facts: ["operating temperature"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r21
+    type: lookup
+    question: How does the chip cooling module turn the surrounding immersion fluid into jets aimed at the processor?
+    relevant:
+      - {doc: electronics, section: abstract}
+    key_facts: ["microjets", "nozzle"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: r22
+    type: lookup
+    question: Which kinds of pumps can be used inside the immersion cooling module for electronics?
+    relevant:
+      - {doc: electronics, contains: "positive displacement pumps, centrifugal pumps and axial pumps"}
+    key_facts: ["centrifugal"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ================================================================ several passages
+  - id: m01
+    type: multi_passage
+    question: How does the free-oscillation method obtain the resonant frequency and Q-factor, and what charging voltage might be applied to the capacitor?
+    relevant:
+      - {doc: qfactor, section: abstract}
+      - {doc: qfactor, contains: "charging voltage Va from transmit control circuit 402 can be a 1.8V"}
+    key_facts: ["1.8V", "resonant frequency"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m02
+    type: multi_passage
+    question: How does the charger with a separate sensing coil cope with interference from a nearby charger, and how does it choose when to run detection?
+    relevant:
+      - {doc: sensing_coil, section: abstract}
+      - {doc: sensing_coil, contains: "adjust the timing of periods TP"}
+    key_facts: ["sensing coil", "timing"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m03
+    type: multi_passage
+    question: What must the off-board charging station know about the vehicle's coolant before a rapid recharge, and why?
+    relevant:
+      - {doc: offboard, contains: "first determines the type of coolant"}
+      - {doc: offboard, contains: "determining a type of coolant in a coolant loop"}
+    key_facts: ["type of coolant"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m04
+    type: multi_passage
+    question: What trip information does the predictive battery thermal management system use, and what can it do if no cooling or heating is needed?
+    relevant:
+      - {doc: predictive, section: abstract}
+      - {doc: predictive, contains: "trip duration, weather, expected route"}
+    key_facts: ["weather", "turned off"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: m05
+    type: multi_passage
+    question: Why does the thermal management controller use chiller outlet pressure and temperature, and which components does it adjust?
+    relevant:
+      - {doc: pid_chiller, contains: "fully vaporized battery refrigerant"}
+      - {doc: pid_chiller, section: abstract}
+    key_facts: ["compressor", "expansion valve"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ================================================================ claims (document selected)
+  - id: c01
+    type: claim_explanation
+    question: Which circuits does claim 1 require in the wireless power transmitter?
+    scope: [qfactor]
+    relevant:
+      - {doc: qfactor, claim: 1}
+    key_facts: ["charging circuit", "detection circuit"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c02
+    type: claim_explanation
+    question: What does claim 17 add?
+    scope: [fod_coils]
+    relevant:
+      - {doc: fod_coils, claim: 17}
+    key_facts: ["Q-factor"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c03
+    type: claim_explanation
+    question: According to claim 19, when is foreign object detection carried out?
+    scope: [fod_coils]
+    relevant:
+      - {doc: fod_coils, claim: 19}
+    key_facts: ["not transmitting"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c04
+    type: claim_explanation
+    question: Which cooling loops and valves does claim 1 require?
+    scope: [parallel_loops]
+    relevant:
+      - {doc: parallel_loops, claim: 1}
+    key_facts: ["radiator valve", "battery valve"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c05
+    type: claim_explanation
+    question: What is in the second leg of the refrigerant loop in claim 1?
+    scope: [hvac_chiller]
+    relevant:
+      - {doc: hvac_chiller, claim: 1}
+    key_facts: ["chiller", "battery expansion device"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c06
+    type: claim_explanation
+    question: Where is the dielectric fluid located according to claim 1, and what heats and cools it?
+    scope: [sealed]
+    relevant:
+      - {doc: sealed, claim: 1}
+    key_facts: ["fluid channel", "heating element", "cooling element"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c07
+    type: claim_explanation
+    question: Explain what claim 1 of this patent covers.
+    scope: [runners]
+    relevant:
+      - {doc: runners, claim: 1}
+    key_facts: ["intake manifold", "exhaust manifold"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c08
+    type: claim_explanation
+    question: What does claim 1 of this document require?
+    scope: [grouped]
+    relevant:
+      - {doc: grouped, claim: 1}
+    key_facts: ["dividers", "gas manifold"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: c09
+    type: claim_explanation
+    question: In claim 1, what happens when the probability value exceeds the threshold?
+    scope: [ml_fod]
+    relevant:
+      - {doc: ml_fod, claim: 1}
+    key_facts: ["transmit wireless power"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  # ================================================================ patent numbers in the question
+  - id: p01
+    type: patent_lookup
+    question: What does claim 1 of US11316383B1 require?
+    relevant:
+      - {doc: sensing_coil, claim: 1}
+    key_facts: ["sensing coil"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: p02
+    type: patent_lookup
+    question: What is the main idea of US20160079633A1?
+    relevant:
+      - {doc: kalman, section: abstract}
+    key_facts: ["Kalman"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_evidence]
+
+  - id: p03
+    type: patent_lookup
+    question: What does the receiver send to the transmitter in US11646607B2 to support foreign object detection?
+    relevant:
+      - {doc: peak_freq, section: abstract}
+      - {doc: peak_freq, claim: 1}
+    key_facts: ["reference peak frequency"]
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_evidence]
+
+  # ================================================================ comparisons (two documents selected)
+  - id: x01
+    type: comparison
+    question: Compare how these two patents detect foreign objects on a wireless charger.
+    scope: [qfactor, ml_fod]
+    relevant:
+      - {doc: qfactor, section: abstract}
+      - {doc: ml_fod, section: abstract}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x02
+    type: comparison
+    question: What are the differences between these two documents in how they estimate or predict battery temperature?
+    scope: [kalman, predictive]
+    relevant:
+      - {doc: kalman, section: abstract}
+      - {doc: predictive, section: abstract}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x03
+    type: comparison
+    question: Compare the immersion cooling designs of these two patents.
+    scope: [sealed, runners]
+    relevant:
+      - {doc: sealed, claim: 1}
+      - {doc: runners, claim: 1}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x04
+    type: comparison
+    question: Contrast the cooling loop architectures described in these two documents.
+    scope: [hvac_chiller, parallel_loops]
+    relevant:
+      - {doc: hvac_chiller, claim: 1}
+      - {doc: parallel_loops, claim: 1}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  - id: x05
+    type: comparison
+    question: Compare these two documents - what is being cooled, and how?
+    scope: [electronics, sealed]
+    relevant:
+      - {doc: electronics, section: abstract}
+      - {doc: sealed, section: abstract}
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  # ================================================================ not answerable from the corpus
+  - id: u01
+    type: unanswerable
+    question: What is the retail price of the machine-learning wireless charging pad?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: u02
+    type: unanswerable
+    question: Which car models use the extended Kalman filter battery temperature estimation in production?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: u03
+    type: unanswerable
+    question: How many charge cycles does the immersion-cooled traction battery pack with intake runners last?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: u04
+    type: unanswerable
+    question: Which smartphone models are compatible with the charger that uses a separate sensing coil?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Hard negative - another patent mentions smartphones in general.
+
+  - id: u05
+    type: unanswerable
+    question: How much does the combined HVAC and battery chiller system weigh?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: u06
+    type: unanswerable
+    question: What is the maximum wind speed a solar panel cleaning robot can operate in?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Off-topic for the whole corpus.
+
+  - id: u07
+    type: unanswerable
+    question: How many prismatic cells fit in one compartment of the electronics immersion cooling module?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: False premise - the electronics module cools chips, not battery cells.
+
+  # ================================================================ legal opinions requested
+  - id: l01
+    type: legal
+    question: Does the Q-factor detection patent infringe the claims of the detection-coil patent?
+    scope: [qfactor, fod_coils]
+    relevant:
+      - {doc: qfactor, claim: 1}
+      - {doc: fod_coils, claim: 1}
+    legal: true
+    expected_intent: compare
+    expected_tools: [compare_patents]
+    notes: Must not give a legal opinion; a technical comparison with a disclaimer is correct.
+
+  - id: l02
+    type: legal
+    question: Is US20160079633A1 still valid and enforceable?
+    relevant:
+      - {doc: kalman, section: abstract}
+    legal: true
+    expected_intent: patent_lookup
+    expected_tools: [retrieve_evidence]
+    notes: Must decline the legal question; describing the technology with a disclaimer is acceptable.
+
+  - id: l03
+    type: legal
+    question: Would building the grouped-cell immersion system violate the claims of the other selected patent?
+    scope: [grouped, runners]
+    relevant:
+      - {doc: grouped, claim: 1}
+      - {doc: runners, claim: 1}
+    legal: true
+    expected_intent: compare
+    expected_tools: [compare_patents]

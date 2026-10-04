@@ -1,0 +1,8 @@
+flowchart LR
+    ds["Labelled dataset<br/>questions · relevant passages ·<br/>key facts · expected tools"] --> run
+    cfg["Experiment config<br/>variants = settings to compare"] --> run
+    run["Runner<br/>separate database ·<br/>interleaved, counterbalanced ·<br/>warm-up"] --> sys["Same code as the app<br/>baseline or agent"]
+    sys --> score["Score each run<br/>retrieval · answer · grounding ·<br/>agent · cost · latency"]
+    score --> stats["Statistics<br/>per-question means ·<br/>bootstrap 95% CI ·<br/>paired differences"]
+    stats --> out["report.md · summary.json ·<br/>Evaluation page"]
+    lab["Human verdicts<br/>(Experiment I)"] --> ver["Verifier accuracy<br/>accuracy · Cohen's κ · detection F1"]

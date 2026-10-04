@@ -1,0 +1,8 @@
+# Experiment H: rule-based vs. LLM planner. Main metrics: intent accuracy, tool
+# precision/recall, plus cost and latency. Needs a real LLM (LLM_PROVIDER in .env).
+name: exp_h_planner
+description: Rules planner vs. LLM planner (Experiment H).
+dataset: ../datasets/dev/dataset.yaml
+variants:
+  - {name: rules, pipeline: agentic, settings: {agent_planner: rules}}
+  - {name: llm, pipeline: agentic, settings: {agent_planner: llm}}

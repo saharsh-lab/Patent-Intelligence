@@ -1,0 +1,40 @@
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- Node / frontend ---
+node_modules/
+.next/
+dist/
+build/
+
+# --- Runtime data (uploaded files, model caches, experiment outputs) ---
+data/uploads/*
+!data/uploads/.gitkeep
+data/eval_uploads/
+# Experiments: datasets, configs, labels and results are research artifacts (committed).
+.hf_cache/
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+data/patent_html/
+
+# --- Logs / generated build info ---
+*.log
+*.tsbuildinfo
+next-env.d.ts

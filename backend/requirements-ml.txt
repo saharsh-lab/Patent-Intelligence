@@ -1,0 +1,6 @@
+# Local ML models (embeddings now; reranker in Phase 3). Large download (PyTorch ~1 GB).
+# Only needed when EMBEDDING_PROVIDER=local. Tests do not need it.
+# Install: pip install -r requirements-ml.txt
+-r requirements.txt
+sentence-transformers==6.1.0
+torch==2.14.1

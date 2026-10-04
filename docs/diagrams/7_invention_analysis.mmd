@@ -1,0 +1,11 @@
+flowchart TD
+    in(["Invention description<br/>or uploaded draft (abstract + claim 1)"]) --> f{"Contains a claim?<br/>'comprising: a; b; and c'"}
+    f -- yes --> fe["Features = claim elements<br/>(rules, exact wording)"]
+    f -- no --> fl["LLM lists features<br/>kept only if ≥ 50% of words<br/>come from the description"]
+    fe & fl --> s{"Patent database<br/>configured?"}
+    s -- yes --> ext["Search EPO with the features' key terms<br/>→ import top results into the index"]
+    s -- no --> rank
+    ext --> rank["Rank candidate documents<br/>per-feature hybrid retrieval, fused with RRF<br/>(own document excluded)"]
+    rank --> chart["For every feature × document:<br/>document's 3 best passages for the feature<br/>→ NLI verifier"]
+    chart --> cell["Cell = ✓ disclosed · ~ partially · – not found<br/>+ cited passage"]
+    cell --> out(["Closest documents with overlap ·<br/>features found nowhere ·<br/>Markdown report + disclaimer"])

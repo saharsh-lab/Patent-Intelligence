@@ -1,0 +1,13 @@
+{
+  "_comment": "Hand-made fixture in OPS v3.2 JSON format; fictional patent.",
+  "ops:world-patent-data": {
+    "ftxt:fulltext-documents": {
+      "ftxt:fulltext-document": {
+        "description": {"@lang": "EN", "p": [
+          {"$": "[0001] The invention relates to thermal management of lithium-ion batteries."},
+          {"$": "[0002] Each cell carries a thermistor sampled at 10 Hz by the controller."}
+        ]}
+      }
+    }
+  }
+}

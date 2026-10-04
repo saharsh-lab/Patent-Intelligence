@@ -1,0 +1,17 @@
+name: exp_a_pipelines
+description: Baseline RAG vs. agentic RAG (Experiment A).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/real_v1/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings: {}
+variants:
+- name: baseline
+  pipeline: baseline
+  settings: {}
+  description: "retrieve \u2192 generate \u2192 report"
+- name: agentic
+  pipeline: agentic
+  settings: {}
+  description: "plan \u2192 tools \u2192 generate \u2192 verify \u2192 regenerate"
+items: null

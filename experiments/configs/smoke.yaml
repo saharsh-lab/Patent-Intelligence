@@ -1,0 +1,13 @@
+# Framework check: fake LLM + fake embeddings, runs in seconds, costs nothing.
+# Proves the runner, scoring and reports work end to end. Not a research result.
+name: smoke
+description: Framework check with fake models (not a research result).
+dataset: ../datasets/dev/dataset.yaml
+settings:
+  llm_provider: fake
+  embedding_provider: fake
+  reranker_enabled: false
+  verifier_method: lexical
+variants:
+  - {name: baseline, pipeline: baseline}
+  - {name: agentic, pipeline: agentic, settings: {agent_planner: rules}}

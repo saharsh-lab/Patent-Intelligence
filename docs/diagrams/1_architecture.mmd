@@ -1,0 +1,41 @@
+flowchart LR
+    user([User in a browser])
+    subgraph UI["Frontend · Next.js"]
+        pages["Pages: Dashboard · Documents · Ask AI ·<br/>Patent Search · Comparison · Invention Analysis ·<br/>Evaluation · Settings"]
+        proxy["/api proxy<br/>(server-side)"]
+    end
+    subgraph API["Backend · FastAPI"]
+        mw["Security layer<br/>rate limits · size limits · headers"]
+        ingest["Ingestion<br/>extract → sections → chunks → embeddings"]
+        agent["Agent · LangGraph<br/>analyze → plan → tools → generate"]
+        verify["Verification<br/>claim-level NLI check + regeneration"]
+        inv["Invention analysis<br/>features → candidates → verified chart"]
+        eval["Evaluation framework<br/>(command line)"]
+    end
+    subgraph Data["Storage"]
+        pg[("PostgreSQL + pgvector<br/>documents · chunks · runs · verdicts")]
+    end
+    subgraph Models["Models (local, free)"]
+        llm["Qwen3-8B via Ollama<br/>(answers)"]
+        emb["BGE-M3<br/>(embeddings)"]
+        nli["DeBERTa NLI<br/>(verification)"]
+        rr["BGE reranker<br/>(optional)"]
+    end
+    epo["EPO Open Patent Services<br/>(live patents)"]
+
+    user --> pages --> proxy --> mw
+    mw --> ingest & agent & inv
+    agent --> verify
+    ingest --> emb
+    ingest --> pg
+    agent --> pg
+    agent --> llm
+    agent --> rr
+    agent --> epo
+    verify --> nli
+    inv --> pg
+    inv --> nli
+    inv --> epo
+    verify --> pg
+    eval --> agent
+    eval --> pg

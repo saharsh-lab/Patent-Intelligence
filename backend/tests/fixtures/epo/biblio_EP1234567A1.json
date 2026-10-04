@@ -1,0 +1,24 @@
+{
+  "_comment": "Hand-made fixture in OPS v3.2 JSON format; fictional patent.",
+  "ops:world-patent-data": {
+    "exchange-documents": {
+      "exchange-document": {
+        "@system": "ops.epo.org",
+        "@family-id": "70001111",
+        "@country": "EP",
+        "@doc-number": "1234567",
+        "@kind": "A1",
+        "bibliographic-data": {
+          "publication-reference": {
+            "document-id": {"@document-id-type": "docdb", "country": {"$": "EP"}, "doc-number": {"$": "1234567"}, "kind": {"$": "A1"}, "date": {"$": "20210304"}}
+          },
+          "invention-title": {"@lang": "en", "$": "Battery thermal management with core temperature estimation"},
+          "parties": {
+            "applicants": {"applicant": {"@sequence": "1", "@data-format": "epodoc", "applicant-name": {"name": {"$": "EXAMPLE ENERGY CORP [US]"}}}}
+          }
+        },
+        "abstract": {"@lang": "en", "p": [{"$": "A controller estimates the core temperature of each battery cell."}, {"$": "Coolant flow is increased when a limit is exceeded."}]}
+      }
+    }
+  }
+}

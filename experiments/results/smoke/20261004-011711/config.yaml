@@ -1,0 +1,22 @@
+name: smoke
+description: Framework check with fake models (not a research result).
+dataset: /Users/Saharsh/Documents/Major Project/RAG/experiments/datasets/dev/dataset.yaml
+repeats: 1
+eval_k: 5
+seed: 0
+settings:
+  llm_provider: fake
+  embedding_provider: fake
+  reranker_enabled: false
+  verifier_method: lexical
+variants:
+- name: baseline
+  pipeline: baseline
+  settings: {}
+  description: ''
+- name: agentic
+  pipeline: agentic
+  settings:
+    agent_planner: rules
+  description: ''
+items: null

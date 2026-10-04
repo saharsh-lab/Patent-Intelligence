@@ -1,0 +1,26 @@
+# Self-check of invention analysis (label-free; scales to any corpus).
+# Each patent's claim 1 is analysed: (a) with the patent searchable → it should rank
+# first, its features marked disclosed; (b) with it hidden → the closest documents
+# should be from the same technical domain.
+#   python -m app.evaluation selfcheck --config ../experiments/configs/selfcheck_invention.yaml
+name: selfcheck_invention
+description: Invention analysis self-check over the 16 real patents (label-free).
+dataset: ../datasets/real_test_v1/dataset.yaml
+max_candidates: 5
+domains:
+  fod_coils: wireless_charging
+  peak_freq: wireless_charging
+  sensing_coil: wireless_charging
+  ml_fod: wireless_charging
+  impedance_fod: wireless_charging
+  qfactor: wireless_charging
+  parallel_loops: battery_thermal
+  offboard: battery_thermal
+  pid_chiller: battery_thermal
+  predictive: battery_thermal
+  kalman: battery_thermal
+  hvac_chiller: battery_thermal
+  runners: immersion_cooling
+  grouped: immersion_cooling
+  sealed: immersion_cooling
+  electronics: immersion_cooling

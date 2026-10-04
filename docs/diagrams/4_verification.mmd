@@ -1,0 +1,8 @@
+flowchart TD
+    ans["Generated answer"] --> split["Split into statements<br/>(skip disclaimers and the Interpretation paragraph)"]
+    split --> p1{"Pass 1: judged against the passages it cites<br/>(each one, and all together)"}
+    p1 -- supported --> sup["✓ supported"]
+    p1 -- "partial or unsupported" --> p2{"Pass 2: fully supported by<br/>another retrieved passage?"}
+    p2 -- yes --> mis["~ misattributed<br/>(true, but cites the wrong passage;<br/>counts as partial)"]
+    p2 -- no --> keep["keeps its pass-1 verdict<br/>~ partial or ✗ unsupported"]
+    sup & mis & keep --> score["Grounding score =<br/>(supported + ½ · partial) ÷ statements"]

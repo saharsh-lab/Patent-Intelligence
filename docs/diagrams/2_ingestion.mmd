@@ -1,0 +1,9 @@
+flowchart TD
+    a["Upload PDF / DOCX / TXT<br/>or import a patent from EPO"] --> b{"Safety checks<br/>type matches content? size? zip bomb?"}
+    b -- rejected --> x["Clear error message<br/>(nothing stored)"]
+    b -- ok --> c["Extract text<br/>(PyMuPDF / python-docx)"]
+    c --> d["Clean<br/>running headers · hyphenation · ligatures"]
+    d --> e["Detect patent sections<br/>title · abstract · background · description · claims"]
+    e --> f["Section-aware chunking<br/>one chunk per claim · paragraphs grouped ≤ 400 tokens"]
+    f --> g["Embed each chunk<br/>BGE-M3 → 1024 numbers"]
+    g --> h[("Store in PostgreSQL<br/>text · section · claim no. · page · embedding")]

@@ -1,0 +1,11 @@
+# Experiment A: conventional single-pipeline RAG vs. the agentic system.
+# Held constant: LLM, embedding model, corpus, chunking, top-k (all from .env).
+# The agent runs as the full system (its planner + verification with regeneration);
+# the baseline verifies and reports but never regenerates (it is the control).
+name: exp_a_pipelines
+description: Baseline RAG vs. agentic RAG (Experiment A).
+dataset: ../datasets/dev/dataset.yaml   # replace with the real dataset in Phase 10
+repeats: 1
+variants:
+  - {name: baseline, pipeline: baseline, description: retrieve → generate → report}
+  - {name: agentic, pipeline: agentic, description: plan → tools → generate → verify → regenerate}

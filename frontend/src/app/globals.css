@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+/* Design tokens. Calm neutral surfaces, one indigo accent, semantic colours only for
+   status. Utilities such as bg-surface / text-muted / border-line come from these.
+   Theme: light by default, dark when the OS prefers it, unless the user picked one
+   (html[data-theme="light" | "dark"], set before first paint in layout.tsx). */
+:root {
+  --bg: #f7f7fb;
+  --surface: #ffffff;
+  --surface-2: #f3f3f8;
+  --sidebar: #fbfbfe;
+  --line: #e7e7f0;
+  --line-strong: #d2d2e0;
+  --text: #0e0f1a;
+  --muted: #5e6378;
+  --accent: #5b47e0;
+  --accent-soft: #efecfe;
+  --accent-strong: #4a37c9;
+  --brand-from: #4f46e5;
+  --brand-to: #9333ea;
+  --ok: #0f8a5f;
+  --ok-soft: #e6f6ef;
+  --warn: #b4690e;
+  --warn-soft: #fdf3e2;
+  --bad: #d1343e;
+  --bad-soft: #fdeced;
+  --highlight: #fff3c4;
+  --glow: rgb(124 92 255 / 0.12);
+  --shadow: 0 1px 2px rgb(17 17 40 / 0.04), 0 2px 8px rgb(17 17 40 / 0.05);
+}
+
+:root[data-theme="dark"] {
+  --bg: #08090f;
+  --surface: #10121a;
+  --surface-2: #161925;
+  --sidebar: #0b0d14;
+  --line: #22263a;
+  --line-strong: #30354d;
+  --text: #edeef7;
+  --muted: #9499b3;
+  --accent: #9b8cff;
+  --accent-soft: #211d45;
+  --accent-strong: #b3a8ff;
+  --brand-from: #6366f1;
+  --brand-to: #a855f7;
+  --ok: #34d399;
+  --ok-soft: #0f2a20;
+  --warn: #fbbf5a;
+  --warn-soft: #2e2412;
+  --bad: #fb7185;
+  --bad-soft: #36141b;
+  --highlight: #3a3313;
+  --glow: rgb(139 120 255 / 0.16);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #08090f;
+    --surface: #10121a;
+    --surface-2: #161925;
+    --sidebar: #0b0d14;
+    --line: #22263a;
+    --line-strong: #30354d;
+    --text: #edeef7;
+    --muted: #9499b3;
+    --accent: #9b8cff;
+    --accent-soft: #211d45;
+    --accent-strong: #b3a8ff;
+    --brand-from: #6366f1;
+    --brand-to: #a855f7;
+    --ok: #34d399;
+    --ok-soft: #0f2a20;
+    --warn: #fbbf5a;
+    --warn-soft: #2e2412;
+    --bad: #fb7185;
+    --bad-soft: #36141b;
+    --highlight: #3a3313;
+    --glow: rgb(139 120 255 / 0.16);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.25);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+  --color-sidebar: var(--sidebar);
+  --shadow-card: var(--shadow);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-highlight: var(--highlight);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Brief highlight when a citation chip scrolls its evidence card into view */
+@keyframes flash {
+  from {
+    background-color: var(--highlight);
+  }
+  to {
+    background-color: var(--surface);
+  }
+}
+.flash {
+  animation: flash 1.6s ease-out;
+}
+
+/* Brand gradient (indigo → violet): logo, primary actions, the user's chat bubbles */
+@utility bg-brand {
+  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+}
+@utility text-brand {
+  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Soft colour glow behind hero areas */
+@utility bg-glow {
+  background-image: radial-gradient(60% 60% at 50% 0%, var(--glow), transparent 70%);
+}

@@ -1,0 +1,10 @@
+# Experiment D: does a cross-encoder reranker (BAAI/bge-reranker-v2-m3) improve the
+# ranking of the same candidate pool? Needs: make setup-ml (downloads ~2 GB once).
+name: exp_d_rerank
+description: Hybrid retrieval without vs. with cross-encoder reranking (Experiment D).
+dataset: ../datasets/dev/dataset.yaml
+settings:
+  retrieval_candidate_k: 30
+variants:
+  - {name: no_rerank, pipeline: baseline, settings: {reranker_enabled: false}}
+  - {name: rerank, pipeline: baseline, settings: {reranker_enabled: true, reranker_provider: local}}

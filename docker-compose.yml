@@ -1,0 +1,75 @@
+# Development:  docker compose up -d db            (database only; run API/UI locally)
+# Full stack:   docker compose --profile app up -d --build
+#               → UI http://localhost:3000, API http://localhost:8000 (localhost only;
+#                 other ports: API_PORT=8200 WEB_PORT=3200 docker compose ...)
+# Stop:         docker compose --profile app down   (data is kept in the volumes)
+# Reset:        docker compose down -v              (DELETES all database data)
+
+services:
+  db:
+    # Official PostgreSQL image with the pgvector extension pre-installed
+    image: pgvector/pgvector:pg17
+    container_name: patent_rag_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-patent_rag}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_local_only}
+      POSTGRES_DB: ${POSTGRES_DB:-patent_rag}
+    ports:
+      # Bound to localhost only, so the database is not reachable from your network
+      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Scripts here run once, on first start with an empty volume
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    profiles: ["app"]
+    build:
+      context: ./backend
+      args:
+        INSTALL_ML: ${INSTALL_ML:-false}
+    env_file: .env  # secrets (API keys) reach the API container only, never the UI
+    environment:
+      # Inside Docker the database is the `db` service, not localhost:5434
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-patent_rag}:${POSTGRES_PASSWORD:-change_me_local_only}@db:5432/${POSTGRES_DB:-patent_rag}
+      EVAL_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-patent_rag}:${POSTGRES_PASSWORD:-change_me_local_only}@db:5432/patent_rag_eval
+      AUTH_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-patent_rag}:${POSTGRES_PASSWORD:-change_me_local_only}@db:5432/patent_rag_auth
+      CORS_ORIGINS: http://localhost:${WEB_PORT:-3000}
+      # A local Ollama on the host machine is reachable as host.docker.internal
+      LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-${LLM_BASE_URL:-https://api.openai.com/v1}}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - uploads:/data/uploads
+      - hf_cache:/home/app/.cache/huggingface
+      - ./experiments:/experiments:ro
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    profiles: ["app"]
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://api:8000
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:
+  hf_cache:

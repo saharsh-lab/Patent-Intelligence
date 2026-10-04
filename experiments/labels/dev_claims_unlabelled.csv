@@ -1,0 +1,447 @@
+claim_id,question,statement,cited,passages,human_verdict,notes
+3df90b49-d0bc-452c-8251-85c9436ee5cc:0,How often does the controller sample the thermistors on the battery cells?,The controller samples every thermistor at 10 Hz.,E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+97f948d1-21b0-4302-a4bc-fd41ac5f037b:0,What coolant does the variable-speed pump circulate through the cooling channels?,The variable-speed pump circulates a water-glycol coolant through the cooling channels.,E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+c5251577-92af-4215-bc11-68ae34e4968e:0,Which control law does the controller use to set the coolant pump speed?,The controller uses a proportional-integral control law to set the coolant pump speed.,E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+b8365d73-d0d4-4021-b5a1-8cf3aee552d0:0,"Above what temperature do lithium-ion cells degrade quickly, according to the background?",Lithium-ion cells degrade quickly when operated above 45 degrees Celsius.,E1,"Source: battery_patent.txt, background.
+Lithium-ion cells degrade quickly when operated above 45 degrees Celsius. Conventional battery packs place a single temperature sensor near the pack outlet, which cannot detect hot spots in individual cells. As a result, a failing cell may overheat before the controller reacts, which can lead to thermal runaway.",,
+24da5857-fb22-4c86-9d71-c1d2f402ea00:0,What happens when a cell's estimated core temperature rises faster than 2 degrees Celsius per minute?,"When a cell's estimated core temperature rises faster than 2 degrees Celsius per minute, the controller reports a fault and limits the charging current.",E1 E6,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.
+
+----------
+
+Source: battery_patent.txt, claim 3.
+3. The system of claim 1, wherein the controller limits the charging current when the core temperature rises faster than a predetermined rate.",,
+f7a9c923-6e2e-4b97-8956-e6fe56553299:0,How does the charging pad detect a metallic foreign object such as a coin?,The charging pad detects a metallic foreign object by measuring the quality factor of the transmitter coil.,E4,"Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+f7a9c923-6e2e-4b97-8956-e6fe56553299:1,How does the charging pad detect a metallic foreign object such as a coin?,"The detection circuit assesses this quality factor before each power transfer session, and if it falls below a threshold, it disables the inverter, thereby stopping the charging process.",E5 E4,"Source: wireless_patent.txt, claim 2.
+2. The wireless charging pad of claim 1, wherein the detection circuit measures the quality factor before each power transfer session.
+
+----------
+
+Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+f7a9c923-6e2e-4b97-8956-e6fe56553299:2,How does the charging pad detect a metallic foreign object such as a coin?,"This method allows the pad to identify the presence of a metallic object, such as a coin, which affects the coil's performance and could pose a safety risk.",E2 E3,"Source: wireless_patent.txt, abstract.
+A wireless charging pad transfers power to a mobile device through inductive coupling between a transmitter coil and a receiver coil. A detection circuit measures the quality factor of the transmitter coil before power transfer begins, and stops charging when a metallic foreign object such as a coin or key is detected on the pad.
+
+----------
+
+Source: wireless_patent.txt, background.
+Metal objects placed between a charging pad and a phone absorb energy from the magnetic field and can become dangerously hot.",,
+bfbbf24b-c7b5-45d9-b937-926bc4552e50:0,Why can metal objects between a charging pad and a phone be dangerous?,"Metal objects between a charging pad and a phone can be dangerous because they absorb energy from the magnetic field, leading to dangerous heating.",E1,"Source: wireless_patent.txt, background.
+Metal objects placed between a charging pad and a phone absorb energy from the magnetic field and can become dangerously hot.",,
+bfbbf24b-c7b5-45d9-b937-926bc4552e50:1,Why can metal objects between a charging pad and a phone be dangerous?,"This risk is addressed by some wireless charging pads, which use a detection circuit to measure the quality factor of the transmitter coil and disable power transfer if a metallic object is detected.",E2 E4,"Source: wireless_patent.txt, abstract.
+A wireless charging pad transfers power to a mobile device through inductive coupling between a transmitter coil and a receiver coil. A detection circuit measures the quality factor of the transmitter coil before power transfer begins, and stops charging when a metallic foreign object such as a coin or key is detected on the pad.
+
+----------
+
+Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+bfbbf24b-c7b5-45d9-b937-926bc4552e50:3,Why can metal objects between a charging pad and a phone be dangerous?,The detection mechanism ensures that power is stopped before a metallic foreign object can cause harm.,E2 E4,"Source: wireless_patent.txt, abstract.
+A wireless charging pad transfers power to a mobile device through inductive coupling between a transmitter coil and a receiver coil. A detection circuit measures the quality factor of the transmitter coil before power transfer begins, and stops charging when a metallic foreign object such as a coin or key is detected on the pad.
+
+----------
+
+Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+1d598e05-7717-473e-94cb-9eb41d50bbd4:0,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,The immersion-cooled battery module enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.,E5 E6,"Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.
+
+----------
+
+Source: immersion_cooling.txt, claim 2.
+2. The battery module of claim 1, wherein the dielectric fluid is a synthetic ester having a breakdown voltage above 60 kV.",,
+1d598e05-7717-473e-94cb-9eb41d50bbd4:1,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,This fluid is non-conductive and allows direct contact with the cell terminals.,E3,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.",,
+1d598e05-7717-473e-94cb-9eb41d50bbd4:2,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,The circulation pump moves the fluid through a heat exchanger located outside the enclosure.,E1 E4,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.
+
+----------
+
+Source: immersion_cooling.txt, abstract.
+A battery module houses cylindrical cells fully immersed in a non-conductive dielectric fluid inside a sealed enclosure. A circulation pump moves the fluid past the cells and through an external plate heat exchanger. A level sensor detects fluid loss, and the module disconnects the cells from the load when the fluid level drops below a minimum mark.",,
+1d598e05-7717-473e-94cb-9eb41d50bbd4:3,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,"The fluid level is monitored by a float-type level sensor, and if the level drops below a minimum mark, the cells are disconnected from the load.",E5,"Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+876c4830-e9c4-4a1b-8563-631cd16637ed:0,Where does the immersion module's heat exchanger send the heat it removes?,The immersion module's heat exchanger sends the heat it removes to a building water loop.,E4,"Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+ebc2159f-8678-4b2c-b9b7-568ff8f6597c:0,How does the battery thermal management system estimate the core temperature of each cell?,The battery thermal management system estimates the core temperature of each cell using a first-order thermal model that takes into account the measured surface temperature and the cell's charging current.,E6,"Source: battery_patent.txt, claim 2.
+2. The system of claim 1, wherein the controller estimates the core temperature using a first-order thermal model based on a surface temperature and a charging current of the cell.",,
+ebc2159f-8678-4b2c-b9b7-568ff8f6597c:1,How does the battery thermal management system estimate the core temperature of each cell?,This model is calibrated during manufacturing to ensure accurate estimations.,E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+ebc2159f-8678-4b2c-b9b7-568ff8f6597c:2,How does the battery thermal management system estimate the core temperature of each cell?,The controller samples the thermistor readings at 10 Hz and applies the thermal model to estimate the core temperature.,E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+ebc2159f-8678-4b2c-b9b7-568ff8f6597c:3,How does the battery thermal management system estimate the core temperature of each cell?,"If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller reports a fault and limits the charging current.",E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+ebc2159f-8678-4b2c-b9b7-568ff8f6597c:4,How does the battery thermal management system estimate the core temperature of each cell?,"The system also uses a proportional-integral control law to adjust the coolant pump speed, ensuring the hottest estimated core temperature stays below 40 degrees Celsius.",E1,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+c45026e4-ae0e-4e04-99b8-23b77909d771:1,What does the immersion-cooled module do when the dielectric fluid level drops too low?,"This action is triggered by a level sensor detecting the fluid level below a minimum mark, which causes the battery management unit to open a contactor that disconnects the cells from the load.",E1 E4,"Source: immersion_cooling.txt, abstract.
+A battery module houses cylindrical cells fully immersed in a non-conductive dielectric fluid inside a sealed enclosure. A circulation pump moves the fluid past the cells and through an external plate heat exchanger. A level sensor detects fluid loss, and the module disconnects the cells from the load when the fluid level drops below a minimum mark.
+
+----------
+
+Source: immersion_cooling.txt, claim 3.
+3. The battery module of claim 1, further comprising a level sensor and a contactor, wherein the contactor disconnects the cells from a load when the level sensor detects a fluid level below a minimum mark.",,
+9b18c413-d32a-400f-864e-ec4688a01fd7:0,What does claim 3 add to the system of claim 1?,"Claim 3 adds the feature that the controller limits the charging current when the core temperature rises faster than a predetermined rate, which is an additional safety measure to prevent overheating.",E1,"Source: battery_patent.txt, claim 3.
+3. The system of claim 1, wherein the controller limits the charging current when the core temperature rises faster than a predetermined rate.",,
+9b18c413-d32a-400f-864e-ec4688a01fd7:1,What does claim 3 add to the system of claim 1?,"This is further supported by the description, which states that if the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller reports a fault and limits the charging current.",E6,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+9b18c413-d32a-400f-864e-ec4688a01fd7:2,What does claim 3 add to the system of claim 1?,"This aligns with the functionality described in claim 3, reinforcing the added functionality of claim 3 over claim 1.",E1 E6,"Source: battery_patent.txt, claim 3.
+3. The system of claim 1, wherein the controller limits the charging current when the core temperature rises faster than a predetermined rate.
+
+----------
+
+Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+0cbc9c80-07db-4179-bef0-44936a070e4a:0,What does claim 4 specify about the temperature sensor?,Claim 4 specifies that the temperature sensor is a thermistor bonded to a casing of the cell.,E1,"Source: battery_patent.txt, claim 4.
+4. The system of claim 1, wherein the temperature sensor is a thermistor bonded to a casing of the cell.",,
+24e9ddb6-9013-4ea3-a6ab-58c34744c389:0,What does claim 2 of this document add?,Claim 2 of this document adds the specific detail that the detection circuit measures the quality factor before each power transfer session.,E1,"Source: wireless_patent.txt, claim 2.
+2. The wireless charging pad of claim 1, wherein the detection circuit measures the quality factor before each power transfer session.",,
+24e9ddb6-9013-4ea3-a6ab-58c34744c389:2,What does claim 2 of this document add?,"This builds upon the foundational feature described in claim 1, which involves measuring the quality factor before power transfer begins and disabling the inverter if the quality factor falls below a threshold.",E4,"Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+24e9ddb6-9013-4ea3-a6ab-58c34744c389:3,What does claim 2 of this document add?,"The addition in claim 2 ensures that the quality factor is assessed repeatedly, enhancing the system's responsiveness to changes in the environment or the condition of the transmitter coil.",E1,"Source: wireless_patent.txt, claim 2.
+2. The wireless charging pad of claim 1, wherein the detection circuit measures the quality factor before each power transfer session.",,
+24e9ddb6-9013-4ea3-a6ab-58c34744c389:4,What does claim 2 of this document add?,This contributes to the overall functionality and safety of the wireless charging pad by enabling more frequent and accurate detection of potential issues.,E1,"Source: wireless_patent.txt, claim 2.
+2. The wireless charging pad of claim 1, wherein the detection circuit measures the quality factor before each power transfer session.",,
+31ce2f8c-89f4-41f7-8f37-a6ec56080d60:0,Which elements does claim 1 of this document require?,"Claim 1 of the document requires the following elements: a sealed enclosure, a dielectric fluid filling the enclosure, a plurality of cylindrical battery cells immersed in the dielectric fluid, and a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",E3,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",,
+1ecc619c-62fc-4c9a-bd92-05b13782097b:1,Compare how these two documents cool the battery cells.,"The first document, immersion_cooling.txt, mentions that immersion cooling involves direct contact between the cells and a coolant, which removes heat more evenly compared to cold plates that only cool through one face.",E1,"Source: immersion_cooling.txt, background.
+Cold plates cool battery cells only through one face, which leaves large temperature differences across each cell during fast charging. Direct contact between the cells and a coolant removes heat more evenly, but water-based coolants conduct electricity and cannot touch the cell terminals.",,
+1ecc619c-62fc-4c9a-bd92-05b13782097b:2,Compare how these two documents cool the battery cells.,"However, it also notes that water-based coolants cannot touch the cell terminals due to their conductivity.",E1,"Source: immersion_cooling.txt, background.
+Cold plates cool battery cells only through one face, which leaves large temperature differences across each cell during fast charging. Direct contact between the cells and a coolant removes heat more evenly, but water-based coolants conduct electricity and cannot touch the cell terminals.",,
+1ecc619c-62fc-4c9a-bd92-05b13782097b:3,Compare how these two documents cool the battery cells.,"The second document, battery_patent.txt, describes a system with cooling channels adjacent to the battery cells, where a coolant (water-glycol) is circulated by a variable-speed pump.",E2,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+1ecc619c-62fc-4c9a-bd92-05b13782097b:4,Compare how these two documents cool the battery cells.,The controller adjusts the pump speed based on estimated core temperatures to maintain safe operating conditions.,E2,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+1ecc619c-62fc-4c9a-bd92-05b13782097b:5,Compare how these two documents cool the battery cells.,"Additionally, the system measures surface temperatures and estimates core temperatures using a thermal model.",E2 E3 E4,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.
+
+----------
+
+Source: battery_patent.txt, claim 5.
+5. A method of cooling a battery pack, comprising: measuring a surface temperature of each cell; estimating a core temperature of each cell; and increasing a coolant flow rate when any estimated core temperature exceeds a threshold.
+
+----------
+
+Source: battery_patent.txt, claim 1.
+1. A battery thermal management system comprising: a plurality of battery cells; a temperature sensor attached to each battery cell; a coolant pump configured to circulate a liquid coolant through cooling channels adjacent to the battery cells; and a controller configured to estimate a core temperature of each cell and to adjust a speed of the coolant pump based on the estimated core temperatures.",,
+a16a0d6a-bad9-4436-a034-9f97629cf2fe:1,What coolant does the variable-speed pump circulate through the cooling channels?,"This fluid is used to cool the battery cells and is electrically insulating, allowing it to contact the cell terminals directly.",E4 E6,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.
+
+----------
+
+Source: immersion_cooling.txt, abstract.
+A battery module houses cylindrical cells fully immersed in a non-conductive dielectric fluid inside a sealed enclosure. A circulation pump moves the fluid past the cells and through an external plate heat exchanger. A level sensor detects fluid loss, and the module disconnects the cells from the load when the fluid level drops below a minimum mark.",,
+c611aa79-8aae-4cd1-830a-a926f4b04e9f:0,How does the charging pad detect a metallic foreign object such as a coin?,The charging pad detects a metallic foreign object such as a coin by measuring the quality factor of the transmitter coil.,E4,"Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+c611aa79-8aae-4cd1-830a-a926f4b04e9f:1,How does the charging pad detect a metallic foreign object such as a coin?,"The detection circuit is configured to disable the inverter when the quality factor falls below a threshold, thereby preventing power transfer.",E4,"Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+c611aa79-8aae-4cd1-830a-a926f4b04e9f:2,How does the charging pad detect a metallic foreign object such as a coin?,The detection circuit's role is to ensure safety by identifying such objects before initiating power transfer.,E4,"Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+c611aa79-8aae-4cd1-830a-a926f4b04e9f:3,How does the charging pad detect a metallic foreign object such as a coin?,Metal objects placed between a charging pad and a phone absorb energy from the magnetic field and can become dangerously hot.,E3,"Source: wireless_patent.txt, background.
+Metal objects placed between a charging pad and a phone absorb energy from the magnetic field and can become dangerously hot.",,
+b53f5cae-e6d9-4764-9458-90d93a6fbbc6:0,Why can metal objects between a charging pad and a phone be dangerous?,Metal objects between a charging pad and a phone can be dangerous because they absorb energy from the magnetic field and can become dangerously hot.,E1,"Source: wireless_patent.txt, background.
+Metal objects placed between a charging pad and a phone absorb energy from the magnetic field and can become dangerously hot.",,
+b53f5cae-e6d9-4764-9458-90d93a6fbbc6:1,Why can metal objects between a charging pad and a phone be dangerous?,The detection circuit measures the quality factor of the transmitter coil before each power transfer session and stops charging when a metallic foreign object is detected.,E2 E5,"Source: wireless_patent.txt, abstract.
+A wireless charging pad transfers power to a mobile device through inductive coupling between a transmitter coil and a receiver coil. A detection circuit measures the quality factor of the transmitter coil before power transfer begins, and stops charging when a metallic foreign object such as a coin or key is detected on the pad.
+
+----------
+
+Source: wireless_patent.txt, claim 2.
+2. The wireless charging pad of claim 1, wherein the detection circuit measures the quality factor before each power transfer session.",,
+b53f5cae-e6d9-4764-9458-90d93a6fbbc6:2,Why can metal objects between a charging pad and a phone be dangerous?,This prevents overheating and potential harm to the user or device by disabling the inverter when the quality factor falls below a threshold.,E4,"Source: wireless_patent.txt, claim 1.
+1. A wireless charging pad comprising: a transmitter coil; an inverter driving the transmitter coil; and a detection circuit configured to measure a quality factor of the transmitter coil and to disable the inverter when the quality factor falls below a threshold.",,
+d213c3f5-f46a-4b79-8abd-631cdbda4dc5:0,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,The immersion-cooled battery module enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.,E6,"Source: immersion_cooling.txt, claim 2.
+2. The battery module of claim 1, wherein the dielectric fluid is a synthetic ester having a breakdown voltage above 60 kV.",,
+d213c3f5-f46a-4b79-8abd-631cdbda4dc5:1,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,"The fluid is electrically insulating, allowing it to contact the cell terminals directly.",E3,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.",,
+d213c3f5-f46a-4b79-8abd-631cdbda4dc5:2,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,The fluid's dielectric properties are essential for electrical insulation.,E3,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.",,
+d213c3f5-f46a-4b79-8abd-631cdbda4dc5:3,What kind of dielectric fluid fills the immersion-cooled battery module enclosure?,The fluid also facilitates heat dissipation by being circulated through a plate heat exchanger.,E1,"Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+02a34ad0-0c16-4686-863d-2052b7220300:1,Where does the immersion module's heat exchanger send the heat it removes?,"The circulation pump draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.",E1,"Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+02a34ad0-0c16-4686-863d-2052b7220300:2,Where does the immersion module's heat exchanger send the heat it removes?,The heat exchanger is located outside the enclosure.,E5,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",,
+02a34ad0-0c16-4686-863d-2052b7220300:3,Where does the immersion module's heat exchanger send the heat it removes?,The module comprises a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.,E5,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",,
+e578882d-a5e1-45ed-86e3-7dabf58f5c96:0,What does the immersion-cooled module do when the dielectric fluid level drops too low?,"When the dielectric fluid level drops too low, the float-type level sensor 230 detects this and triggers the battery management unit to open the contactor 240, which disconnects the cells from the load.",E2 E4,"Source: immersion_cooling.txt, abstract.
+A battery module houses cylindrical cells fully immersed in a non-conductive dielectric fluid inside a sealed enclosure. A circulation pump moves the fluid past the cells and through an external plate heat exchanger. A level sensor detects fluid loss, and the module disconnects the cells from the load when the fluid level drops below a minimum mark.
+
+----------
+
+Source: immersion_cooling.txt, claim 3.
+3. The battery module of claim 1, further comprising a level sensor and a contactor, wherein the contactor disconnects the cells from a load when the level sensor detects a fluid level below a minimum mark.",,
+e578882d-a5e1-45ed-86e3-7dabf58f5c96:1,What does the immersion-cooled module do when the dielectric fluid level drops too low?,This action is taken to ensure safety and prevent potential damage to the cells due to insufficient dielectric fluid.,E2 E4,"Source: immersion_cooling.txt, abstract.
+A battery module houses cylindrical cells fully immersed in a non-conductive dielectric fluid inside a sealed enclosure. A circulation pump moves the fluid past the cells and through an external plate heat exchanger. A level sensor detects fluid loss, and the module disconnects the cells from the load when the fluid level drops below a minimum mark.
+
+----------
+
+Source: immersion_cooling.txt, claim 3.
+3. The battery module of claim 1, further comprising a level sensor and a contactor, wherein the contactor disconnects the cells from a load when the level sensor detects a fluid level below a minimum mark.",,
+f1141123-537e-4d57-abc9-38d283a275ec:0,What does claim 3 add to the system of claim 1?,Claim 3 adds the feature that the controller limits the charging current when the core temperature rises faster than a predetermined rate.,E1,"Source: battery_patent.txt, claim 3.
+3. The system of claim 1, wherein the controller limits the charging current when the core temperature rises faster than a predetermined rate.",,
+f1141123-537e-4d57-abc9-38d283a275ec:1,What does claim 3 add to the system of claim 1?,"This is an additional safety measure to prevent overheating, as indicated by the description which states that if the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller reports a fault and limits the charging current.",E6,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+ef5bb0b4-b592-4ec7-aa58-5b4cde322387:0,Which elements does claim 1 of this document require?,"Claim 1 of the document requires the following elements: a sealed enclosure, a dielectric fluid filling the enclosure, a plurality of cylindrical battery cells immersed in the dielectric fluid, and a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",E1 E1 E1 E1,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.
+
+----------
+
+Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.
+
+----------
+
+Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.
+
+----------
+
+Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:0,Compare how these two documents cool the battery cells.,Electric vehicle batteries and monitoring temperature of lithium-ion cells.,E1,"Source: battery_patent.txt, technical_field.
+The present disclosure relates to electric vehicle batteries, and more particularly to monitoring and controlling the temperature of individual lithium-ion cells.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:1,Compare how these two documents cool the battery cells.,Cooling of high-power battery modules for stationary energy storage.,E6,"Source: immersion_cooling.txt, technical_field.
+The present disclosure relates to cooling of high-power battery modules for stationary energy storage.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:2,Compare how these two documents cool the battery cells.,Lithium-ion cells degrade quickly when operated above 45 degrees Celsius. Conventional packs cannot detect hot spots in individual cells.,E2,"Source: battery_patent.txt, background.
+Lithium-ion cells degrade quickly when operated above 45 degrees Celsius. Conventional battery packs place a single temperature sensor near the pack outlet, which cannot detect hot spots in individual cells. As a result, a failing cell may overheat before the controller reacts, which can lead to thermal runaway.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:3,Compare how these two documents cool the battery cells.,"Cold plates cool battery cells only through one face, leading to large temperature differences during fast charging.",E7,"Source: immersion_cooling.txt, background.
+Cold plates cool battery cells only through one face, which leaves large temperature differences across each cell during fast charging. Direct contact between the cells and a coolant removes heat more evenly, but water-based coolants conduct electricity and cannot touch the cell terminals.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:4,Compare how these two documents cool the battery cells.,"Temperature sensors, coolant pump, cooling channels, controller.",E3,"Source: battery_patent.txt, summary.
+According to one aspect, a battery thermal management system comprises temperature sensors attached to each cell, a coolant pump, and a controller. The controller estimates the core temperature of each cell from its surface temperature and its charging current. When the estimated core temperature of any cell exceeds a threshold, the controller increases the coolant flow rate through the channel adjacent to that cell.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:5,Compare how these two documents cool the battery cells.,"Sealed enclosure, dielectric fluid, circulation pump, heat exchanger, level sensor, contactor.",E8,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:6,Compare how these two documents cool the battery cells.,"Controller estimates core temperature from surface temperature and current, adjusts coolant flow rate to keep core temperature below 40 degrees Celsius.",E4,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:7,Compare how these two documents cool the battery cells.,"Pump circulates dielectric fluid through heat exchanger, fluid contacts cells directly for even cooling.",E9,"Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:8,Compare how these two documents cool the battery cells.,"System includes temperature sensors, coolant pump, and controller to estimate core temperature and adjust coolant flow.",E5,"Source: battery_patent.txt, claim 1.
+1. A battery thermal management system comprising: a plurality of battery cells; a temperature sensor attached to each battery cell; a coolant pump configured to circulate a liquid coolant through cooling channels adjacent to the battery cells; and a controller configured to estimate a core temperature of each cell and to adjust a speed of the coolant pump based on the estimated core temperatures.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:9,Compare how these two documents cool the battery cells.,"Module includes sealed enclosure, dielectric fluid, circulation pump, and heat exchanger for cooling.",E10,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:10,Compare how these two documents cool the battery cells.,Both systems use coolant to manage battery cell temperatures.,E3 E8,"Source: battery_patent.txt, summary.
+According to one aspect, a battery thermal management system comprises temperature sensors attached to each cell, a coolant pump, and a controller. The controller estimates the core temperature of each cell from its surface temperature and its charging current. When the estimated core temperature of any cell exceeds a threshold, the controller increases the coolant flow rate through the channel adjacent to that cell.
+
+----------
+
+Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.",,
+b072ec19-7a4b-4344-9423-b0fba1bf453e:11,Compare how these two documents cool the battery cells.,"S1 uses temperature sensors and per-cell control, while S2 uses dielectric fluid and fixed-speed pump with no per-cell temperature estimation.",E4 E9,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.
+
+----------
+
+Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:3,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"Cold plates cool battery cells only through one face, leaving large temperature differences during fast charging.",E7,"Source: immersion_cooling.txt, background.
+Cold plates cool battery cells only through one face, which leaves large temperature differences across each cell during fast charging. Direct contact between the cells and a coolant removes heat more evenly, but water-based coolants conduct electricity and cannot touch the cell terminals.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:4,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"Temperature sensors, coolant pump, controller, cooling channels, and thermistors.",E3 E4,"Source: battery_patent.txt, summary.
+According to one aspect, a battery thermal management system comprises temperature sensors attached to each cell, a coolant pump, and a controller. The controller estimates the core temperature of each cell from its surface temperature and its charging current. When the estimated core temperature of any cell exceeds a threshold, the controller increases the coolant flow rate through the channel adjacent to that cell.
+
+----------
+
+Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:5,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"Sealed enclosure, dielectric fluid, cylindrical cells, circulation pump, heat exchanger, and level sensor.",E8 E9,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.
+
+----------
+
+Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:6,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"Controller estimates core temperature from surface temperature and current, adjusts coolant flow rate to keep temperatures below 40 degrees Celsius.",E4 E5,"Source: battery_patent.txt, description.
+[0010] As shown in FIG. 1, the battery pack 100 includes twelve cells 102 arranged in two rows. Each cell 102 carries a thermistor 104 bonded to its casing with thermally conductive adhesive.
+
+[0011] The controller 110 samples every thermistor 104 at 10 Hz. A first-order thermal model estimates the core temperature from the measured surface temperature and the cell current. The model parameters are calibrated during manufacturing.
+
+[0012] Cooling channels 120 run between the rows of cells. A variable-speed pump 122 circulates a water-glycol coolant through the channels 120. The controller 110 sets the pump speed using a proportional-integral control law so that the hottest estimated core temperature stays below 40 degrees Celsius.
+
+[0013] If the estimated core temperature of a cell rises faster than 2 degrees Celsius per minute, the controller 110 reports a fault and limits the charging current.
+
+----------
+
+Source: battery_patent.txt, claim 1.
+1. A battery thermal management system comprising: a plurality of battery cells; a temperature sensor attached to each battery cell; a coolant pump configured to circulate a liquid coolant through cooling channels adjacent to the battery cells; and a controller configured to estimate a core temperature of each cell and to adjust a speed of the coolant pump based on the estimated core temperatures.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:7,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"Pump circulates dielectric fluid through a heat exchanger, fluid contacts cell terminals directly for even cooling.",E8 E9,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.
+
+----------
+
+Source: immersion_cooling.txt, description.
+[0020] The enclosure 200 holds forty-eight cylindrical cells 202 standing upright in a polymer holder. The enclosure is filled with a synthetic ester dielectric fluid having a breakdown voltage above 60 kV.
+
+[0021] A circulation pump 210 draws warm fluid from the top of the enclosure and pushes it through a plate heat exchanger 220, where it transfers heat to a building water loop, before returning it to the bottom of the enclosure.
+
+[0022] A float-type level sensor 230 monitors the fluid level. If the level falls below a minimum mark, the battery management unit opens a contactor 240 that disconnects the cells from the load.
+
+[0023] The pump runs at a fixed speed whenever the module is charging or discharging; no per-cell temperature estimation is performed.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:8,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"A battery thermal management system comprising temperature sensors, coolant pump, and controller to estimate core temperatures and adjust coolant flow.",E5,"Source: battery_patent.txt, claim 1.
+1. A battery thermal management system comprising: a plurality of battery cells; a temperature sensor attached to each battery cell; a coolant pump configured to circulate a liquid coolant through cooling channels adjacent to the battery cells; and a controller configured to estimate a core temperature of each cell and to adjust a speed of the coolant pump based on the estimated core temperatures.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:9,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"A battery module comprising a sealed enclosure, dielectric fluid, cylindrical cells, circulation pump, and heat exchanger.",E10,"Source: immersion_cooling.txt, claim 1.
+1. A battery module comprising: a sealed enclosure; a dielectric fluid filling the enclosure; a plurality of cylindrical battery cells immersed in the dielectric fluid; a circulation pump configured to move the dielectric fluid through a heat exchanger located outside the enclosure.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:10,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,Both systems use coolant to manage battery temperatures.,E3 E8,"Source: battery_patent.txt, summary.
+According to one aspect, a battery thermal management system comprises temperature sensors attached to each cell, a coolant pump, and a controller. The controller estimates the core temperature of each cell from its surface temperature and its charging current. When the estimated core temperature of any cell exceeds a threshold, the controller increases the coolant flow rate through the channel adjacent to that cell.
+
+----------
+
+Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.",,
+5eb9528d-dfb2-48f0-a5c4-47c20677e510:11,Does the immersion cooling document infringe claim 1 of the battery thermal management patent?,"The immersion cooling system uses dielectric fluid and direct contact with cell terminals, while the battery patent uses temperature sensors and coolant flow adjustment.",E8 E5,"Source: immersion_cooling.txt, summary.
+According to one aspect, a battery module comprises a sealed enclosure filled with a dielectric fluid, a plurality of cylindrical cells immersed in the fluid, a circulation pump, and a heat exchanger outside the enclosure. Because the fluid is electrically insulating, it may contact the cell terminals directly.
+
+----------
+
+Source: battery_patent.txt, claim 1.
+1. A battery thermal management system comprising: a plurality of battery cells; a temperature sensor attached to each battery cell; a coolant pump configured to circulate a liquid coolant through cooling channels adjacent to the battery cells; and a controller configured to estimate a core temperature of each cell and to adjust a speed of the coolant pump based on the estimated core temperatures.",,

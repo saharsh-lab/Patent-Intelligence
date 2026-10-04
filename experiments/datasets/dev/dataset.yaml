@@ -1,0 +1,214 @@
+# Development question set for testing the evaluation framework.
+#
+# NOT FOR REPORTING: the three documents are synthetic and the questions and labels
+# were written by the AI coding assistant while building the framework. Results on
+# this set only show that the pipeline and metrics work. The research dataset must be
+# built from real patents and labelled by the project team (docs/dataset_guide.md).
+name: dev
+description: Synthetic battery / wireless-charging / immersion-cooling documents.
+synthetic: true
+labelled_by: AI coding assistant (development only; not human-verified)
+
+corpus:
+  - {id: battery, file: corpus/battery_patent.txt}
+  - {id: wireless, file: corpus/wireless_patent.txt}
+  - {id: immersion, file: corpus/immersion_cooling.txt}
+
+items:
+  # ---------------------------------------------------------------- single-fact lookups
+  - id: q01
+    type: lookup
+    question: How often does the controller sample the thermistors on the battery cells?
+    relevant:
+      - {doc: battery, contains: "samples every thermistor"}
+    key_facts: ["10 Hz"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q02
+    type: lookup
+    question: What coolant does the variable-speed pump circulate through the cooling channels?
+    relevant:
+      - {doc: battery, contains: "water-glycol coolant"}
+    key_facts: ["water-glycol"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q03
+    type: lookup
+    question: Which control law does the controller use to set the coolant pump speed?
+    relevant:
+      - {doc: battery, contains: "proportional-integral control law"}
+    key_facts: ["proportional-integral"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q04
+    type: lookup
+    question: Above what temperature do lithium-ion cells degrade quickly, according to the background?
+    relevant:
+      - {doc: battery, contains: "degrade quickly when operated above 45"}
+    key_facts: ["45 degrees"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+    notes: >-
+      Names a section, so reading the background section directly is correct.
+      (Label revised after the first smoke run; allowed on the dev set only.)
+
+  - id: q05
+    type: lookup
+    question: What happens when a cell's estimated core temperature rises faster than 2 degrees Celsius per minute?
+    relevant:
+      - {doc: battery, contains: "rises faster than 2 degrees"}
+      - {doc: battery, claim: 3}
+    key_facts: ["fault", "limits the charging current"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q06
+    type: lookup
+    question: How does the charging pad detect a metallic foreign object such as a coin?
+    relevant:
+      - {doc: wireless, contains: "measures the quality factor"}
+      - {doc: wireless, claim: 1}
+    key_facts: ["quality factor"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q07
+    type: lookup
+    question: Why can metal objects between a charging pad and a phone be dangerous?
+    relevant:
+      - {doc: wireless, contains: "absorb energy from the magnetic field"}
+    key_facts: ["hot"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q08
+    type: lookup
+    question: What kind of dielectric fluid fills the immersion-cooled battery module enclosure?
+    relevant:
+      - {doc: immersion, contains: "synthetic ester dielectric fluid"}
+      - {doc: immersion, claim: 2}
+    key_facts: ["synthetic ester"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q09
+    type: lookup
+    question: Where does the immersion module's heat exchanger send the heat it removes?
+    relevant:
+      - {doc: immersion, contains: "transfers heat to a building water loop"}
+    key_facts: ["building water loop"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ---------------------------------------------------------------- several passages
+  - id: q10
+    type: multi_passage
+    question: How does the battery thermal management system estimate the core temperature of each cell?
+    relevant:
+      - {doc: battery, contains: "first-order thermal model estimates the core temperature"}
+      - {doc: battery, claim: 2}
+      - {doc: battery, section: summary}
+    key_facts: ["thermal model", "surface temperature"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q11
+    type: multi_passage
+    question: What does the immersion-cooled module do when the dielectric fluid level drops too low?
+    relevant:
+      - {doc: immersion, contains: "level falls below a minimum mark"}
+      - {doc: immersion, claim: 3}
+    key_facts: ["contactor", "disconnects the cells"]
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  # ---------------------------------------------------------------- claim explanation (document selected)
+  - id: q12
+    type: claim_explanation
+    question: What does claim 3 add to the system of claim 1?
+    scope: [battery]
+    relevant:
+      - {doc: battery, claim: 3}
+    key_facts: ["charging current"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: q13
+    type: claim_explanation
+    question: What does claim 4 specify about the temperature sensor?
+    scope: [battery]
+    relevant:
+      - {doc: battery, claim: 4}
+    key_facts: ["thermistor"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: q14
+    type: claim_explanation
+    question: What does claim 2 of this document add?
+    scope: [wireless]
+    relevant:
+      - {doc: wireless, claim: 2}
+    key_facts: ["before each power transfer session"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  - id: q15
+    type: claim_explanation
+    question: Which elements does claim 1 of this document require?
+    scope: [immersion]
+    relevant:
+      - {doc: immersion, claim: 1}
+    key_facts: ["sealed enclosure", "dielectric fluid", "circulation pump", "heat exchanger"]
+    expected_intent: document_qa
+    expected_tools: [retrieve_document_section, retrieve_evidence]
+
+  # ---------------------------------------------------------------- comparison
+  - id: q16
+    type: comparison
+    question: Compare how these two documents cool the battery cells.
+    scope: [battery, immersion]
+    relevant:
+      - {doc: battery, contains: "variable-speed pump"}
+      - {doc: immersion, contains: "circulation pump 210"}
+    key_facts: []
+    expected_intent: compare
+    expected_tools: [compare_patents]
+
+  # ---------------------------------------------------------------- not answerable from the corpus
+  - id: q17
+    type: unanswerable
+    question: What is the maximum charging power of the battery pack in kilowatts?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: No document states a charging power.
+
+  - id: q18
+    type: unanswerable
+    question: Which smartphone models are certified to use the wireless charging pad?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+
+  - id: q19
+    type: unanswerable
+    question: What wind speed does the turbine blade pitch controller tolerate?
+    expected_intent: document_qa
+    expected_tools: [search_uploaded_documents]
+    notes: Off-topic for the whole corpus.
+
+  # ---------------------------------------------------------------- legal opinion requested
+  - id: q20
+    type: legal
+    question: Does the immersion cooling document infringe claim 1 of the battery thermal management patent?
+    scope: [battery, immersion]
+    relevant:
+      - {doc: battery, claim: 1}
+      - {doc: immersion, claim: 1}
+    key_facts: []
+    legal: true
+    expected_intent: compare
+    expected_tools: [compare_patents]
+    notes: Must not give a legal opinion; a technical comparison with a disclaimer is correct.

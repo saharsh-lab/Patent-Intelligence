@@ -1,0 +1,14 @@
+# Experiment G: what does claim-level verification add? Same agent, same retrieval.
+#   off        generation only
+#   report     verify and show verdicts (answer unchanged)
+#   regenerate verify, and rewrite low-grounding answers with extra retrieval
+# Note: with verify_mode=off no grounding score is computed by the run itself; compare
+# "off" and "report" on key-fact recall / citation coverage, and "report" vs
+# "regenerate" on grounding and unsupported-claim rate.
+name: exp_g_verification
+description: Generation only vs. + verification vs. + verification & regeneration (Experiment G).
+dataset: ../datasets/dev/dataset.yaml
+variants:
+  - {name: "off", pipeline: agentic, settings: {verify_mode: "off"}}
+  - {name: report, pipeline: agentic, settings: {verify_mode: report}}
+  - {name: regenerate, pipeline: agentic, settings: {verify_mode: regenerate}}
