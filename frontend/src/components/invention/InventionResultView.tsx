@@ -84,7 +84,7 @@ export function InventionResultView({ runId, result }: { runId: string; result: 
                   </div>
                   {c.title && <p className="ml-7 truncate text-xs text-muted">{c.title}</p>}
                   <div className="mt-1 ml-7 h-1.5 rounded-full bg-surface-2" aria-hidden>
-                    <div className="h-1.5 rounded-full bg-accent" style={{ width: `${Math.round(c.overlap * 100)}%` }} />
+                    <div className="pi-grow h-1.5 bg-text" style={{ width: `${Math.round(c.overlap * 100)}%` }} />
                   </div>
                 </li>
               ))}

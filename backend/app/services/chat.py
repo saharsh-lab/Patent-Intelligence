@@ -23,6 +23,7 @@ from datetime import UTC, datetime
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.agents.analysis import is_small_talk
 from app.core.config import Settings
 from app.core.errors import NotFoundError, ValidationFailedError
 from app.llm.providers import ChatMessage, LLMProvider
@@ -230,8 +231,8 @@ class ChatService:
     def rewrite(self, message: str, history: list[AgentRun]) -> str:
         """Standalone version of a follow-up question (unchanged if there is no history,
         no real LLM, or the rewrite looks wrong)."""
-        if not history or self.settings.llm_provider == "fake":
-            return message
+        if not history or self.settings.llm_provider == "fake" or is_small_talk(message):
+            return message  # "thanks" must not become a question about the last answer
         turns = []
         for run in history:
             question = (run.query.meta or {}).get("user_message") or run.query.query_text

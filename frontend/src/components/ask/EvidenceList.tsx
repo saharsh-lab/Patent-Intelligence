@@ -19,15 +19,15 @@ function EvidenceCard({ item, idPrefix }: { item: EvidenceOut; idPrefix: string 
   return (
     <li
       id={item.label ? `${idPrefix}evidence-${item.label}` : undefined}
-      className={`scroll-mt-4 rounded border bg-surface px-3 py-2.5 ${item.cited ? "border-accent/40" : "border-line"}`}
+      className={`pi-card scroll-mt-4 border bg-surface px-[18px] py-3.5 ${item.cited ? "border-line-strong" : "border-line"}`}
     >
       <div className="flex flex-wrap items-center gap-2">
         {item.label ? (
-          <span className="rounded-sm bg-accent-soft px-1.5 font-mono text-xs font-semibold text-accent">{item.label}</span>
+          <span className="font-serif text-[0.95rem] text-stamp italic">Fig. {item.label.replace(/^E/, "")}</span>
         ) : (
           <span className="font-mono text-xs text-muted">#{item.rank}</span>
         )}
-        <span className="min-w-0 truncate text-sm font-medium" title={item.source_title ?? undefined}>
+        <span className="min-w-0 truncate font-serif text-[1rem] font-medium" title={item.source_title ?? undefined}>
           {locationLabel(item)}
         </span>
         {item.source_type !== "upload" && (

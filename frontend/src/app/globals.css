@@ -1,104 +1,109 @@
 @import "tailwindcss";
 
-/* Design tokens. Warm cream surfaces, near-black ink, one clay accent, with sage,
-   dusty blue and warm grey as secondary tones. Utilities such as bg-surface /
-   text-muted / border-line come from these.
-   Theme: light by default, dark when the OS prefers it, unless the user picked one
-   (html[data-theme="light" | "dark"], set before first paint in layout.tsx).
-   --accent is a darker clay so accent-coloured text stays readable on cream;
-   --clay (#D97757) is used for fills: buttons, citation chips, score bars. */
+/* Design tokens: the "drafting table" look from the reference PatentSearch component.
+   Blue-grey paper with a fine grid, white sheets, ink text, one signal blue for
+   links, citations and focus, and a red "stamp" for figure labels.
+   Utilities such as bg-surface / text-muted / border-line come from these.
+   Theme: light by default, dark (navy blueprint) when the OS prefers it, unless the
+   user picked one (html[data-theme="light" | "dark"], set before first paint). */
 :root {
-  --bg: #faf9f5;
-  --surface: #fffefb;
-  --surface-2: #f0eee6;
-  --sidebar: #f0eee6;
-  --line: #e6e2d6;
-  --line-strong: #d4cfc1;
-  --text: #141413;
-  --muted: #66645d;
-  --accent: #b0532f;
-  --accent-soft: #f6e6dd;
-  --accent-strong: #96432a;
-  --brand-from: #cc6a48;
-  --brand-to: #ad5130;
-  --clay: #d97757;
-  --sage: #9caf88;
-  --dusty: #6a9bcc;
-  --stone: #b0aea5;
-  --ok: #4d6b3f;
-  --ok-soft: #e8eddf;
-  --warn: #9a5b0f;
-  --warn-soft: #f7ecd6;
-  --bad: #b3362a;
-  --bad-soft: #f8e2dc;
-  --highlight: #f7dccd;
-  --glow: rgb(217 119 87 / 0.14);
-  --grain-opacity: 0.05;
-  --shadow: 0 1px 2px rgb(60 40 20 / 0.04), 0 4px 14px rgb(60 40 20 / 0.06);
-  --shadow-lift: 0 2px 4px rgb(60 40 20 / 0.05), 0 18px 40px -12px rgb(60 40 20 / 0.18);
+  --bg: #eef2f5; /* paper */
+  --surface: #ffffff; /* sheet */
+  --surface-2: #f4f7fa;
+  --sidebar: #f7f9fb;
+  --line: #c9d3de;
+  --line-strong: #a9b6c4;
+  --grid: rgb(201 211 222 / 0.55);
+  --text: #16233a; /* ink */
+  --muted: #5b6b80;
+  --accent: #1f5fd6; /* blue: links, active states */
+  --accent-soft: #e3ecfb;
+  --accent-strong: #174bb0;
+  --cite: #1f5fd6; /* citation markers, focus, score fills */
+  --stamp: #b8322a; /* "Fig." labels */
+  --brand: #16233a; /* primary buttons: ink */
+  --on-brand: #ffffff;
+  --sage: #6f9a86;
+  --dusty: #6a8fc7;
+  --stone: #a9b6c4;
+  --ok: #1e7a4f;
+  --ok-soft: #e2f2ea;
+  --warn: #9a5800;
+  --warn-soft: #fbf0dc;
+  --bad: #b8322a;
+  --bad-soft: #f9e4e2;
+  --highlight: #dce8fb;
+  --glow: rgb(31 95 214 / 0.1);
+  --shadow: 0 1px 0 rgb(22 35 58 / 0.05);
+  --shadow-hard: 6px 6px 0 var(--text);
+  --shadow-hard-focus: 6px 6px 0 var(--cite);
 }
 
 :root[data-theme="dark"] {
-  --bg: #1f1e1c;
-  --surface: #262523;
-  --surface-2: #2f2e2b;
-  --sidebar: #1a1917;
-  --line: #3a3834;
-  --line-strong: #4a4843;
-  --text: #f0eee6;
-  --muted: #aaa79d;
-  --accent: #e8957a;
-  --accent-soft: #3b2a22;
-  --accent-strong: #f2ae96;
-  --brand-from: #cc6a48;
-  --brand-to: #ad5130;
-  --clay: #d97757;
-  --sage: #a9bc95;
-  --dusty: #86b0dc;
-  --stone: #8d8b83;
-  --ok: #a9c393;
-  --ok-soft: #26301f;
-  --warn: #e2b46a;
-  --warn-soft: #34291a;
-  --bad: #f0907d;
-  --bad-soft: #3a211c;
-  --highlight: #4a3226;
-  --glow: rgb(217 119 87 / 0.16);
-  --grain-opacity: 0.035;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 16px rgb(0 0 0 / 0.25);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 18px 40px -12px rgb(0 0 0 / 0.55);
+  --bg: #0f1a2b;
+  --surface: #15233a;
+  --surface-2: #1b2c47;
+  --sidebar: #122036;
+  --line: #2a3d5a;
+  --line-strong: #3d5476;
+  --grid: rgb(42 61 90 / 0.55);
+  --text: #e6edf5;
+  --muted: #93a4ba;
+  --accent: #82a9f4;
+  --accent-soft: #1c3158;
+  --accent-strong: #a8c3f7;
+  --cite: #5b8fef;
+  --stamp: #ec7b72;
+  --brand: #2f6fe0;
+  --on-brand: #ffffff;
+  --sage: #8fb8a4;
+  --dusty: #86a7dc;
+  --stone: #5d7392;
+  --ok: #6fd3a0;
+  --ok-soft: #133528;
+  --warn: #f0b860;
+  --warn-soft: #33270f;
+  --bad: #f08a80;
+  --bad-soft: #3a1c1c;
+  --highlight: #1f3a66;
+  --glow: rgb(91 143 239 / 0.14);
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+  --shadow-hard: 6px 6px 0 #070d17;
+  --shadow-hard-focus: 6px 6px 0 var(--cite);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1f1e1c;
-    --surface: #262523;
-    --surface-2: #2f2e2b;
-    --sidebar: #1a1917;
-    --line: #3a3834;
-    --line-strong: #4a4843;
-    --text: #f0eee6;
-    --muted: #aaa79d;
-    --accent: #e8957a;
-    --accent-soft: #3b2a22;
-    --accent-strong: #f2ae96;
-    --brand-from: #cc6a48;
-    --brand-to: #ad5130;
-    --clay: #d97757;
-    --sage: #a9bc95;
-    --dusty: #86b0dc;
-    --stone: #8d8b83;
-    --ok: #a9c393;
-    --ok-soft: #26301f;
-    --warn: #e2b46a;
-    --warn-soft: #34291a;
-    --bad: #f0907d;
-    --bad-soft: #3a211c;
-    --highlight: #4a3226;
-    --glow: rgb(217 119 87 / 0.16);
-    --grain-opacity: 0.035;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 16px rgb(0 0 0 / 0.25);
-    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 18px 40px -12px rgb(0 0 0 / 0.55);
+    --bg: #0f1a2b;
+    --surface: #15233a;
+    --surface-2: #1b2c47;
+    --sidebar: #122036;
+    --line: #2a3d5a;
+    --line-strong: #3d5476;
+    --grid: rgb(42 61 90 / 0.55);
+    --text: #e6edf5;
+    --muted: #93a4ba;
+    --accent: #82a9f4;
+    --accent-soft: #1c3158;
+    --accent-strong: #a8c3f7;
+    --cite: #5b8fef;
+    --stamp: #ec7b72;
+    --brand: #2f6fe0;
+    --on-brand: #ffffff;
+    --sage: #8fb8a4;
+    --dusty: #86a7dc;
+    --stone: #5d7392;
+    --ok: #6fd3a0;
+    --ok-soft: #133528;
+    --warn: #f0b860;
+    --warn-soft: #33270f;
+    --bad: #f08a80;
+    --bad-soft: #3a1c1c;
+    --highlight: #1f3a66;
+    --glow: rgb(91 143 239 / 0.14);
+    --shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+    --shadow-hard: 6px 6px 0 #070d17;
+    --shadow-hard-focus: 6px 6px 0 var(--cite);
   }
 }
 
@@ -114,7 +119,8 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-strong: var(--accent-strong);
   --color-sidebar: var(--sidebar);
-  --shadow-card: var(--shadow);
+  --color-cite: var(--cite);
+  --color-stamp: var(--stamp);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
@@ -122,14 +128,25 @@
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-highlight: var(--highlight);
-  --color-clay: var(--clay);
   --color-sage: var(--sage);
   --color-dusty: var(--dusty);
   --color-stone: var(--stone);
-  --shadow-lift: var(--shadow-lift);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-fraunces);
+  --shadow-card: var(--shadow);
+  --shadow-hard: var(--shadow-hard);
+  --font-sans: var(--font-schibsted);
+  --font-serif: var(--font-newsreader);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Square, drafted corners everywhere (pills and dots keep rounded-full) */
+@theme {
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
 }
 
 body {
@@ -142,124 +159,99 @@ body {
 
 /* Base layer, so Tailwind utilities (e.g. focus-visible:outline-none, font-sans) can override */
 @layer base {
-  /* Headings in the warm serif; UI text stays in the sans */
+  /* Headings in Newsreader; UI text stays in Schibsted Grotesk */
   h1,
   h2 {
     font-family: var(--font-serif), Georgia, serif;
+    font-weight: 500;
     font-optical-sizing: auto;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 
   /* Visible keyboard focus everywhere (mouse clicks do not show it) */
   :focus-visible {
-    outline: 2px solid var(--clay);
+    outline: 2px solid var(--cite);
     outline-offset: 2px;
-    border-radius: 6px;
   }
 
-}
-
-/* Subtle paper grain over the whole app: a static layer, never repainted */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  pointer-events: none;
-  opacity: var(--grain-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-::selection {
-  background: var(--highlight);
-}
-
-/* Brief highlight when a citation chip scrolls its evidence card into view */
-@keyframes flash {
-  from {
-    background-color: var(--highlight);
+  /* Micro-interaction: every button presses in slightly */
+  button:not(:disabled),
+  a.press {
+    transition-property: color, background-color, border-color, opacity, scale, translate;
+    transition-duration: 0.15s;
   }
-  to {
-    background-color: var(--surface);
+  button:not(:disabled):active,
+  a.press:active {
+    scale: 0.97;
+  }
+
+  /* Form fields: border eases to blue on focus */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    transition: border-color 0.2s ease;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--cite);
+  }
+
+  /* Table rows tint on hover */
+  tbody tr {
+    transition: background-color 0.15s;
+  }
+  tbody tr:hover {
+    background-color: var(--surface-2);
+  }
+
+  ::selection {
+    background: var(--highlight);
   }
 }
-.flash {
-  animation: flash 1.6s ease-out;
+
+/* Graph-paper grid (from the reference): applied to the app's content area */
+@utility pi-grid {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
 }
 
-/* Brand gradient (clay): logo, primary actions, the user's chat bubbles */
+/* Primary actions: solid ink (blue in dark mode) */
 @utility bg-brand {
-  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+  background-color: var(--brand);
+  color: var(--on-brand);
 }
 @utility text-brand {
-  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--accent);
 }
 /* Soft colour glow behind hero areas */
 @utility bg-glow {
   background-image: radial-gradient(60% 60% at 50% 0%, var(--glow), transparent 70%);
 }
-
-/* ---- Search page motion (CSS keyframes run on the compositor) ---- */
-
-/* Background colour blobs drifting slowly */
-@keyframes drift-a {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(8vw, 6vh, 0) scale(1.12); }
-}
-@keyframes drift-b {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1.05); }
-  50% { transform: translate3d(-10vw, 4vh, 0) scale(0.92); }
-}
-@keyframes drift-c {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(0.95); }
-  50% { transform: translate3d(6vw, -8vh, 0) scale(1.1); }
-}
-.blob {
-  position: absolute;
-  border-radius: 9999px;
-  will-change: transform;
-}
-.blob-a { animation: drift-a 26s ease-in-out infinite; }
-.blob-b { animation: drift-b 32s ease-in-out infinite; }
-.blob-c { animation: drift-c 38s ease-in-out infinite; }
-
-/* Skeleton shimmer: a light band sliding across (transform only) */
-@keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
-}
-.skeleton {
-  position: relative;
-  overflow: hidden;
-  background: var(--surface-2);
-  border-radius: 8px;
-}
-.skeleton::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
-  animation: shimmer 1.6s ease-in-out infinite;
-}
-:root[data-theme="dark"] .skeleton::after {
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .skeleton::after {
-    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
-  }
+/* The reference's hard offset shadow; turns blue while focused */
+@utility shadow-hard {
+  box-shadow: var(--shadow-hard);
 }
 
-/* Animation vocabulary from the reference PatentSearch component:
-   words rise in, citations pop with an overshoot, a caret blinks while streaming,
-   a scan line sweeps while loading, score bars grow, the logo is stroke-drawn. */
+/* ======================================================================
+   Animation vocabulary (from the reference PatentSearch component), used
+   across the whole app. Only transform and opacity are animated.
+   ====================================================================== */
 @keyframes pi-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
+}
+@keyframes pi-rise {
+  from { opacity: 0; transform: translateY(105%); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pi-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes pi-pop {
   from { transform: scale(0); }
@@ -279,12 +271,42 @@ body::after {
 @keyframes pi-draw {
   to { stroke-dashoffset: 0; }
 }
+@keyframes pi-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* Every route enters (app/template.tsx remounts on navigation) */
+.page-enter {
+  animation: pi-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+/* Lists and table rows inside pages arrive one after another */
+.page-enter :is(ul, ol, tbody) > *,
+.stagger > * {
+  animation: pi-in 0.5s ease backwards;
+}
+.page-enter :is(ul, ol, tbody) > :nth-child(2), .stagger > :nth-child(2) { animation-delay: 0.05s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(3), .stagger > :nth-child(3) { animation-delay: 0.1s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(4), .stagger > :nth-child(4) { animation-delay: 0.15s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(5), .stagger > :nth-child(5) { animation-delay: 0.2s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(6), .stagger > :nth-child(6) { animation-delay: 0.25s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(7), .stagger > :nth-child(7) { animation-delay: 0.3s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(8), .stagger > :nth-child(8) { animation-delay: 0.35s; }
+.page-enter :is(ul, ol, tbody) > :nth-child(n + 9), .stagger > :nth-child(n + 9) { animation-delay: 0.4s; }
+/* Answer text lists keep their own reveal */
+.page-enter .no-stagger > * {
+  animation: none;
+}
+
+.pi-in { animation: pi-in 0.5s ease backwards; }
+.pi-fade { animation: pi-fade 0.6s ease backwards; }
 .pi-word {
   display: inline-block;
-  animation: pi-in 0.35s ease both;
+  animation: pi-in 0.35s ease backwards;
 }
 .pi-cite {
-  animation: pi-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation: pi-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
 }
 .pi-caret {
   display: inline-block;
@@ -292,7 +314,7 @@ body::after {
   height: 1em;
   margin-left: 3px;
   vertical-align: -0.12em;
-  background: var(--clay);
+  background: var(--text);
   animation: pi-blink 0.8s steps(1) infinite;
 }
 .pi-scanline {
@@ -301,13 +323,13 @@ body::after {
   right: 0;
   top: 8%;
   height: 2px;
-  background: var(--clay);
-  box-shadow: 0 0 18px var(--clay);
+  background: var(--cite);
+  box-shadow: 0 0 18px var(--cite);
   animation: pi-scan 1.1s ease-in-out infinite alternate;
 }
 .pi-grow {
   transform-origin: left;
-  animation: pi-grow 0.9s 0.3s ease both;
+  animation: pi-grow 0.9s 0.3s ease backwards;
 }
 .pi-draw {
   stroke-dasharray: 140;
@@ -315,7 +337,112 @@ body::after {
   animation: pi-draw 1.2s 0.1s ease forwards;
 }
 
-/* Reduced motion: no drifting, shimmering or word-by-word reveals */
+/* Headline lines slide up from behind a mask */
+.pi-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+.pi-line > span {
+  display: block;
+  animation: pi-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+
+/* Cards: the reference's active state (shift left, blue rule on the left edge) */
+.pi-card {
+  position: relative;
+  transition: border-color 0.25s, transform 0.25s;
+}
+.pi-card::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  bottom: -1px;
+  width: 3px;
+  background: var(--cite);
+  transform: scaleY(0);
+  transition: transform 0.25s;
+}
+.pi-card:hover,
+.pi-card.is-active,
+.pi-card.flash {
+  border-color: var(--cite);
+}
+.pi-card:hover::before,
+.pi-card.is-active::before,
+.pi-card.flash::before {
+  transform: scaleY(1);
+}
+.pi-card.is-active,
+.pi-card.flash {
+  transform: translateX(-4px);
+}
+@media (max-width: 760px) {
+  .pi-card.is-active,
+  .pi-card.flash {
+    transform: none;
+  }
+}
+
+/* Brief highlight when a citation chip scrolls its evidence card into view */
+.flash {
+  outline: 2px solid var(--cite);
+  outline-offset: 2px;
+}
+
+/* Skeleton shimmer: a light band sliding across (transform only) */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  animation: pi-sweep 1.6s ease-in-out infinite;
+}
+:root[data-theme="dark"] .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .skeleton::after {
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+  }
+}
+
+/* Thin scanning bar for inline "working" states (replaces spinners) */
+.pi-busy {
+  position: relative;
+  display: inline-block;
+  width: 28px;
+  height: 3px;
+  overflow: hidden;
+  background: var(--line);
+}
+.pi-busy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--cite);
+  animation: pi-sweep 0.9s ease-in-out infinite;
+}
+
+/* Slow drifting light for the search page backdrop */
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6vw, 5vh, 0) scale(1.1); }
+}
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  animation: drift 30s ease-in-out infinite;
+}
+
+/* Reduced motion: no drifting, scanning, staggering or word-by-word reveals */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -328,10 +455,15 @@ body::after {
   }
   .blob,
   .pi-scanline,
-  .pi-caret {
+  .pi-caret,
+  .pi-busy::after,
+  .skeleton::after {
     animation: none !important;
   }
   .pi-draw {
     stroke-dashoffset: 0;
+  }
+  button:not(:disabled):active {
+    scale: none;
   }
 }

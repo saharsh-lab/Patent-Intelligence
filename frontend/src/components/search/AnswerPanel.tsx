@@ -59,8 +59,8 @@ export function AnswerPanel({
             ) : known.has(t.id) ? (
               <button
                 type="button"
-                className={`pi-cite mx-[2px] inline-grid h-[1.5em] min-w-[1.5em] place-items-center rounded-full border-[1.5px] border-clay px-[3px] align-[0.2em] font-sans text-[0.74rem] leading-none font-semibold transition-colors duration-200 ${
-                  activeId === t.id ? "bg-clay text-white" : "text-accent hover:bg-clay hover:text-white"
+                className={`pi-cite mx-[2px] inline-grid h-[1.35em] min-w-[1.35em] place-items-center rounded-full border-[1.5px] border-cite px-[2px] align-[0.25em] font-sans text-[0.7rem] leading-none font-semibold transition-colors duration-200 ${
+                  activeId === t.id ? "bg-cite text-white" : "text-cite hover:bg-cite hover:text-white"
                 }`}
                 onPointerEnter={(e) => onHover(t.id, e.currentTarget)}
                 onPointerLeave={onLeave}
@@ -82,33 +82,33 @@ export function AnswerPanel({
 
   const lastBlock = blocks.length - 1;
   return (
-    <section className="rounded-3xl border border-line bg-surface/90 p-6 shadow-card md:p-8" aria-labelledby="answer-heading">
+    <section className="border border-line bg-surface px-5 py-5 md:px-[26px] md:py-6" aria-labelledby="answer-heading">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="answer-heading" className="text-[13px] font-semibold tracking-wide text-muted uppercase" style={{ fontFamily: "var(--font-sans)" }}>
+        <h2 id="answer-heading" className="font-sans text-[0.95rem] font-bold tracking-normal">
           Answer
         </h2>
         {result.status === "answered" && <CopyButton text={plainAnswer(result)} disabled={!done} />}
       </div>
 
       {result.legal && (
-        <p className="mt-4 rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
+        <p className="mt-4 border-l-[3px] border-warn bg-warn-soft px-3 py-2 text-sm text-warn">
           This asks for a legal opinion, which this tool cannot give. Below is technical information from the sources only.
         </p>
       )}
 
       {result.status === "insufficient" ? (
         <div className="mt-4">
-          <p className="font-serif text-xl leading-relaxed">The sources don&apos;t answer this, so nothing is guessed.</p>
+          <p className="font-serif text-[1.2rem] leading-[1.65]">The sources don&apos;t answer this, so nothing is guessed.</p>
           {result.note && <p className="mt-2 text-sm text-muted">{result.note}</p>}
           <p className="mt-2 text-sm text-muted">Try naming the technology more specifically, or import related patents into the library first.</p>
         </div>
       ) : (
-        <div className="mt-4 space-y-4 font-serif text-[1.13rem] leading-[1.72] text-text md:text-[1.2rem]" aria-live="polite" aria-busy={!done}>
+        <div className="mt-3 space-y-4 font-serif text-[1.13rem] leading-[1.65] text-text md:text-[1.2rem]" aria-live="polite" aria-busy={!done}>
           {blocks.map((block, i) =>
             block.kind === "paragraph" ? (
               <p key={i}>{renderTokens(block.tokens, i === lastBlock)}</p>
             ) : (
-              <ul key={i} className="list-disc space-y-1.5 pl-6 marker:text-clay">
+              <ul key={i} className="no-stagger list-disc space-y-1.5 pl-6 marker:text-cite">
                 {block.items.map((item, j) =>
                   item.some((t) => t.index < shown) ? <li key={j}>{renderTokens(item, i === lastBlock && j === block.items.length - 1)}</li> : null,
                 )}
@@ -163,7 +163,7 @@ function CopyButton({ text, disabled }: { text: string; disabled: boolean }) {
       onClick={copy}
       disabled={disabled}
       whileTap={{ scale: 0.92 }}
-      className="relative flex items-center gap-1.5 overflow-hidden rounded-full border border-line-strong bg-surface px-3 py-1 text-xs font-medium text-text transition-colors hover:border-clay/60 disabled:opacity-40"
+      className="relative flex items-center gap-1.5 overflow-hidden border border-line bg-surface px-3 py-1 text-xs font-medium text-text transition-colors hover:border-text disabled:opacity-40"
       aria-live="polite"
     >
       <span className="relative h-3.5 w-3.5">

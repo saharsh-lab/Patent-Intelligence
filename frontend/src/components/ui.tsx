@@ -1,5 +1,6 @@
-// Small shared building blocks. Kept deliberately plain: thin borders, small radii,
-// no shadows or gradients.
+// Small shared building blocks in the reference "drafting table" style: white
+// sheets with thin borders and square corners. Each one carries an entrance
+// animation (see globals.css), so every page that uses them comes alive.
 import type { ReactNode } from "react";
 
 export function PageHeader({
@@ -14,10 +15,21 @@ export function PageHeader({
   return (
     <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 max-w-3xl text-sm text-muted">{description}</p>}
+        {/* The title slides up from behind a mask, the description fades in after it */}
+        <h1 className="pi-line text-2xl tracking-tight md:text-[1.7rem]">
+          <span>{title}</span>
+        </h1>
+        {description && (
+          <p className="pi-in mt-1 max-w-3xl text-sm text-muted" style={{ animationDelay: "0.15s" }}>
+            {description}
+          </p>
+        )}
       </div>
-      {actions}
+      {actions && (
+        <div className="pi-in" style={{ animationDelay: "0.2s" }}>
+          {actions}
+        </div>
+      )}
     </header>
   );
 }
@@ -34,10 +46,10 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-xl border border-line bg-surface shadow-card ${className}`}>
+    <section className={`pi-in border border-line bg-surface ${className}`}>
       {title && (
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-          <h2 className="text-sm font-semibold">{title}</h2>
+          <h2 className="font-sans text-[0.95rem] font-bold tracking-normal">{title}</h2>
           {aside}
         </div>
       )}
@@ -85,7 +97,7 @@ export function ErrorNotice({ error, title = "Something went wrong" }: { error: 
   const message = error instanceof Error ? error.message : String(error);
   const requestId = (error as { requestId?: string })?.requestId;
   return (
-    <div role="alert" className="rounded-lg border border-bad/30 bg-bad-soft px-4 py-3 text-sm">
+    <div role="alert" className="pi-in border-l-[3px] border-bad bg-surface px-4 py-3 text-sm">
       <p className="font-medium text-bad">{title}</p>
       <p className="mt-0.5">{message}</p>
       {requestId && <p className="mt-1 font-mono text-xs text-muted">Request ID: {requestId}</p>}
@@ -95,7 +107,7 @@ export function ErrorNotice({ error, title = "Something went wrong" }: { error: 
 
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center">
+    <div className="pi-in border border-dashed border-line-strong bg-surface/60 px-6 py-10 text-center">
       <p className="text-sm font-medium">{title}</p>
       {children && <div className="mt-1 text-sm text-muted">{children}</div>}
     </div>
@@ -105,7 +117,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 export function Spinner({ label }: { label?: string }) {
   return (
     <span className="inline-flex items-center gap-2 text-sm text-muted" role="status">
-      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-line-strong border-t-accent" />
+      <span className="pi-busy" aria-hidden />
       {label}
     </span>
   );
@@ -117,7 +129,7 @@ export function Button({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "danger" }) {
   const styles = {
-    primary: "bg-brand text-white shadow-card hover:brightness-110",
+    primary: "bg-brand hover:opacity-90",
     secondary: "border border-line-strong bg-surface hover:bg-surface-2",
     danger: "border border-line-strong bg-surface text-bad hover:bg-bad-soft",
   }[variant];

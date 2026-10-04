@@ -5,7 +5,7 @@ import { useState, type PointerEvent } from "react";
 
 import type { Source } from "@/lib/search";
 
-const PREVIEW = 220;
+const PREVIEW = 200;
 
 /** Cut at a word boundary near `limit` characters. */
 function preview(text: string, limit = PREVIEW) {
@@ -15,8 +15,11 @@ function preview(text: string, limit = PREVIEW) {
   return { head: text.slice(0, at), rest: text.slice(at) };
 }
 
+// Look from the reference: white sheet, thin border, "Fig. n" stamp, serif title,
+// 3px score bar. Active (hovered or cited): blue border, blue left rule, shifted left.
 export function SourceCard({
   source,
+  idPrefix = "",
   index,
   active,
   onActivate,
@@ -24,6 +27,7 @@ export function SourceCard({
   registerRef,
 }: {
   source: Source;
+  idPrefix?: string;
   index: number;
   active: boolean;
   onActivate: () => void;
@@ -40,12 +44,8 @@ export function SourceCard({
   function tilt(e: PointerEvent<HTMLElement>) {
     if (reduce || e.pointerType === "touch") return;
     const r = e.currentTarget.getBoundingClientRect();
-    ry.set(((e.clientX - r.left) / r.width - 0.5) * 6);
-    rx.set(-((e.clientY - r.top) / r.height - 0.5) * 6);
-  }
-  function untilt() {
-    rx.set(0);
-    ry.set(0);
+    ry.set(((e.clientX - r.left) / r.width - 0.5) * 5);
+    rx.set(-((e.clientY - r.top) / r.height - 0.5) * 5);
   }
 
   const meta = [source.assignee, source.year].filter(Boolean).join(", ");
@@ -54,43 +54,38 @@ export function SourceCard({
   return (
     <motion.article
       ref={registerRef}
-      id={`source-${source.id}`}
+      id={`${idPrefix}source-${source.id}`}
       layout="position"
-      initial={{ opacity: 0, y: 18, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1, x: active ? -4 : 0 }}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0, x: active ? -4 : 0 }}
       transition={{ type: "spring", stiffness: 240, damping: 24, delay: active ? 0 : 0.09 * index }}
       style={{ rotateX: rx, rotateY: ry, transformPerspective: 900 }}
       onPointerMove={tilt}
       onPointerEnter={onActivate}
       onPointerLeave={() => {
-        untilt();
+        rx.set(0);
+        ry.set(0);
         onDeactivate();
       }}
-      className="group relative scroll-mt-28 rounded-2xl border border-line bg-surface/90 p-4 shadow-card md:p-5"
+      className={`relative scroll-mt-28 border bg-surface px-[18px] py-4 transition-colors duration-200 ${active ? "border-cite" : "border-line"}`}
     >
-      {/* Active state: clay glow + left rule (opacity only) */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -inset-px rounded-[inherit] border border-clay/70 transition-opacity duration-300"
-        style={{ opacity: active ? 1 : 0, boxShadow: "0 0 0 4px rgb(217 119 87 / 0.12), 0 14px 36px -10px rgb(217 119 87 / 0.45)" }}
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute top-3 bottom-3 -left-px w-[3px] origin-center rounded-full bg-clay transition-transform duration-300"
+        className="pointer-events-none absolute -top-px -bottom-px -left-px w-[3px] origin-center bg-cite transition-transform duration-200"
         style={{ transform: `scaleY(${active ? 1 : 0})` }}
       />
 
-      <div className="flex items-center justify-between gap-3 text-xs text-muted">
-        <span className="font-serif text-[13px] text-accent italic">Fig. {source.id}</span>
-        <span className="flex items-center gap-2 truncate">
-          {source.location && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-text/80">{source.location}</span>}
-          {source.patent_number && source.patent_number !== source.title && <span className="truncate font-mono text-[11px]">{source.patent_number}</span>}
+      <div className="flex items-baseline justify-between gap-3 text-[0.8rem] text-muted">
+        <span className="font-serif text-[0.95rem] text-stamp italic">Fig. {source.id}</span>
+        <span className="flex min-w-0 items-baseline gap-2">
+          {source.location && <span className="shrink-0 border border-line px-1.5 text-[11px]">{source.location}</span>}
+          {source.patent_number && source.patent_number !== source.title && <span className="truncate">{source.patent_number}</span>}
         </span>
       </div>
 
-      <h3 className="mt-2 font-serif text-[17px] leading-snug font-medium text-text">
+      <h3 className="mt-1.5 font-serif text-[1.05rem] leading-[1.3] font-medium text-text">
         {source.url ? (
-          <a href={source.url} target="_blank" rel="noopener noreferrer" className="decoration-clay/50 underline-offset-4 hover:underline">
+          <a href={source.url} target="_blank" rel="noopener noreferrer" className="decoration-cite underline-offset-4 hover:underline">
             {source.title}
           </a>
         ) : (
@@ -98,38 +93,30 @@ export function SourceCard({
         )}
       </h3>
       {(meta || source.synthetic) && (
-        <p className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-muted">
+        <p className="mt-0.5 mb-2 flex flex-wrap items-center gap-2 text-[0.82rem] text-muted">
           {meta}
-          {source.synthetic && (
-            <span className="rounded-full bg-sage/25 px-2 py-0.5 text-[11px] font-medium text-ok">Synthetic demo record</span>
-          )}
+          {source.synthetic && <span className="border border-sage/60 px-1.5 text-[11px] text-ok">Synthetic demo record</span>}
         </p>
       )}
 
-      <div className="mt-3 text-sm leading-relaxed whitespace-pre-line text-text/85">
+      <div className="text-[0.88rem] leading-normal whitespace-pre-line text-text/85">
         {head}
         {rest && !expanded && "…"}
         <AnimatePresence initial={false}>
           {expanded && rest && (
-            <motion.span
-              key="rest"
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.span key="rest" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               {rest}
             </motion.span>
           )}
         </AnimatePresence>
       </div>
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-3 flex items-center gap-3">
         {score != null ? (
-          <div className="flex flex-1 items-center gap-2.5" title="Similarity between your question and this passage">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+          <div className="flex flex-1 items-center gap-2.5" title="Relevance: similarity between your question and this passage">
+            <div className="h-[3px] flex-1 bg-bg">
               {/* Fills on reveal: scaleX from the left (transform only) */}
-              <div className="pi-grow h-full origin-left rounded-full" style={{ width: `${Math.round(score * 100)}%`, background: "linear-gradient(90deg, var(--sage), var(--clay))", animationDelay: `${0.3 + 0.09 * index}s` }} />
+              <div className="pi-grow h-full bg-text" style={{ width: `${Math.round(score * 100)}%`, animationDelay: `${0.3 + 0.09 * index}s` }} />
             </div>
             <span className="font-mono text-[11px] text-muted tabular-nums">{Math.round(score * 100)}%</span>
           </div>
@@ -137,18 +124,17 @@ export function SourceCard({
           <span className="flex-1" />
         )}
         {rest && (
-          <motion.button
+          <button
             type="button"
-            whileTap={{ scale: 0.94 }}
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-accent hover:bg-accent-soft"
+            className="flex items-center gap-1 text-xs font-medium text-accent hover:underline"
           >
             {expanded ? "Less" : "Full passage"}
             <motion.svg animate={{ rotate: expanded ? 180 : 0 }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
               <path d="m6 9 6 6 6-6" />
             </motion.svg>
-          </motion.button>
+          </button>
         )}
       </div>
     </motion.article>

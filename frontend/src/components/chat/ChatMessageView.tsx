@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { LogoMark } from "@/components/search/Logo";
+
 import { RunSummary } from "@/components/ask/AnswerView";
 import { EvidenceList } from "@/components/ask/EvidenceList";
 import { VerificationPanel } from "@/components/ask/VerificationPanel";
@@ -15,8 +17,8 @@ import type { Verification } from "@/lib/verification";
 
 export function UserBubble({ text, name }: { text: string; name?: string }) {
   return (
-    <div className="flex justify-end gap-3">
-      <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-brand px-4 py-2.5 text-sm whitespace-pre-wrap text-white shadow-card">
+    <div className="pi-in flex justify-end gap-3">
+      <div className="max-w-[85%] bg-brand px-4 py-2.5 text-sm whitespace-pre-wrap">
         {text}
       </div>
       <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
@@ -28,8 +30,8 @@ export function UserBubble({ text, name }: { text: string; name?: string }) {
 
 export function AssistantAvatar() {
   return (
-    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white">
-      PI
+    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border border-line bg-surface text-text">
+      <LogoMark size={24} />
     </span>
   );
 }
@@ -58,7 +60,7 @@ export function ChatMessageView({ message, index, userName }: { message: ChatMes
       type="button"
       onClick={() => toggle(what)}
       aria-expanded={open === what}
-      className={`rounded-md px-2 py-0.5 ${open === what ? "bg-accent-soft font-medium text-accent" : "hover:bg-surface-2 hover:text-text"}`}
+      className={`border-b-2 px-2 py-0.5 transition-colors ${open === what ? "border-cite font-medium text-accent" : "border-transparent hover:border-line hover:text-text"}`}
     >
       {label}
     </button>
@@ -67,7 +69,7 @@ export function ChatMessageView({ message, index, userName }: { message: ChatMes
   return (
     <div className="space-y-4">
       <UserBubble text={message.user_message} name={userName} />
-      <div className="flex gap-3">
+      <div className="pi-in flex gap-3" style={{ animationDelay: "0.1s" }}>
         <AssistantAvatar />
         <div className="min-w-0 flex-1 space-y-3">
           {message.interpreted_as && message.interpreted_as !== message.user_message && (
@@ -84,7 +86,7 @@ export function ChatMessageView({ message, index, userName }: { message: ChatMes
           )}
           <ChatAnswer run={run} onCite={cite} showChecks={open === "checks"} />
 
-          {run.status === "succeeded" && (
+          {run.status === "succeeded" && run.intent !== "small_talk" && (
             <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted">
               {trust ? (
                 <span className={`mr-1 font-medium ${TONE[trust.tone]}`}>
@@ -108,9 +110,13 @@ export function ChatMessageView({ message, index, userName }: { message: ChatMes
               reason.
             </p>
           )}
-          {open === "sources" && <EvidenceList evidence={run.evidence} idPrefix={prefix} />}
+          {open === "sources" && (
+            <div className="pi-in">
+              <EvidenceList evidence={run.evidence} idPrefix={prefix} />
+            </div>
+          )}
           {open === "details" && (
-            <div className="space-y-3">
+            <div className="stagger space-y-3">
               <VerificationPanel run={run} onCite={cite} />
               <WorkflowPanel run={run} />
               <RunSummary run={run} />

@@ -45,17 +45,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     <div className="w-full max-w-sm">
       <div className="mb-6 flex flex-col items-center text-center">
         <LogoMark size={48} draw className="text-text" />
-        <h1 className="mt-4 text-xl font-semibold tracking-tight">
-          {isRegister ? "Create your account" : "Welcome back"}
+        <h1 className="pi-line mt-4 text-[1.9rem] leading-tight">
+          <span style={{ animationDelay: "0.2s" }}>{isRegister ? "Create your account" : "Welcome back"}</span>
         </h1>
-        <p className="mt-1 text-sm text-muted">
+        <p className="pi-in mt-1 text-sm text-muted" style={{ animationDelay: "0.35s" }}>
           {isRegister
             ? "Your documents and conversations stay private to your account."
             : "Log in to continue to Patent Intelligence."}
         </p>
       </div>
 
-      <form onSubmit={submit} className="space-y-4 rounded-2xl border border-line bg-surface p-6 shadow-card">
+      <form onSubmit={submit} className="pi-in space-y-4 border-[1.5px] border-text bg-surface p-6 shadow-hard" style={{ animationDelay: "0.25s" }}>
         {isRegister && (
           <label className="block text-sm font-medium">
             Name
@@ -83,7 +83,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-brand px-3 py-2.5 text-sm font-medium text-white shadow-card hover:brightness-110 disabled:opacity-60"
+          className="w-full bg-brand px-3 py-2.5 text-sm font-medium hover:opacity-90 disabled:opacity-60"
         >
           {pending ? "Please wait…" : isRegister ? "Create account" : "Log in"}
         </button>

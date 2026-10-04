@@ -6,7 +6,9 @@ import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 
 import useSWR, { useSWRConfig } from "swr";
 
 import { AssistantAvatar, ChatMessageView, UserBubble } from "@/components/chat/ChatMessageView";
+import { LogoMark } from "@/components/search/Logo";
 import { icons } from "@/components/icons";
+import { ScanStatus } from "@/components/search/LoadingState";
 import { ErrorNotice, Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
 import { greeting, useAuth } from "@/lib/auth";
@@ -22,9 +24,11 @@ const COMPARE_SUGGESTIONS = [
   "What do they have in common?",
   "How do their claims differ?",
 ];
-const ACTION =
-  "flex flex-col items-center gap-1.5 rounded-xl border border-line bg-surface p-4 text-sm shadow-card transition hover:-translate-y-0.5 hover:border-accent/40";
-const ACTION_ICON = "mb-1 flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent";
+// Cards in the reference style: white sheet, thin border, blue left rule on hover
+const ACTION = "press pi-card flex flex-col items-center gap-1.5 border border-line bg-surface p-4 text-sm";
+const ACTION_ICON = "mb-1 flex h-9 w-9 items-center justify-center border border-line text-text";
+const PENDING_STAGES = ["Searching your library", "Ranking passages", "Writing the answer", "Checking every sentence"];
+const LIVE_STAGES = ["Searching the patent databases", "Importing the best matches", "Writing the answer", "Checking every sentence"];
 const ACCEPT = ".pdf,.docx,.txt";
 
 export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
@@ -39,7 +43,6 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   const [uploading, setUploading] = useState<string[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [dragging, setDragging] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
   const [liveSearch, setLiveSearch] = useState(false); // also search the patent databases
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
@@ -52,15 +55,6 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length, pending]);
 
-  useEffect(() => {
-    if (!pending) return;
-    const started = Date.now();
-    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 500);
-    return () => {
-      clearInterval(timer);
-      setElapsed(0);
-    };
-  }, [pending]);
 
   /** The conversation to work in, created on first use (a new chat has none yet). */
   async function ensureConversation(): Promise<string> {
@@ -195,21 +189,24 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
           {conversation.error && <ErrorNotice error={conversation.error} title="Could not load this conversation" />}
 
           {empty && !conversation.isLoading && (
-            <div className="-mx-4 flex flex-col items-center rounded-3xl bg-glow px-4 pt-10 pb-4 text-center md:pt-16">
-              <h2 className="text-3xl font-semibold tracking-tight">
-                {greeting()}
-                {user ? (
-                  <>
-                    , <span className="text-brand">{user.name.split(" ")[0]}</span>
-                  </>
-                ) : null}
+            <div className="-mx-4 flex flex-col items-center px-4 pt-10 pb-4 text-center md:pt-16">
+              <LogoMark size={44} draw className="text-text" />
+              <h2 className="pi-line mt-3 text-[clamp(1.9rem,4vw,2.6rem)] leading-tight">
+                <span>
+                  {greeting()}
+                  {user ? (
+                    <>
+                      , <span className="text-stamp italic">{user.name.split(" ")[0]}</span>
+                    </>
+                  ) : null}
+                </span>
               </h2>
-              <p className="mt-2 max-w-md text-sm text-muted">
+              <p className="pi-in mt-2 max-w-md text-sm text-muted" style={{ animationDelay: "0.2s" }}>
                 Ask about patents and get answers that cite their sources, with every sentence checked.
               </p>
 
               {documents.length === 0 ? (
-                <div className="mt-8 grid w-full max-w-2xl gap-3 sm:grid-cols-3">
+                <div className="stagger mt-8 grid w-full max-w-2xl gap-3 sm:grid-cols-3">
                   <button type="button" onClick={() => fileInput.current?.click()} className={ACTION}>
                     <span className={ACTION_ICON}><icons.paperclip /></span>
                     <span className="font-medium">Talk to a patent</span>
@@ -227,17 +224,17 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
                   </Link>
                 </div>
               ) : (
-                <div className="mt-6 flex max-w-xl flex-wrap justify-center gap-2">
+                <div className="stagger mt-6 flex max-w-xl flex-wrap justify-center gap-2">
                   {(documents.length > 1 ? COMPARE_SUGGESTIONS : DOCUMENT_SUGGESTIONS).map((s) => (
                     <button key={s} type="button" onClick={() => send(s)}
-                      className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm hover:border-accent/40 hover:text-accent">
+                      className="border border-line bg-surface px-3.5 py-2 text-sm hover:border-text">
                       {s}
                     </button>
                   ))}
                 </div>
               )}
               {documents.length === 0 && (
-                <p className="mt-6 text-xs text-muted">
+                <p className="pi-in mt-6 text-xs text-muted" style={{ animationDelay: "0.5s" }}>
                   Or just type a question: it searches your <Link href="/documents" className="text-accent hover:underline">library</Link>,
                   and the patent databases when the library has no answer. Try &ldquo;latest patents on battery immersion cooling&rdquo;.
                 </p>
@@ -254,9 +251,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
               <UserBubble text={pending} name={user?.name} />
               <div className="flex gap-3">
                 <AssistantAvatar />
-                <div className="rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 text-sm shadow-card">
-                  <Spinner label={`${liveSearch ? "Searching the patent databases, importing, answering" : "Searching, answering"} and checking every sentence… ${elapsed} s`} />
-                </div>
+                <ScanStatus height={84} stages={liveSearch ? LIVE_STAGES : PENDING_STAGES} className="pi-in min-w-0 flex-1 text-sm" />
               </div>
             </div>
           )}
@@ -268,7 +263,8 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
       {/* Composer */}
       <div className="sticky bottom-0 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur md:px-8">
         <form
-          className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-line-strong bg-surface p-2 shadow-card focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/15"
+          // Reference search-bar look: ink border and hard shadow, both turn blue on focus
+          className="mx-auto flex max-w-3xl items-end gap-2 border-[1.5px] border-text bg-surface p-2 shadow-hard transition-[border-color,box-shadow] duration-200 focus-within:border-cite focus-within:[box-shadow:var(--shadow-hard-focus)]"
           onSubmit={(e) => {
             e.preventDefault();
             send();
@@ -305,7 +301,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
             style={{ height: `${Math.min(160, 40 + Math.max(0, draft.split("\n").length - 1) * 20)}px` }}
           />
           <button type="submit" disabled={!draft.trim() || !!pending} aria-label="Send"
-            className="rounded-xl bg-brand p-2 text-white shadow-card hover:brightness-110 disabled:opacity-40">
+            className="bg-brand p-2 hover:opacity-90 disabled:opacity-40">
             <icons.send />
           </button>
         </form>

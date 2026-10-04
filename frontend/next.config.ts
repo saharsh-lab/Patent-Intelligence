@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
+  // The app opens on search. Redirecting here (before any page renders) avoids a
+  // dev-only React timing error that a redirecting page component can trigger.
+  async redirects() {
+    return [{ source: "/", destination: "/search", permanent: false }];
+  },
   async rewrites() {
     return [{ source: "/api/:path*", destination: `${BACKEND_URL}/:path*` }];
   },

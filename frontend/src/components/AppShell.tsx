@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -55,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [user?.preferences.theme]);
 
   if (isAuthPage) {
-    return <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-10">{children}</main>;
+    return <main className="pi-grid flex min-h-screen items-center justify-center px-4 py-10">{children}</main>;
   }
   if (isLoading || mustLogin) {
     return (
@@ -70,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
       {/* Mobile top bar */}
-      <div className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-surface px-3 md:hidden">
+      <div className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-surface/95 px-3 backdrop-blur md:hidden">
         <button type="button" onClick={() => setDrawer(true)} aria-label="Open menu" className="rounded-lg p-1.5 hover:bg-surface-2">
           <icons.menu />
         </button>
@@ -80,9 +81,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
       </div>
 
-      {drawer && <div className="fixed inset-0 z-40 bg-black/30 md:hidden" onClick={() => setDrawer(false)} aria-hidden />}
+      <AnimatePresence>
+        {drawer && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-[#16233a]/30 md:hidden"
+            onClick={() => setDrawer(false)}
+            aria-hidden
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-line bg-sidebar transition-transform md:static md:z-auto md:w-64 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-line bg-sidebar transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] md:static md:z-auto md:w-64 md:translate-x-0 ${
           drawer ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -95,7 +107,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="px-3">
           <Link
             href="/chat"
-            className="flex items-center justify-center gap-2 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white shadow-card hover:brightness-110"
+            className="press flex items-center justify-center gap-2 bg-brand px-3 py-2 text-sm font-medium hover:opacity-90"
           >
             <icons.plus width={16} height={16} /> New chat
           </Link>
@@ -110,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {error ? <p className="px-4 pb-2 text-xs text-bad">Account service unreachable</p> : null}
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto pt-12 md:pt-0">
+      <div className="pi-grid flex min-w-0 flex-1 flex-col overflow-y-auto pt-12 md:pt-0">
         {isChat ? (
           children
         ) : (
@@ -129,8 +141,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" className="rounded-lg">
-      <Wordmark compact={compact} />
+    <Link href="/search" className="rounded-lg">
+      <Wordmark compact={compact} draw />
     </Link>
   );
 }
@@ -139,21 +151,22 @@ function ToolsNav({ pathname }: { pathname: string }) {
   const watches = useSWR<WatchOut[]>("/watches", fetcher, { shouldRetryOnError: false });
   const unseen = (watches.data ?? []).reduce((n, w) => n + w.unseen, 0);
   return (
-    <ul className="space-y-0.5 border-t border-line pt-3">
+    <ul className="stagger space-y-0.5 border-t border-line pt-3">
       {TOOLS.map(({ href, label, icon: Icon, also }) => {
         const active = pathname.startsWith(href) || also.some((p) => pathname.startsWith(p));
         return (
           <li key={href}>
             <Link
               href={href}
-              className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm ${
-                active ? "bg-accent-soft font-medium text-accent" : "text-text hover:bg-surface-2"
+              className={`group relative flex items-center gap-2.5 px-2 py-1.5 text-sm ${
+                active ? "font-medium text-accent" : "text-text hover:bg-surface-2"
               }`}
             >
-              <Icon width={16} height={16} />
-              <span className="flex-1">{label}</span>
+              {active && <ActiveMarker />}
+              <Icon width={16} height={16} className="relative transition-transform duration-200 group-hover:translate-x-0.5" />
+              <span className="relative flex-1">{label}</span>
               {href === "/watches" && unseen > 0 && (
-                <span className="rounded-full bg-brand px-1.5 text-[11px] font-semibold text-white">{unseen}</span>
+                <span className="pi-cite relative rounded-full bg-stamp px-1.5 text-[11px] font-semibold text-white">{unseen}</span>
               )}
             </Link>
           </li>
@@ -195,7 +208,7 @@ function Conversations({ pathname }: { pathname: string }) {
       {groupByRecency(data).map(([label, items]) => (
         <div key={label}>
           <p className="px-2 pb-1 text-[11px] font-semibold tracking-wider text-muted uppercase">{label}</p>
-          <ul className="space-y-0.5">
+          <ul className="stagger space-y-0.5">
             {items.map((c) => {
               const active = pathname === `/chat/${c.id}`;
               return (
@@ -216,13 +229,14 @@ function Conversations({ pathname }: { pathname: string }) {
                   ) : (
                     <Link
                       href={`/chat/${c.id}`}
-                      className={`flex items-center gap-2 rounded-lg py-1.5 pr-14 pl-2 text-sm ${
-                        active ? "bg-accent-soft font-medium text-accent" : "hover:bg-surface-2"
+                      className={`relative flex items-center gap-2 py-1.5 pr-14 pl-2 text-sm ${
+                        active ? "font-medium text-accent" : "hover:bg-surface-2"
                       }`}
                       title={c.title}
                     >
-                      <icons.chat width={15} height={15} className="shrink-0 opacity-60" />
-                      <span className="truncate">{c.title}</span>
+                      {active && <ActiveMarker />}
+                      <icons.chat width={15} height={15} className="relative shrink-0 opacity-60" />
+                      <span className="relative truncate">{c.title}</span>
                     </Link>
                   )}
                   {editing !== c.id && (
@@ -287,8 +301,17 @@ function UserMenu({ user, authRequired, onLoggedOut }: { user: User | null; auth
   const name = user?.name ?? (authRequired ? "" : "Local user");
   return (
     <div ref={ref} className="relative border-t border-line p-2">
+      <AnimatePresence>
       {open && (
-        <div className="absolute right-2 bottom-full left-2 mb-2 rounded-xl border border-line bg-surface p-2 shadow-lg" role="menu">
+        <motion.div
+          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 6, scale: 0.98, transition: { duration: 0.12 } }}
+          transition={{ type: "spring", stiffness: 420, damping: 32 }}
+          style={{ transformOrigin: "bottom center" }}
+          className="absolute right-2 bottom-full left-2 mb-2 border border-line bg-surface p-2 shadow-hard"
+          role="menu"
+        >
           <div className="px-2 pt-1 pb-2">
             <p className="text-sm font-medium">{name}</p>
             {user && <p className="truncate text-xs text-muted">{user.email}</p>}
@@ -325,8 +348,9 @@ function UserMenu({ user, authRequired, onLoggedOut }: { user: User | null; auth
               <icons.logout width={15} height={15} /> Log out
             </button>
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -355,5 +379,17 @@ function BackendStatus() {
       <span className={`h-1.5 w-1.5 rounded-full ${error || (data && !ok) ? "bg-bad" : ok ? "bg-ok" : "bg-line-strong"}`} />
       {label}
     </span>
+  );
+}
+
+/** The highlight behind the current nav item; it slides between items (shared layout). */
+function ActiveMarker() {
+  return (
+    <motion.span
+      layoutId="nav-active"
+      transition={{ type: "spring", stiffness: 420, damping: 36 }}
+      className="absolute inset-0 border-l-[3px] border-cite bg-accent-soft"
+      aria-hidden
+    />
   );
 }

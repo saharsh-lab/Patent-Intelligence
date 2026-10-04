@@ -268,3 +268,17 @@ def test_attach_library_document_and_imported_patent(app_factory, db_session):
     assert [d["kind"] for d in api.get(f"/conversations/{cid}").json()["documents"]] == ["document"]
     missing = api.post(f"/conversations/{cid}/sources", json={"document_id": str(patent.id)})
     assert missing.status_code == 404
+
+
+def test_greeting_in_a_chat_with_a_patent_gets_a_reply_not_a_summary(app_factory):
+    # Observed 2026-10-05: "hi" and "hello" were answered with a cited patent summary
+    api = TestClient(app_factory(accounts=False))
+    cid = api.post("/conversations", json={}).json()["id"]
+    api.post(
+        f"/conversations/{cid}/documents",
+        files={"file": ("battery.txt", fixture_bytes("battery_patent.txt"))},
+    )
+    reply = api.post(f"/conversations/{cid}/messages", json={"message": "hi"}).json()
+    run = reply["response"]
+    assert run["intent"] == "small_talk" and run["evidence"] == []
+    assert run["answer"].startswith("Hello! Ask me anything about the attached document")

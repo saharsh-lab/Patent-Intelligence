@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SUGGESTIONS, demoResult, normalizeResult, plainAnswer, toNumberedCitations, tokenizeAnswer } from "./search";
+import { SUGGESTIONS, SearchError, demoResult, describeError, followUpSuggestions, runTurn, normalizeResult, plainAnswer, toNumberedCitations, tokenizeAnswer } from "./search";
 
 const evidence = (over: Record<string, unknown>) => ({
   label: "E1",
@@ -119,5 +119,55 @@ describe("helpers", () => {
 
   it("copies plain text with a source list", () => {
     expect(plainAnswer(demoResult("immersion"))).toMatch(/Sources:\n\[1\] Battery management system/);
+  });
+});
+
+describe("describeError", () => {
+  it("explains a wrong BACKEND_URL separately from a dead backend", () => {
+    expect(describeError(new SearchError("unreachable", "", 404)).title).toMatch(/BACKEND_URL/);
+    expect(describeError(new SearchError("unreachable", "", 0)).title).toMatch(/not reachable/);
+    expect(describeError(new SearchError("auth", "", 401)).fix).toMatch(/Sign in/);
+  });
+});
+
+describe("runTurn", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const run = { status: "succeeded", answer: "Yes [E1].", evidence: [evidence({ patent_id: null })], legal_question: false };
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+  it("opens a conversation for the first question and reuses it for follow-ups", async () => {
+    const calls: string[] = [];
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? "GET"} ${url} ${init?.body ?? ""}`);
+      if (url === "/api/conversations") return json({ id: "c9" }, 201);
+      return json({ response: run, interpreted_as: url.includes("c9") && calls.length > 2 ? "Which cooling patent is newest?" : null });
+    });
+    const first = await runTurn("How does immersion cooling work?", null, []);
+    expect(first.conversationId).toBe("c9");
+    expect(first.result.answer).toBe("Yes [1].");
+    const second = await runTurn("Which is newest?", "c9", ["How does immersion cooling work?"]);
+    expect(second.interpretedAs).toBe("Which cooling patent is newest?");
+    expect(calls.filter((c) => c.startsWith("POST /api/conversations ")).length).toBe(1);
+    expect(calls.at(-1)).toContain('"message":"Which is newest?"');
+  });
+
+  it("falls back to /ask with earlier questions when conversations are missing", async () => {
+    let asked = "";
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      if (url === "/api/conversations") return json({ detail: "Not Found" }, 404);
+      asked = JSON.parse(String(init?.body)).question;
+      return json(run);
+    });
+    const turn = await runTurn("Which is newest?", null, ["How does immersion cooling work?"]);
+    expect(turn.conversationId).toBeNull();
+    expect(turn.result.query).toBe("Which is newest?");
+    expect(asked).toContain("How does immersion cooling work?");
+    expect(asked).toContain("Follow-up: Which is newest?");
+  });
+
+  it("suggests follow-ups that fit the answer", () => {
+    expect(followUpSuggestions(demoResult("immersion")).length).toBe(3);
+    expect(followUpSuggestions(demoResult("wireless coins"))).toHaveLength(2);
   });
 });

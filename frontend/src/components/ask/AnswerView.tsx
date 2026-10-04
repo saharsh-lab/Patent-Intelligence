@@ -19,10 +19,12 @@ function CitationChip({ label, onClick }: { label: string; onClick: (label: stri
     <button
       type="button"
       onClick={() => onClick(label)}
-      className="mx-0.5 inline-flex -translate-y-px items-center rounded-sm bg-accent-soft px-1 font-mono text-[11px] font-medium text-accent hover:underline"
+      // Reference style: a blue circled number that pops in with a spring
+      className="pi-cite mx-[2px] inline-grid h-[1.45em] min-w-[1.45em] place-items-center rounded-full border-[1.5px] border-cite px-[3px] align-[0.2em] font-sans text-[0.68rem] leading-none font-semibold text-cite transition-colors hover:bg-cite hover:text-white"
       title={`Show evidence ${label}`}
+      aria-label={`Show evidence ${label}`}
     >
-      {label}
+      {label.replace(/^E/, "")}
     </button>
   );
 }

@@ -25,7 +25,8 @@ export function ChatAnswer({ run, onCite, showChecks }: { run: AskResponse; onCi
     showChecks ? <Highlighted raw={raw} claims={claims} onCite={onCite} /> : <>{renderInlines(parseInline(raw), onCite)}</>;
 
   return (
-    <div className="space-y-3 text-[15px] leading-relaxed">
+    // Paragraphs arrive one after another (stagger), citations pop in (pi-cite)
+    <div className="stagger space-y-3 font-serif text-[1.08rem] leading-[1.65]">
       {run.legal_question && (
         <p className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
           This asks for a legal opinion, which I can&apos;t give. Below is technical information from the sources only.
@@ -35,7 +36,7 @@ export function ChatAnswer({ run, onCite, showChecks }: { run: AskResponse; onCi
       {run.status === "succeeded" &&
         blocks.map((block, i) =>
           block.kind === "list" ? (
-            <ul key={i} className="list-disc space-y-1 pl-5">
+            <ul key={i} className="list-disc space-y-1 pl-5 marker:text-cite">
               {block.raws.map((raw, j) => (
                 <li key={j}>{line(raw)}</li>
               ))}

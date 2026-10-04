@@ -59,7 +59,7 @@ export function describeError(error: SearchError): { title: string; fix: string 
   switch (error.kind) {
     case "unreachable":
       return {
-        title: "The search service is not reachable.",
+        title: error.status === 404 ? "BACKEND_URL points at a service without the /ask endpoint." : "The search service is not reachable.",
         fix: "Start the backend API and check that BACKEND_URL points to it, then try again.",
       };
     case "auth":
@@ -103,6 +103,78 @@ export async function runSearch(query: string, signal?: AbortSignal): Promise<Se
   return result;
 }
 
+export interface TurnResult {
+  result: SearchResult;
+  /** The conversation that holds this thread (null when the backend has none) */
+  conversationId: string | null;
+  /** The standalone question the backend answered, when it rewrote a follow-up */
+  interpretedAs: string | null;
+}
+
+async function postJson(path: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
+  let response: Response;
+  try {
+    response = await fetch(`/api${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (e) {
+    if (signal?.aborted) throw e;
+    throw new SearchError("unreachable", "Cannot reach the server.");
+  }
+  if (!response.ok) throw await toSearchError(response);
+  return response.json();
+}
+
+/**
+ * One turn of a search thread. The first question opens a conversation; follow-ups
+ * go to the same conversation, where the backend's memory rewrites them into
+ * standalone questions ("which one is newest?" → "Which of the immersion cooling
+ * patents is newest?"). If the backend has no conversations endpoint, it falls back
+ * to POST /ask, adding the previous questions as context.
+ */
+export async function runTurn(
+  query: string,
+  conversationId: string | null,
+  previous: string[],
+  signal?: AbortSignal,
+): Promise<TurnResult> {
+  let id = conversationId;
+  try {
+    if (!id) {
+      const created = (await postJson("/conversations", { title: null }, signal)) as { id: string };
+      id = created.id;
+    }
+  } catch (e) {
+    // No conversations on this backend (404): answer statelessly instead
+    if (e instanceof SearchError && e.status === 404) {
+      const context = previous.length ? `Earlier questions: ${previous.slice(-3).join(" | ")}\nFollow-up: ${query}` : query;
+      const result = await runSearch(context, signal);
+      return { result: { ...result, query }, conversationId: null, interpretedAs: null };
+    }
+    throw e;
+  }
+
+  const message = (await postJson(`/conversations/${id}/messages`, { message: query, live_search: false }, signal)) as {
+    response: unknown;
+    interpreted_as: string | null;
+  };
+  const result = normalizeResult(message.response, query);
+  await enrichPatents(result, signal);
+  return { result, conversationId: id, interpretedAs: message.interpreted_as };
+}
+
+/** Follow-up suggestions shown under an answer. */
+export function followUpSuggestions(result: SearchResult): string[] {
+  const out = ["Explain this in simpler terms"];
+  if (result.sources.length > 1) out.push("What are the key differences between these patents?");
+  const first = result.sources.find((s) => s.patent_number);
+  if (first?.patent_number) out.push(`What does claim 1 of ${first.patent_number} require?`);
+  return out;
+}
+
 async function toSearchError(response: Response): Promise<SearchError> {
   let message = "";
   let isBackendJson = false;
@@ -117,6 +189,8 @@ async function toSearchError(response: Response): Promise<SearchError> {
   if (s === 401 || s === 403) return new SearchError("auth", message, s);
   if (s === 400 || s === 413 || s === 422) return new SearchError("invalid", message, s);
   if (s === 429) return new SearchError("busy", message, s);
+  // A 404 on /ask means BACKEND_URL points at some other service: treat it as no backend
+  if (s === 404) return new SearchError("unreachable", "The configured backend has no /ask endpoint (wrong BACKEND_URL?).", s);
   if (!isBackendJson && (s === 500 || s === 502 || s === 503 || s === 504)) {
     return new SearchError("unreachable", "The backend is not responding.", s);
   }

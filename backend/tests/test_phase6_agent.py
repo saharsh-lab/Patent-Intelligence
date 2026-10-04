@@ -411,3 +411,24 @@ def test_live_search_terms_are_rewritten_into_patent_language(api, settings):
     search = next(s for s in body["steps"] if s["tool_name"] == "search_patents")
     assert search["output_summary"].startswith('"metal object detection charger"')
     assert "patent documents use" in llm.prompts[1]  # the rewrite request
+
+
+@pytest.mark.parametrize(
+    "message",
+    ["hii", "Hello!", "hey there", "thanks", "Thank you!", "who are you?", "good morning"],
+)
+def test_small_talk_gets_a_short_reply_without_retrieval(api, battery, llm, message):
+    body = ask(api, message, document_ids=[battery["id"]])
+    assert body["intent"] == "small_talk" and body["status"] == "succeeded"
+    assert tools_used(body) == [] and body["evidence"] == []
+    assert body["verification"] is None
+    assert llm.prompts == []  # no LLM call at all
+
+
+@pytest.mark.parametrize(
+    "message",
+    ["hi, what does claim 1 cover?", "Hello, how is the pump controlled?", "help me compare these"],
+)
+def test_questions_that_start_with_a_greeting_are_still_answered(api, battery, message):
+    body = ask(api, message, document_ids=[battery["id"]])
+    assert body["intent"] != "small_talk"

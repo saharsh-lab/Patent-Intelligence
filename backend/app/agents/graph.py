@@ -167,11 +167,15 @@ class AgentGraph:
         g.add_node("regenerate", self.regenerate)
 
         g.add_edge(START, "analyze")
+        g.add_node("small_talk", self.small_talk)
         g.add_conditional_edges(
             "analyze",
-            lambda s: "finish" if s["analysis"].intent == "out_of_scope" else "resolve_targets",
-            {"finish": "finish", "resolve_targets": "resolve_targets"},
+            lambda s: {"out_of_scope": "finish", "small_talk": "small_talk"}.get(
+                s["analysis"].intent, "resolve_targets"
+            ),
+            {"finish": "finish", "small_talk": "small_talk", "resolve_targets": "resolve_targets"},
         )
+        g.add_edge("small_talk", END)
         g.add_edge("resolve_targets", "plan")
         g.add_edge("plan", "execute")
         g.add_edge("execute", "check")
@@ -539,6 +543,39 @@ class AgentGraph:
         if self.live_fallback and self._can_search_live(state):
             return "recover"
         return "finish"
+
+    def small_talk(self, state: AgentState) -> dict:
+        """A short reply to greetings and thanks: no retrieval, no LLM, nothing to verify."""
+        text = state["question"].strip().lower()
+        scoped = bool(state["document_ids"] or state["patent_ids"])
+        if re.match(r"(thank|thx|ty\b|ok|okay|cool|great|nice|awesome|perfect)", text):
+            reply = "You're welcome! Ask me anything else about patents whenever you like."
+        elif re.match(r"(bye|goodbye|see you)", text):
+            reply = "Goodbye! Your conversation is saved; you can continue it any time."
+        elif scoped:
+            reply = (
+                "Hello! Ask me anything about the attached document, for example "
+                '"Summarise this patent in plain language", "What does claim 1 cover?" or '
+                '"What problem does it solve?". Every answer cites its sources and each '
+                "sentence is checked against them."
+            )
+        else:
+            reply = (
+                "Hello! I answer questions about patents from their actual text: attach a "
+                "patent (PDF, Word or text), pick one from your library, or just ask, e.g. "
+                '"What are the latest patents on battery immersion cooling?". I cite the '
+                "source of every sentence and check each one, and I do not give legal "
+                "opinions."
+            )
+        parsed = ParsedAnswer(status="answered", text=reply)
+        return {
+            "parsed": parsed,
+            "evidence": [],
+            "final_passages": [],
+            "llm_response": None,
+            "comparison": None,
+            "verification": None,
+        }
 
     def route_after_generate(self, state: AgentState) -> str:
         parsed = state.get("parsed")

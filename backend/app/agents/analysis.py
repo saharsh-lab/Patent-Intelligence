@@ -24,14 +24,35 @@ from app.patents.numbers import parse_publication_number
 
 logger = logging.getLogger(__name__)
 
-Intent = Literal["document_qa", "patent_lookup", "find_similar", "compare", "out_of_scope"]
+Intent = Literal[
+    "document_qa", "patent_lookup", "find_similar", "compare", "out_of_scope", "small_talk"
+]
 INTENTS: tuple[str, ...] = (
     "document_qa",
     "patent_lookup",
     "find_similar",
     "compare",
     "out_of_scope",
+)  # what the LLM planner may choose; small_talk is decided by rules only
+
+# A whole message that is only a greeting, thanks or a question about the assistant.
+# Observed (2026-10-05): with a patent attached, "hi" and "hello" were answered with a
+# full cited summary of the patent.
+_SMALL_TALK = re.compile(
+    r"^\s*(?:(?:hi+|hello+|hey+|hiya|yo|namaste|good\s+(?:morning|afternoon|evening)|"
+    r"thanks?(?:\s+you)?(?:\s+(?:so|very)\s+much)?|thank\s+you(?:\s+(?:so|very)\s+much)?|"
+    r"thx|ty|ok(?:ay)?|cool|great|nice|awesome|perfect|bye|goodbye|see\s+you|"
+    r"who\s+are\s+you|what\s+are\s+you|what\s+can\s+you\s+do|help(?:\s+me)?|"
+    r"how\s+are\s+you(?:\s+doing)?)"
+    r"(?:\s+(?:there|again|everyone|all|bot|assistant))?[\s!.,?:)]*)+$",
+    re.IGNORECASE,
 )
+
+
+def is_small_talk(text: str) -> bool:
+    return bool(_SMALL_TALK.match(text or ""))
+
+
 SECTIONS = ("abstract", "claims", "description", "background", "summary", "technical_field")
 
 _NUMBER = re.compile(
@@ -126,6 +147,8 @@ def keywords_from_text(text: str, limit: int = 4) -> str:
 
 
 def analyze_rules(question: str) -> QueryAnalysis:
+    if is_small_talk(question):
+        return QueryAnalysis(intent="small_talk", analyzer="rules")
     numbers = find_publication_numbers(question)
     claim = _CLAIM.search(question)
     section = None
@@ -183,6 +206,8 @@ publication_numbers: copy any patent numbers exactly as written in the question.
 
 def analyze_llm(question: str, llm: LLMProvider) -> QueryAnalysis:
     rules = analyze_rules(question)
+    if rules.intent == "small_talk":
+        return rules  # no planner call for "hi"
     try:
         response = llm.complete(
             [ChatMessage("system", _PLANNER_PROMPT), ChatMessage("user", question)],
