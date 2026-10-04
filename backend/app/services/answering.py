@@ -169,7 +169,13 @@ class AnswerService:
             return None
         verify_started = time.perf_counter()
         verifier = self.verifier()
-        report = verify_answer(verifier, parsed, evidence, comparison=comparison)
+        report = verify_answer(
+            verifier,
+            parsed,
+            evidence,
+            comparison=comparison,
+            uncited_supported=self.settings.verifier_uncited_supported,
+        )
         timings["verify"] = round((time.perf_counter() - verify_started) * 1000)
         usage = getattr(verifier, "last_usage", None)
         if usage and any(usage):  # LLM-judge tokens count toward the run's cost

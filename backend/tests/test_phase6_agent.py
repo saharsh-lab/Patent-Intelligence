@@ -127,7 +127,6 @@ def test_unknown_patent_number_is_fetched_then_used(api, battery):
     assert "Demo patents" in body["summary"]["sources_searched"]
 
 
-
 def test_unavailable_patent_number_is_never_answered_from_other_documents(api, battery):
     # Experiment E: without a patent database, "claim 2 of <new patent>" was answered with
     # claim 2 of an unrelated local document and attributed to the asked patent.
@@ -136,6 +135,7 @@ def test_unavailable_patent_number_is_never_answered_from_other_documents(api, b
     assert body["status"] == "insufficient_evidence"
     assert body["evidence"] == []
     assert "EP4815257A1 is not in your library" in body["insufficient_reason"]
+
 
 def test_find_similar_searches_imports_and_compares(api, battery):
     body = ask(api, "Find patents similar to my uploaded invention")
@@ -187,14 +187,14 @@ def test_missing_patent_source_fails_gracefully(api, sources):
     assert "no suitable patent source" in body["insufficient_reason"]
 
 
-def test_failed_search_is_recovered_with_fewer_keywords(api, battery, sources):
+def test_failed_search_is_retried_with_fewer_keywords(api, battery, sources):
     calls = {"n": 0}
     fake = FakeOps()
 
     def handler(request):
         if request.url.path.endswith("/search/biblio"):
             calls["n"] += 1
-            if calls["n"] == 1:
+            if calls["n"] <= 2:  # the first search step tries EP/WO first, then all offices
                 return httpx.Response(404, text="<error>no results</error>")
             return httpx.Response(200, json=load("search_biblio.json"))
         return fake(request)
@@ -204,9 +204,13 @@ def test_failed_search_is_recovered_with_fewer_keywords(api, battery, sources):
         "k", "s", http=httpx.Client(transport=httpx.MockTransport(handler))
     )
     body = ask(api, "Find patents similar to my uploaded invention")
-    assert len(body["recoveries"]) == 1 and "fewer keywords" in body["recoveries"][0]
-    assert tools_used(body).count("search_patents") == 2
-    assert calls["n"] == 2
+    # Since 2026-10-04 the search step itself retries with fewer keywords (and EP/WO
+    # first, then all offices), so no agent-level recovery is needed
+    assert tools_used(body).count("search_patents") == 1
+    assert body["recoveries"] == []
+    assert calls["n"] >= 3
+    search = next(s for s in body["steps"] if s["tool_name"] == "search_patents")
+    assert search["success"] and "epo:" in search["output_summary"]
 
 
 def test_out_of_scope_label_still_searches_and_abstains_on_evidence(api, settings):
@@ -350,3 +354,60 @@ def test_all_tools_policy_skips_unavailable_patent_search(api, battery, settings
     api.app_ref.dependency_overrides[get_patent_sources] = lambda: {}
     body = ask(api, "How is the coolant pump speed controlled?")
     assert tools_used(body) == ["search_uploaded_documents"]  # no target, no patent source
+
+
+# ------------------------------------------------------------------ live patent search
+
+
+def test_empty_library_falls_back_to_the_patent_databases(api):
+    body = ask(api, "How does the wireless charging coil detect metal objects?")
+    assert tools_used(body)[:3] == [
+        "search_uploaded_documents",  # nothing in the library ...
+        "search_patents",  # ... so the patent databases are searched
+        "get_patent_details",  # and the most relevant patent imported
+    ]
+    assert body["status"] == "succeeded"
+    assert {e["source_label"] for e in body["evidence"]} == {"XX0000002B1"}
+
+
+def test_live_search_switch_adds_database_results_to_the_library(api, battery):
+    body = ask(api, "How is the coolant pump controlled?", live_search=True)
+    assert tools_used(body)[:2] == ["search_uploaded_documents", "search_patents"]
+    labels = {e["source_label"] for e in body["evidence"]}
+    assert "battery.txt" in labels and any(label.startswith("XX") for label in labels)
+
+
+def test_insufficient_answer_from_the_library_triggers_one_live_search(api, battery, llm):
+    llm.replies = ["INSUFFICIENT_EVIDENCE: the library does not cover wireless chargers."]
+    body = ask(api, "How does a wireless charger detect metal objects?")
+    assert tools_used(body).count("search_patents") == 1
+    assert "XX0000002B1" in {e["source_label"] for e in body["evidence"]}
+
+
+def test_live_fallback_is_off_in_experiments():
+    from app.evaluation.config import ExperimentConfig, VariantConfig, variant_settings
+
+    config = ExperimentConfig(
+        name="x", dataset="d.yaml", variants=[VariantConfig(name="v", pipeline="agentic")]
+    )
+    assert variant_settings(get_settings(), config, config.variants[0]).agent_live_fallback is False
+
+
+def test_topic_search_is_not_framed_as_similarity_to_an_invention(api, llm):
+    body = ask(api, "Find patents about battery cooling")
+    assert body["intent"] == "find_similar" and "search_patents" in tools_used(body)
+    answer_prompt = llm.prompts[-1]
+    assert "the user did not provide one" in answer_prompt
+    assert "overlap with the user's invention" not in answer_prompt
+
+
+def test_live_search_terms_are_rewritten_into_patent_language(api, settings):
+    llm = RecordingLLM(replies=['{"intent": "document_qa"}', "metal object detection charger"])
+    api.app_ref.dependency_overrides[get_llm] = lambda: llm
+    api.app_ref.dependency_overrides[get_settings] = lambda: settings.model_copy(
+        update={"agent_planner": "llm"}
+    )
+    body = ask(api, "How does a wireless charger notice a coin on the pad?")
+    search = next(s for s in body["steps"] if s["tool_name"] == "search_patents")
+    assert search["output_summary"].startswith('"metal object detection charger"')
+    assert "patent documents use" in llm.prompts[1]  # the rewrite request

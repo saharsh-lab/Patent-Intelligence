@@ -125,7 +125,7 @@ def normalize_verdict(value: str) -> str | None:
 def load_labels(path: Path) -> list[dict]:
     """Labelled rows only; rows with an empty verdict are skipped, invalid ones rejected."""
     rows = []
-    with Path(path).open(newline="", encoding="utf-8") as f:
+    with Path(path).open(newline="", encoding="utf-8-sig") as f:  # Excel adds a BOM
         reader = csv.DictReader(f)
         missing = {"statement", "passages", "human_verdict"} - set(reader.fieldnames or [])
         if missing:
@@ -160,7 +160,7 @@ def compare_labellers(path_a: Path, path_b: Path, out: Path) -> dict:
     discussion. Returns human-human agreement (κ is the ceiling for any verifier)."""
 
     def read(path: Path) -> tuple[list[str], dict[str, dict]]:
-        with Path(path).open(newline="", encoding="utf-8") as f:
+        with Path(path).open(newline="", encoding="utf-8-sig") as f:  # Excel adds a BOM
             reader = csv.DictReader(f)
             fields = list(reader.fieldnames or [])
             if "claim_id" not in fields or "human_verdict" not in fields:
@@ -237,7 +237,7 @@ class VerifierExperiment(BaseModel):
     @field_validator("methods")
     @classmethod
     def _known(cls, methods: list[str]) -> list[str]:
-        unknown = set(methods) - {"nli", "llm_judge", "lexical"}
+        unknown = set(methods) - {"nli", "nli_lexical", "llm_judge", "lexical"}
         if unknown:
             raise ValueError(f"unknown verifier methods {sorted(unknown)}")
         return methods
@@ -299,7 +299,7 @@ def evaluate_verifiers(
         elapsed = (time.perf_counter() - started) * 1000
         predicted = [r["predicted"] for r in rows]
         correct = [float(h == p) for h, p in zip(human, predicted, strict=True)]
-        model = settings.verifier_nli_model if method == "nli" else None
+        model = settings.verifier_nli_model if method in ("nli", "nli_lexical") else None
         if method == "llm_judge":
             model = settings.llm_model if settings.llm_provider != "fake" else "fake"
         methods[method] = agreement(human, predicted) | {

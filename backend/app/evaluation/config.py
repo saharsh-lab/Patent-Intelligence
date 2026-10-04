@@ -118,6 +118,9 @@ def variant_settings(base: Settings, config: ExperimentConfig, variant: VariantC
     check_overrides(overrides)
     # Synthetic demo patents must never leak into results unless a config asks explicitly
     overrides.setdefault("patent_demo_source", False)
+    # Added after the experiments were run; off so reruns measure the same system.
+    overrides.setdefault("agent_live_fallback", False)
+    overrides.setdefault("verifier_uncited_supported", False)
     data = base.model_dump() | overrides
     try:
         # model_validate validates the dict alone: it does not re-read .env

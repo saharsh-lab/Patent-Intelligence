@@ -102,7 +102,8 @@ def test_auto_method_prefers_nli_when_available(monkeypatch):
         sys.modules, "sentence_transformers", types.SimpleNamespace(CrossEncoder=FakeCrossEncoder)
     )
     verifiers_module._shared_nli.cache_clear()
-    assert build_verifier("auto", nli_model="x", llm=None).name == "nli"
+    assert build_verifier("auto", nli_model="x", llm=None).name == "nli_lexical"
+    assert build_verifier("nli", nli_model="x", llm=None).name == "nli"
     assert build_verifier("lexical", nli_model="x", llm=None).name == "lexical"
 
 
@@ -250,3 +251,73 @@ def test_nli_takes_the_best_sentence_window(monkeypatch):
     passage = "Source: a.txt, description.\nThe pump circulates coolant. It samples at 10 Hz."
     [result] = NliVerifier("fake").judge(["It samples at 10 Hz."], [[passage]])
     assert result.verdict == SUPPORTED and result.score == 0.95
+
+
+# ------------------------------------------------------------------ false-alarm fixes (2026-10-04)
+
+
+def test_uncited_but_supported_statement_counts_as_supported_when_enabled():
+    evidence = evidence_for(SENSOR, PUMP)
+    claims = [
+        Claim("Each cell carries a thermistor bonded to its casing.", []),  # uncited
+        Claim("The controller raises the coolant pump speed above 40 degrees Celsius.", ["E1"]),
+    ]
+    results = verify_claims(LexicalVerifier(), claims, evidence, uncited_supported=True)
+    assert (results[0].verdict, results[0].misattributed) == (SUPPORTED, False)
+    assert results[0].reason == "supported by E1 (no citation given)"
+    # citing the WRONG passage is still misattribution
+    assert (results[1].verdict, results[1].misattributed) == (PARTIAL, True)
+
+
+def test_premise_states_the_document_title():
+    from app.verification.checker import premise_for
+
+    [item] = evidence_for("COPY SUPPRESSION FOR RAG OUTPUTS")
+    item.passage.chunk.document = types.SimpleNamespace(title="COPY SUPPRESSION FOR RAG OUTPUTS")
+    assert 'The title of this document is "COPY SUPPRESSION FOR RAG OUTPUTS".' in premise_for(item)
+
+
+class AlwaysUnsure(verifiers_module.Verifier):
+    """An NLI stand-in that supports nothing (like the small model on paraphrases)."""
+
+    name = "unsure"
+
+    def judge(self, claims, passages_per_claim):
+        return [verifiers_module.Judgement(UNSUPPORTED, 0.05, 0, "unsure", contradiction=0.9)]
+
+
+PASSAGE = (
+    "A combined probability is determined for the token from the first probability and the "
+    "second probability, and the combined probability is used to select the token at 40 Hz, "
+    "before it is sent."
+)
+
+
+@pytest.mark.parametrize(
+    ("claim", "verdict"),
+    [
+        # paraphrase with every key word present: rescued (NLI contradiction ignored)
+        (
+            "The combined probability of the first and second probability selects the token.",
+            SUPPORTED,
+        ),
+        # a changed number, an added negation, a swapped direction: never rescued
+        ("The combined probability selects the token at 50 Hz.", UNSUPPORTED),
+        ("The combined probability is not used to select the token.", UNSUPPORTED),
+        # a direction word whose opposite the passage states ("after" vs. "before")
+        ("The combined probability is used after the token is selected.", UNSUPPORTED),
+        ("The token probability is determined by a neural network.", UNSUPPORTED),
+    ],
+)
+def test_nli_lexical_rescues_paraphrases_but_not_changed_facts(claim, verdict):
+    verifier = verifiers_module.NliLexicalVerifier(AlwaysUnsure())
+    assert verifier.judge([claim], [[PASSAGE]])[0].verdict == verdict
+
+
+def test_nli_lexical_known_limit_one_unstated_word_can_pass():
+    # Documented trade-off: 75% key-word coverage is the rescue level (chosen on the
+    # development labels); "quickly" is not in the passage but 3 of 4 key words are.
+    verifier = verifiers_module.NliLexicalVerifier(AlwaysUnsure())
+    claim = "The second probability is determined quickly for the token."
+    assert "quickly" not in PASSAGE
+    assert verifier.judge([claim], [[PASSAGE]])[0].verdict == SUPPORTED

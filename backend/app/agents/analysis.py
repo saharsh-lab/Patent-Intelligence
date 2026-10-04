@@ -44,7 +44,10 @@ _COMPARE = re.compile(
 )
 _SIMILAR = re.compile(
     r"\b(similar|prior art|related patents?|other patents|patents like|comparable|"
-    r"find patents|search for patents|existing patents|competing)\b",
+    r"find patents|search for patents|existing patents|competing|"
+    # topic searches in the patent databases: "latest patents on X", "patents about X"
+    r"(latest|recent|new|newest) patents|patents (on|about|regarding|covering|related to)|"
+    r"(show|list|get|give)( me)? (some |the )?patents)\b",
     re.IGNORECASE,
 )
 # Wording that can justify a similar-patent search even when the rules don't see it
@@ -79,7 +82,8 @@ _STOPWORDS = set(
         "of on or our patent patents that the their this to was what when where which who why "
         "will with find search show list any some there about like similar compare other "
         "invention uploaded document please claim claims add adds describe explain summarize "
-        "summarise tell infringe infringes infringement valid validity"
+        "summarise tell infringe infringes infringement valid validity "
+        "related recent latest new newest regarding covering give get all"
     ).split()
 )
 
@@ -213,6 +217,12 @@ def analyze_llm(question: str, llm: LLMProvider) -> QueryAnalysis:
         intent = rules.intent
         analyzer = "llm_similar_override"
 
+    if rules.intent == "find_similar" and intent in ("document_qa", "out_of_scope"):
+        # Explicit wording ("find patents about…", "latest patents on…") asks for the
+        # patent databases; answering from the local library alone ignores the request.
+        intent = "find_similar"
+        analyzer = "llm_search_override"
+
     if intent == "out_of_scope":
         # Observed (Phase 9, Experiment A): Qwen3 called a plain technical question about
         # an uploaded document out of scope, so the agent refused without searching.
@@ -229,6 +239,8 @@ def analyze_llm(question: str, llm: LLMProvider) -> QueryAnalysis:
         section = data.get("section") if data.get("section") in SECTIONS else rules.section
     claim = rules.claim_number
     keywords = data.get("search_keywords")
+    if intent == "find_similar" and rules.intent == "find_similar" and rules.search_keywords:
+        keywords = rules.search_keywords  # without "latest", "patents", "related", …
     return QueryAnalysis(
         intent=intent,
         # Only numbers that really occur in the question (the LLM may not invent targets)

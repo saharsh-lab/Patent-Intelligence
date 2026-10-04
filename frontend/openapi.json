@@ -1996,6 +1996,12 @@
             ],
             "title": "Pipeline",
             "description": "Default: DEFAULT_PIPELINE setting"
+          },
+          "live_search": {
+            "type": "boolean",
+            "title": "Live Search",
+            "description": "Agent only: also search the patent databases and import the best matches",
+            "default": false
           }
         },
         "type": "object",
@@ -3245,6 +3251,12 @@
             "maxLength": 2000,
             "minLength": 1,
             "title": "Message"
+          },
+          "live_search": {
+            "type": "boolean",
+            "title": "Live Search",
+            "description": "Also search the patent databases for this message",
+            "default": false
           }
         },
         "type": "object",
@@ -3605,6 +3617,12 @@
             },
             "type": "array",
             "title": "Also Published As"
+          },
+          "full_text_likely": {
+            "type": "boolean",
+            "title": "Full Text Likely",
+            "description": "Claims and description can likely be imported (EP/WO)",
+            "default": false
           }
         },
         "type": "object",
@@ -3728,6 +3746,18 @@
               }
             ],
             "title": "Rank Against Patent Id"
+          },
+          "rank_by_relevance": {
+            "type": "boolean",
+            "title": "Rank By Relevance",
+            "description": "Rank keyword results by semantic relevance to the keywords",
+            "default": true
+          },
+          "full_text_only": {
+            "type": "boolean",
+            "title": "Full Text Only",
+            "description": "Only offices whose claims/description the source supplies (EP, WO)",
+            "default": false
           }
         },
         "type": "object",

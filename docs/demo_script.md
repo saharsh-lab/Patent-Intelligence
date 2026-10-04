@@ -74,7 +74,11 @@ from Finder into it (they are recognised as already in the library). Ask:
 In our run one statement was flagged unsupported: "This is hallucination detection
 happening live."
 
-**6:30 Live data (1.5 min, optional, needs internet + EPO keys).** New chat, ask:
+**6:30 Live data (1.5 min, optional, needs internet + EPO keys).** New chat (empty
+scope). Ask "How does a wireless charger detect a coin on the pad?": the library has no
+answer, so the agent searches the patent office in patent terms ("foreign object
+detection"), imports full-text EP/WO patents and answers (~2 min; show the steps under
+Details). Or turn on **Patent DBs** in the composer to search for every question. Then ask:
 > What does claim 2 of EP4815257A1 add?
 
 (~40 s; measured mean 37 s in Experiment E) "This patent was published on 30 September

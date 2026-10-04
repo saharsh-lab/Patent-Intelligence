@@ -22,6 +22,13 @@ class PatentSearchRequest(BaseModel):
         default=None, description="Rank results by semantic similarity to this document"
     )
     rank_against_patent_id: uuid.UUID | None = None
+    rank_by_relevance: bool = Field(
+        default=True, description="Rank keyword results by semantic relevance to the keywords"
+    )
+    full_text_only: bool = Field(
+        default=False,
+        description="Only offices whose claims/description the source supplies (EP, WO)",
+    )
 
     @model_validator(mode="after")
     def _check(self):
@@ -49,6 +56,9 @@ class PatentResultOut(BaseModel):
         default=None, description="Cosine similarity to the reference invention (not legal)"
     )
     also_published_as: list[str] = Field(default_factory=list)
+    full_text_likely: bool = Field(
+        default=False, description="Claims and description can likely be imported (EP/WO)"
+    )
 
     @classmethod
     def from_item(cls, item: "ResultItem"):
@@ -68,6 +78,7 @@ class PatentResultOut(BaseModel):
             imported_id=item.imported_id,
             similarity=item.similarity,
             also_published_as=item.also_published_as,
+            full_text_likely=item.full_text_likely,
         )
 
 

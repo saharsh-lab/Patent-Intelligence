@@ -52,9 +52,16 @@ function ResultRow({
             {result.similarity != null && (
               <span
                 className="rounded-sm bg-accent-soft px-1.5 font-mono text-[11px] text-accent"
-                title="Cosine similarity between this patent's title/abstract and the reference invention. Semantic, not legal, similarity."
+                title="Semantic similarity between this patent's title/abstract and your search (or reference invention). Not legal similarity."
               >
-                similarity {result.similarity.toFixed(2)}
+                relevance {result.similarity.toFixed(2)}
+              </span>
+            )}
+            {result.full_text_likely ? (
+              <Badge tone="ok">full text</Badge>
+            ) : (
+              <span className="text-[11px] text-muted" title="The patent office supplies only bibliographic data and the abstract for this publication">
+                abstract only
               </span>
             )}
           </div>
@@ -158,6 +165,7 @@ export default function PatentSearchPage() {
   const [dateTo, setDateTo] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [dedup, setDedup] = useState(true);
+  const [fullTextOnly, setFullTextOnly] = useState(false);
   const [rankAgainst, setRankAgainst] = useState("");
   const documents = useSWR<DocumentOut[]>("/documents", fetcher);
   const [pending, setPending] = useState(false);
@@ -191,6 +199,8 @@ export default function PatentSearchPage() {
       limit: 25,
       sources: selected.length ? selected : null,
       dedup,
+      full_text_only: fullTextOnly,
+      rank_by_relevance: true,
       rank_against_document_id: rankAgainst.startsWith("d:") ? rankAgainst.slice(2) : null,
       rank_against_patent_id: rankAgainst.startsWith("p:") ? rankAgainst.slice(2) : null,
     });
@@ -250,6 +260,10 @@ export default function PatentSearchPage() {
               <input type="checkbox" checked={dedup} onChange={(e) => setDedup(e.target.checked)} />
               Merge patent families (A1/B1, EP/US/WO)
             </label>
+            <label className="flex items-end gap-2 pb-2 text-sm md:col-span-2" title="EP and WO publications come with claims and description, so you can chat about them in detail">
+              <input type="checkbox" checked={fullTextOnly} onChange={(e) => setFullTextOnly(e.target.checked)} />
+              Only patents with full text (EP, WO)
+            </label>
             <div className="flex flex-wrap items-center gap-3 md:col-span-6">
               <Button type="submit" disabled={pending || available.length === 0 || !(keywords.trim() || cpc.trim() || applicant.trim())}>
                 Search
@@ -288,7 +302,7 @@ export default function PatentSearchPage() {
             title={`Results (${response.results.length})`}
             aside={
               <span className="text-xs text-muted">
-                {response.reference_label ? `Ranked by similarity to ${response.reference_label}` : "Sorted as returned by each source"}
+                {response.reference_label ? `Ranked by ${response.reference_label.startsWith("relevance") ? "" : "similarity to "}${response.reference_label}` : "Sorted as returned by each source"}
                 {response.deduplicated ? ` · ${response.deduplicated} family duplicate(s) merged` : ""}
               </span>
             }

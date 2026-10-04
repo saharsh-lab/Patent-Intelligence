@@ -59,13 +59,16 @@ def test_sources_endpoint_reports_status(api):
 
 
 def test_search_epo_and_cache(api, ops, db_session):
-    body = search(api, keywords="battery thermal", sources=["epo"])
+    body = search(api, keywords="battery thermal", sources=["epo"], rank_by_relevance=False)
     assert [r["publication_number"] for r in body["results"]] == ["EP1234567A1", "WO2020123456A1"]
+    assert all(r["full_text_likely"] for r in body["results"])  # EP and WO
     assert body["sources"][0]["cached"] is False
     assert body["sources"][0]["query_string"] == 'ta all "battery thermal"'
 
     calls_before = len(ops.calls)
-    again = search(api, keywords="Battery Thermal", sources=["epo"])  # same query, other case
+    again = search(  # same query, other case
+        api, keywords="Battery Thermal", sources=["epo"], rank_by_relevance=False
+    )
     assert again["sources"][0]["cached"] is True
     assert len(ops.calls) == calls_before  # served from the database cache
     assert db_session.scalar(select(func.count()).select_from(ApiCache)) == 1
@@ -109,7 +112,8 @@ def test_import_patent_creates_cited_evidence(api, db_session):
     assert again.status_code == 200 and again.json()["already_imported"] is True
 
     results = search(api, keywords="battery thermal", sources=["epo"])["results"]
-    assert results[0]["imported_id"] == patent["id"]
+    imported = {r["publication_number"]: r["imported_id"] for r in results}
+    assert imported["EP1234567A1"] == patent["id"]
 
 
 def test_ask_about_imported_patent(api):
@@ -152,3 +156,17 @@ def test_import_errors(api):
     )
     assert missing.status_code == 502
     assert "no record" in missing.json()["error"]["message"]
+
+
+def test_keyword_search_is_ranked_by_relevance_over_a_larger_pool(api, ops):
+    body = search(api, keywords="battery thermal", sources=["epo"], limit=1)
+    assert len(body["results"]) == 1 and body["results"][0]["similarity"] is not None
+    assert body["reference_label"] == 'relevance to "battery thermal"'
+    # one result shown, but a pool was fetched from the office to choose from
+    searches = [c for c in ops.calls if "search" in c.url.path]
+    assert searches[-1].url.params["Range"] == "1-50"
+
+
+def test_full_text_only_limits_offices(api, ops):
+    body = search(api, keywords="battery thermal", sources=["epo"], full_text_only=True)
+    assert body["sources"][0]["query_string"] == 'ta all "battery thermal" and (pn=EP or pn=WO)'

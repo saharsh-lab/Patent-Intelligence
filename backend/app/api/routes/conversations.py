@@ -69,7 +69,9 @@ def delete_conversation(conversation_id: uuid.UUID, service: ChatServiceDep):
 def send_message(conversation_id: uuid.UUID, body: MessageIn, service: ChatServiceDep):
     """Answers with the user's preferred pipeline; follow-ups are rewritten using the
     conversation (memory) and answers are scoped to the attached documents."""
-    return ChatMessageOut.of(service.send(conversation_id, body.message))
+    return ChatMessageOut.of(
+        service.send(conversation_id, body.message, live_search=body.live_search)
+    )
 
 
 @router.post(

@@ -19,6 +19,7 @@ Why a graph instead of a free-running "LLM calls tools in a loop" agent?
 """
 
 import logging
+import re
 import time
 from dataclasses import dataclass, replace
 from typing import Any, TypedDict
@@ -37,7 +38,7 @@ from app.agents.tools import TOOLS, Target, ToolContext, ToolResult
 from app.core.errors import AppError
 from app.core.ownership import restrict, visible
 from app.intelligence.comparison import ComparisonBuilder
-from app.llm.providers import LLMResponse
+from app.llm.providers import ChatMessage, LLMResponse
 from app.models import Document, Patent
 from app.rag.generation import ParsedAnswer, build_evidence, build_messages, parse_answer
 from app.rag.retrieval import (
@@ -69,7 +70,21 @@ TASK_INSTRUCTIONS = {
         "describe the technical overlap with the user's invention, citing passages. Describe "
         "technical similarity only, never legal similarity, novelty or infringement."
     ),
+    # find_similar without a reference invention: a topic search ("latest patents on X")
+    "find_topic": (
+        "The evidence contains patents found by a patent database search for the user's "
+        "topic. For each patent, give its publication number and title and say what it "
+        "covers that is relevant to the question, citing passages; then say briefly how "
+        "their technical approaches differ. Do not describe them as similar to an invention "
+        "of the user's: the user did not provide one."
+    ),
 }
+SEARCH_TERMS_PROMPT = (
+    "Turn the user's question into a patent-database search: 2 to 4 technical keywords, "
+    "using the terms patent documents use instead of everyday words (e.g. 'foreign object "
+    "detection wireless charging' for 'how does a charger notice a coin'). Reply with the "
+    "keywords only, separated by spaces."
+)
 LEGAL_INSTRUCTION = (
     "The user asked for a legal opinion. Start by saying that you cannot assess validity, "
     "infringement or legal scope, then give only the technical facts the evidence supports."
@@ -108,6 +123,7 @@ class AgentState(TypedDict, total=False):
     regenerations: int
     extra_timings: dict[str, int]
     regeneration_added_passages: int
+    live_search: bool
 
 
 class AgentGraph:
@@ -119,6 +135,8 @@ class AgentGraph:
         similar_import_limit: int,
         max_recoveries: int,
         tool_policy: str = "select",
+        live_fallback: bool = False,
+        live_import_limit: int = 3,
     ):
         self.ctx = ctx
         self.planner = planner  # "rules" | "llm"
@@ -127,6 +145,9 @@ class AgentGraph:
         self.tool_policy = tool_policy
         self.similar_import_limit = similar_import_limit
         self.max_recoveries = max_recoveries
+        self.live_fallback = live_fallback
+        self.live_import_limit = live_import_limit
+        self._live_terms: str | None = None
         self._verifier = None
         self.graph = self._build()
 
@@ -160,7 +181,9 @@ class AgentGraph:
             {"generate": "generate", "recover": "recover", "finish": "finish"},
         )
         g.add_edge("recover", "execute")
-        g.add_edge("generate", "verify")
+        g.add_conditional_edges(
+            "generate", self.route_after_generate, {"recover": "recover", "verify": "verify"}
+        )
         g.add_conditional_edges(
             "verify", self.route_after_verify, {"regenerate": "regenerate", "end": END}
         )
@@ -168,9 +191,12 @@ class AgentGraph:
         g.add_edge("finish", END)
         return g.compile()
 
-    def run(self, question: str, document_ids: list, patent_ids: list) -> AgentState:
+    def run(
+        self, question: str, document_ids: list, patent_ids: list, *, live_search: bool = False
+    ) -> AgentState:
         initial: AgentState = {
             "question": question,
+            "live_search": live_search,
             "document_ids": document_ids,
             "patent_ids": patent_ids,
             "tool_log": [],
@@ -375,6 +401,8 @@ class AgentGraph:
             steps.append(Step("retrieve_evidence", {"query": question, "targets": "$targets"}))
         else:
             steps.append(Step("search_uploaded_documents", {"query": question}))
+            if state.get("live_search") and self._can_search_live(state):
+                steps += self._live_steps(state)
         return {"steps": steps}
 
     def _every_tool(self, state: AgentState) -> list[Step]:
@@ -465,9 +493,10 @@ class AgentGraph:
             if step.tool == "search_patents":
                 candidates = result.data.get("candidates", [])
                 own = {t.number for t in targets if t.number}
-                picks = [c for c in candidates if c["publication_number"] not in own][
-                    : import_top or 0
-                ]
+                fresh = [c for c in candidates if c["publication_number"] not in own]
+                # Among the most relevant, prefer patents whose claims can be imported
+                preferred = [c for c in fresh[:10] if c.get("full_text")]
+                picks = (preferred + [c for c in fresh if c not in preferred])[: import_top or 0]
                 queue = [
                     Step(
                         "get_patent_details",
@@ -507,16 +536,102 @@ class AgentGraph:
             return "generate"
         if state["attempts"] < self.max_recoveries and self._recovery_plan(state):
             return "recover"
+        if self.live_fallback and self._can_search_live(state):
+            return "recover"
         return "finish"
+
+    def route_after_generate(self, state: AgentState) -> str:
+        parsed = state.get("parsed")
+        if (
+            parsed is not None
+            and parsed.status == "insufficient_evidence"
+            and self.live_fallback
+            and self._can_search_live(state)
+        ):
+            # The model read the library's passages and found no answer: try the
+            # patent databases once before giving up.
+            return "recover"
+        return "verify"
 
     def recover(self, state: AgentState) -> dict:
         description, steps = self._recovery_plan(state)
         logger.info("Agent recovery: %s", description)
-        return {
+        update = {
             "steps": steps,
             "attempts": state["attempts"] + 1,
             "recoveries": state["recoveries"] + [description],
         }
+        parsed = state.get("parsed")
+        if parsed is not None and parsed.status == "insufficient_evidence":
+            # The model judged these passages insufficient: answer from the new ones
+            update |= {"passages": [], "direct_passages": [], "retrievals": []}
+        return update
+
+    def _task(self, state: AgentState) -> str:
+        """Which answer instructions apply; a similar-patent search without the user's own
+        document is a topic search."""
+        intent = state["analysis"].intent
+        if intent == "find_similar" and not (
+            state["document_ids"] or state["analysis"].refers_to_scope
+        ):
+            return "find_topic"
+        return intent
+
+    def _can_search_live(self, state: AgentState) -> bool:
+        """A general question (no document selected or named) that the patent databases
+        could answer, and no database search has been made for it yet."""
+        analysis = state["analysis"]
+        return bool(
+            self.ctx.patents.sources
+            and analysis.intent == "document_qa"
+            and not state["document_ids"]
+            and not state["patent_ids"]
+            and not analysis.refers_to_scope
+            # the LLM planner judged it off-topic: search the library, not the patent offices
+            and analysis.analyzer != "llm_scope_override"
+            and not any(t.kind in ("document", "patent", "external") for t in state["targets"])
+            and not any(e["tool_name"] == "search_patents" for e in state["tool_log"])
+            and self._live_keywords(state)
+        )
+
+    def _live_keywords(self, state: AgentState) -> str:
+        """Search terms for the patent databases. Observed (2026-10-04): the question's own
+        words ("wireless charger detect coin") found a coin-operated charging kiosk; patents
+        say "foreign object detection". With an LLM available, it rewrites the terms once."""
+        fallback = state["analysis"].search_keywords or keywords_from_text(state["question"])
+        if self._live_terms is None:
+            self._live_terms = fallback
+            if self.ctx.use_llm_helpers:
+                try:
+                    response = self.ctx.llm.complete(
+                        [
+                            ChatMessage("system", SEARCH_TERMS_PROMPT),
+                            ChatMessage("user", state["question"]),
+                        ],
+                        temperature=0.0,
+                        max_tokens=30,
+                    )
+                    text = re.sub(r"(?s)<think>.*?</think>", "", response.text)
+                    words = re.findall(r"[A-Za-z][A-Za-z0-9\-]+", text)[:4]
+                    if len(words) >= 2:
+                        self._live_terms = " ".join(words).lower()
+                except Exception:  # noqa: BLE001 - the question's own words still work
+                    logger.info("Search-term rewrite failed; using the question's keywords")
+        return self._live_terms
+
+    def _live_steps(self, state: AgentState) -> list[Step]:
+        return [
+            Step(
+                "search_patents",
+                {
+                    "keywords": self._live_keywords(state),
+                    "import_top": self.live_import_limit,
+                    # rank candidates against the whole question, not just the keywords
+                    "rank_text": state["question"],
+                },
+            ),
+            Step("retrieve_evidence", {"query": state["question"], "targets": "$targets"}),
+        ]
 
     def generate(self, state: AgentState) -> dict:
         analysis = state["analysis"]
@@ -526,7 +641,7 @@ class AgentGraph:
         passages = self._final_passages(state)
         evidence = build_evidence(passages, self.ctx.settings.max_context_tokens)
         instructions = (
-            [TASK_INSTRUCTIONS[analysis.intent]] if analysis.intent in TASK_INSTRUCTIONS else []
+            [TASK_INSTRUCTIONS[self._task(state)]] if self._task(state) in TASK_INSTRUCTIONS else []
         )
         question = state["question"]
         if analysis.legal_question:
@@ -590,7 +705,11 @@ class AgentGraph:
             return {"verification": None}
         started = time.perf_counter()
         report = verify_answer(
-            self.verifier, parsed, state["evidence"], comparison=state.get("comparison")
+            self.verifier,
+            parsed,
+            state["evidence"],
+            comparison=state.get("comparison"),
+            uncited_supported=self.ctx.settings.verifier_uncited_supported,
         )
         attempt = {
             "parsed": parsed,
@@ -668,7 +787,7 @@ class AgentGraph:
         analysis = state["analysis"]
         evidence = build_evidence(passages, self.ctx.settings.max_context_tokens + 600)
         instructions = (
-            [TASK_INSTRUCTIONS[analysis.intent]] if analysis.intent in TASK_INSTRUCTIONS else []
+            [TASK_INSTRUCTIONS[self._task(state)]] if self._task(state) in TASK_INSTRUCTIONS else []
         )
         if analysis.legal_question:
             instructions.append(LEGAL_INSTRUCTION)
@@ -833,6 +952,11 @@ class AgentGraph:
             return (
                 "scoped search found too little; searching all indexed sources",
                 [Step("search_uploaded_documents", {"query": state["question"]})],
+            )
+        if self.live_fallback and self._can_search_live(state):
+            return (
+                "nothing in the library answers this; searching the patent databases",
+                self._live_steps(state),
             )
         return None
 

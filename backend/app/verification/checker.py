@@ -117,14 +117,28 @@ def premise_for(item: EvidenceItem) -> str:
 
     Observed: without the location, NLI could not link "Claim 3 adds X" to a passage
     that starts "3. The system of claim 1, wherein X" and judged it unsupported.
+    Observed (2026-10-04, user report): "The patent's title is 'X'" was judged unsupported
+    against the title passage, so the document title is stated explicitly.
     """
     location = re.sub(r"^\[E\d+\]\s*", "", item.header).replace(" · ", ", ")
-    return f"Source: {location}.\n{item.passage.chunk.text}"
+    chunk = item.passage.chunk
+    owner = getattr(chunk, "document", None) or getattr(chunk, "patent", None)
+    title = (getattr(owner, "title", None) or "").strip()
+    titled = f' The title of this document is "{title}".' if title else ""
+    return f"Source: {location}.{titled}\n{item.passage.chunk.text}"
 
 
 def verify_claims(
-    verifier: Verifier, claims: list[Claim], evidence: list[EvidenceItem]
+    verifier: Verifier,
+    claims: list[Claim],
+    evidence: list[EvidenceItem],
+    *,
+    uncited_supported: bool = False,
 ) -> list[ClaimResult]:
+    """`uncited_supported`: a statement with no citation that a passage supports counts
+    as supported (noting the missing citation) rather than partially supported. Models
+    often cite once at the end of a paragraph; the support is real either way, and
+    citation coverage is measured separately."""
     premise = {item.label: premise_for(item) for item in evidence}
     labels = list(premise)
 
@@ -167,14 +181,18 @@ def verify_claims(
             other, other_labels = second_by_claim[index]
             if other.verdict == SUPPORTED and other.best_passage is not None:
                 found = other_labels[other.best_passage]
-                misattributed = True
-                verdict, score = PARTIAL, max(score, 0.5)
                 supporting = [found]
-                reason = (
-                    f"supported by {found}, which it did not cite"
-                    if cited
-                    else f"uncited; supported by {found}"
-                )
+                if not cited and uncited_supported:
+                    verdict, score = SUPPORTED, other.score
+                    reason = f"supported by {found} (no citation given)"
+                else:
+                    misattributed = True
+                    verdict, score = PARTIAL, max(score, 0.5)
+                    reason = (
+                        f"supported by {found}, which it did not cite"
+                        if cited
+                        else f"uncited; supported by {found}"
+                    )
         if not cited and not misattributed and verdict == UNSUPPORTED:
             reason = "no citation, and no passage supports it"
         results.append(
@@ -199,13 +217,19 @@ def verify_answer(
     parsed: ParsedAnswer,
     evidence: list[EvidenceItem],
     comparison: dict | None = None,
+    *,
+    uncited_supported: bool = False,
 ) -> VerificationReport:
     """Verify an answer (or a comparison table) against the evidence it was built from."""
     if comparison is not None:
         claims, skipped = claims_from_comparison(comparison), []
     else:
         claims, skipped = claims_from_answer(parsed)
-    results = verify_claims(verifier, claims, evidence) if claims else []
+    results = (
+        verify_claims(verifier, claims, evidence, uncited_supported=uncited_supported)
+        if claims
+        else []
+    )
     return VerificationReport(verifier.name, results, skipped)
 
 

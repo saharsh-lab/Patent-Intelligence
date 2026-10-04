@@ -448,3 +448,42 @@ could not be retrieved from a patent database"; regression test
 the fix). Re-run of local_only only (`20261004-150821`): 30/30 declined, 2.5 s each. The
 main experiments A–H are unaffected: every patent number in the test set is in the
 corpus.
+
+### 2026-10-04 — User reports: weak battery searches, chat limited to the library, false hallucination flags
+
+**Patent search.** EPO returns keyword matches newest first, not best first ("battery
+cooling": 86,413 hits; the 25 newest shown), and most hits are CN/US publications whose
+claims OPS does not supply. **Changes:** keyword searches fetch a pool of 50 and rank it by
+semantic similarity (title + abstract vs. the query, or the user's whole question in the
+chat); results carry a "full text" flag (EP/WO) and can be limited to EP/WO; the agent
+searches EP/WO first and imports full-text patents in preference; zero-hit searches drop
+the last keyword and retry.
+
+**Chat and live data.** "Latest patents on X" was treated as a library question, and an
+empty library ended in "insufficient evidence". **Changes:** topic-search wording is
+recognised; when the library has nothing, or the model reads the library's passages and
+answers INSUFFICIENT_EVIDENCE, the agent searches the patent databases once, imports the
+3 most relevant patents and answers from them; a "Patent DBs" switch in the chat does this
+for every question. Observed: the question's own words ("wireless charger detect coin")
+imported a coin-operated charging kiosk; with the LLM rewriting the terms ("foreign object
+detection wireless") and ranking against the whole question, it imported EP4726967A1 and
+WO2026204252A1 and answered correctly (4/5 statements verified, ~2 min for 3 imports).
+Experiments pin `agent_live_fallback=false`, so reruns measure the system as evaluated.
+
+**Hallucination flags.** A user's "summarise this patent" answer showed 1 of 6 statements
+verified although all but one were correct. Causes: (1) the model cited once at the end of
+a paragraph, and uncited-but-supported statements were capped at "partially supported";
+(2) the title passage did not say it was a title; (3) the small NLI model missed
+paraphrases ("combines these likelihoods" for "a combined probability … used to select
+the token"). A larger NLI model (deberta-v3-base) did not fix (2) or (3). **Changes:**
+uncited statements that a passage supports count as supported ("no citation given";
+citation coverage is reported separately); premises state the document title; a new
+`nli_lexical` verifier rescues statements NLI rejects when ≥75% of their key words are in
+one passage, all their numbers match and they add no negation or opposite direction word.
+Designed on the development half of the Experiment I labels (false alarms 24 → 11 of 69,
+unsupported caught 3/3), it was then measured once on the held-out half: 17 → 15 of 68,
+4/6 caught both before and after (`experiments/results/exp_i_verifier_choice/`). NLI's
+own contradiction score was not usable as a guard (0.8–0.99 on correct paraphrases).
+The screenshot answer re-verified: 1/6 → 5/6; the remaining flag is a true paraphrase
+("likelihoods") that word overlap cannot match. An LLM second opinion cut false alarms to
+4 of 69 on the development half but let 1 of 3 unsupported statements through; not used.

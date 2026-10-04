@@ -112,6 +112,10 @@ class Settings(BaseSettings):
     agent_planner: Literal["auto", "rules", "llm"] = "auto"
     agent_similar_import_limit: int = Field(default=3, ge=0, le=10)
     agent_max_recoveries: int = Field(default=1, ge=0, le=3)
+    # When the library cannot answer a general question, search the patent databases,
+    # import the most relevant full-text patents and answer from them.
+    agent_live_fallback: bool = True
+    agent_live_import_limit: int = Field(default=3, ge=1, le=5)
     # select: the agent chooses tools per question | all: run every applicable tool
     # (no selection), the control condition of Experiment F
     agent_tool_policy: Literal["select", "all"] = "select"
@@ -123,7 +127,10 @@ class Settings(BaseSettings):
     verify_mode: Literal["off", "report", "regenerate"] = "regenerate"
     # nli: local entailment model (free) | llm_judge: ask the LLM | lexical: word overlap
     # auto: nli if sentence-transformers is installed, else lexical
-    verifier_method: Literal["auto", "nli", "llm_judge", "lexical"] = "auto"
+    # auto = nli_lexical when the ML extras are installed (NLI + guarded word-overlap check)
+    verifier_method: Literal["auto", "nli", "nli_lexical", "llm_judge", "lexical"] = "auto"
+    # An uncited statement that a passage supports counts as supported (see checker.py)
+    verifier_uncited_supported: bool = True
     verifier_nli_model: str = "cross-encoder/nli-deberta-v3-xsmall"
     grounding_threshold: float = Field(default=0.8, ge=0.0, le=1.0)
     max_regenerations: int = Field(default=1, ge=0, le=2)
@@ -134,6 +141,8 @@ class Settings(BaseSettings):
     uspto_api_key: SecretStr = SecretStr("")
     lens_api_token: SecretStr = SecretStr("")
     patent_cache_ttl_hours: int = Field(default=168, ge=0)
+    # Keyword searches fetch this many candidates and keep the most relevant (OPS max 100)
+    patent_search_pool: int = Field(default=50, ge=10, le=100)
     epo_ops_base_url: str = "https://ops.epo.org/3.2"
     patent_http_timeout_seconds: float = Field(default=30.0, gt=0)
     # A built-in source of SYNTHETIC patents (country code "XX") so the search UI can be

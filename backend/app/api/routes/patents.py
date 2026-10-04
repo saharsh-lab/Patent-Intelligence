@@ -17,6 +17,7 @@ from app.schemas.patents import (
     SourceOutcomeOut,
     SourceStatusOut,
 )
+from app.services.patents import FULL_TEXT_OFFICES
 
 router = APIRouter(prefix="/patents", tags=["patents"])
 
@@ -35,6 +36,7 @@ def search_patents(body: PatentSearchRequest, service: PatentServiceDep) -> Pate
         date_from=body.date_from,
         date_to=body.date_to,
         limit=body.limit,
+        countries=list(FULL_TEXT_OFFICES) if body.full_text_only else [],
     )
     outcome = service.search(
         query,
@@ -42,6 +44,7 @@ def search_patents(body: PatentSearchRequest, service: PatentServiceDep) -> Pate
         dedup=body.dedup,
         reference_document_id=body.rank_against_document_id,
         reference_patent_id=body.rank_against_patent_id,
+        rank_by_relevance=body.rank_by_relevance,
     )
     return PatentSearchResponse(
         results=[PatentResultOut.from_item(item) for item in outcome.results],

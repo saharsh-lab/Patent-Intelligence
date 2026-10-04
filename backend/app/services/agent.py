@@ -81,7 +81,10 @@ class AgentService(AnswerService):
         top_k: int | None = None,
         retrieval_mode: str | None = None,
         rerank: bool | None = None,
+        live_search: bool = False,
     ) -> AgentRun:
+        """`live_search`: also search the patent databases for this question and import
+        the most relevant patents (the chat's "Search patent databases" switch)."""
         started = time.perf_counter()
         config, reranker = self._retrieval_setup(top_k, retrieval_mode, rerank)
         planner = self.planner()
@@ -92,6 +95,8 @@ class AgentService(AnswerService):
                 "max_recoveries": self.settings.agent_max_recoveries,
                 "tool_policy": self.settings.agent_tool_policy,
                 "patent_sources": sorted(self.patent_sources),
+                "live_fallback": self.settings.agent_live_fallback,
+                "live_search": live_search,
             }
         }
         run = self._start_run(
@@ -120,9 +125,13 @@ class AgentService(AnswerService):
             similar_import_limit=self.settings.agent_similar_import_limit,
             max_recoveries=self.settings.agent_max_recoveries,
             tool_policy=self.settings.agent_tool_policy,
+            live_fallback=self.settings.agent_live_fallback,
+            live_import_limit=self.settings.agent_live_import_limit,
         )
         try:
-            state = agent.run(question, list(document_ids or []), list(patent_ids or []))
+            state = agent.run(
+                question, list(document_ids or []), list(patent_ids or []), live_search=live_search
+            )
             self._store(run, state, tracked, started)
         except AppError as exc:
             self._fail(run, exc.message, started)

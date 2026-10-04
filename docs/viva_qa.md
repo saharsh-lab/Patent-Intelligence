@@ -125,7 +125,10 @@ Our NLI verifier caught 5 of the 9 unsupported statements, more than the LLM jud
 strict: our grounding scores are conservative. Agreement beyond chance was low for all
 methods (κ 0.16–0.24). Limits: one annotator, AI-assisted, and only 9 unsupported
 statements, so this is indicative. The planned fix is a second independent labeller
-(the tooling, `make eval-agreement`, is ready).
+(the tooling, `make eval-agreement`, is ready). We then reduced false alarms with a
+guarded word-overlap second look (`nli_lexical`), designed on one half of the labels and
+measured on the other: on the held-out half false alarms fell only from 17 to 15 of 68,
+with the same 4 of 6 problems caught, so we report it as a modest improvement.
 
 **26. What is Cohen's κ?**
 Agreement corrected for chance. 1 = perfect, 0 = no better than chance.
@@ -296,3 +299,18 @@ claim, naming the asked patent. The verifier missed it, because each sentence ma
 cited passage. We fixed it (the agent now says the patent is not available), added a
 regression test, and re-ran that part: 30 of 30 questions correctly declined. We report
 the result before and after the fix.
+
+**55. A user saw correct sentences marked as hallucinations. What did you do?**
+We traced one answer sentence by sentence. Three causes: the model cited once at the end
+of a paragraph (we counted uncited but supported sentences as only partly supported), the
+title passage did not say it was a title, and the small NLI model missed paraphrases. We
+fixed the first two by rule and added a guarded word-overlap check for the third, chosen
+on half of our labels and measured on the other half. The same answer went from 1 of 6 to
+5 of 6 verified; the remaining flag is a genuine paraphrase that word matching cannot see.
+
+**56. What happens if the patent I ask about is not in my library?**
+The agent searches the European Patent Office: if the library has nothing relevant, or
+the model finds the library's passages insufficient, it rewrites the question into patent
+terms, searches EP and WO publications first (they come with claims), ranks the hits
+against the whole question, imports the best three and answers from them. A "Patent DBs"
+switch in the chat does this for every question.

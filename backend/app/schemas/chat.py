@@ -20,6 +20,9 @@ class ConversationRename(BaseModel):
 
 class MessageIn(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
+    live_search: bool = Field(
+        default=False, description="Also search the patent databases for this message"
+    )
 
 
 class ConversationDocument(BaseModel):

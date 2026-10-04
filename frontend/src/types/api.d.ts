@@ -706,6 +706,12 @@ export interface components {
              * @description Default: DEFAULT_PIPELINE setting
              */
             pipeline?: ("agentic" | "baseline") | null;
+            /**
+             * Live Search
+             * @description Agent only: also search the patent databases and import the best matches
+             * @default false
+             */
+            live_search: boolean;
         };
         /** AskResponse */
         AskResponse: {
@@ -1169,6 +1175,12 @@ export interface components {
         MessageIn: {
             /** Message */
             message: string;
+            /**
+             * Live Search
+             * @description Also search the patent databases for this message
+             * @default false
+             */
+            live_search: boolean;
         };
         /** PasswordIn */
         PasswordIn: {
@@ -1268,6 +1280,12 @@ export interface components {
             similarity?: number | null;
             /** Also Published As */
             also_published_as?: string[];
+            /**
+             * Full Text Likely
+             * @description Claims and description can likely be imported (EP/WO)
+             * @default false
+             */
+            full_text_likely: boolean;
         };
         /** PatentSearchRequest */
         PatentSearchRequest: {
@@ -1307,6 +1325,18 @@ export interface components {
             rank_against_document_id?: string | null;
             /** Rank Against Patent Id */
             rank_against_patent_id?: string | null;
+            /**
+             * Rank By Relevance
+             * @description Rank keyword results by semantic relevance to the keywords
+             * @default true
+             */
+            rank_by_relevance: boolean;
+            /**
+             * Full Text Only
+             * @description Only offices whose claims/description the source supplies (EP, WO)
+             * @default false
+             */
+            full_text_only: boolean;
         };
         /** PatentSearchResponse */
         PatentSearchResponse: {

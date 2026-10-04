@@ -194,7 +194,7 @@ class ChatService:
             )
         )
 
-    def send(self, conversation_id: uuid.UUID, message: str) -> AgentRun:
+    def send(self, conversation_id: uuid.UUID, message: str, live_search: bool = False) -> AgentRun:
         conversation = self.get(conversation_id)
         message = message.strip()
         if not message:
@@ -205,12 +205,14 @@ class ChatService:
         patents = [p.id for p in self.patents(conversation)]
 
         service = self._service()
+        extra = {"live_search": live_search} if isinstance(service, AgentService) else {}
         # The owner is applied by the request's owner scope (app/core/ownership.py)
         run = service.ask(
             standalone,
             document_ids=documents or None,
             patent_ids=patents or None,
             conversation_id=conversation.id,
+            **extra,
         )
         run = self.session.get(AgentRun, run.id)
         run.query.meta = {

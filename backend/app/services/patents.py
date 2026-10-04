@@ -11,7 +11,7 @@ Import:  fetch full details (claims/description where available), store a `paten
 import logging
 import time
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -51,12 +51,24 @@ class SourceOutcome:
     error: str | None = None
 
 
+# Offices for which EPO OPS supplies claims and description (English for EP; WO often)
+FULL_TEXT_OFFICES = ("EP", "WO")
+
+
+def full_text_likely(record: PatentRecord) -> bool:
+    return record.publication_number[:2] in FULL_TEXT_OFFICES
+
+
 @dataclass
 class ResultItem:
     record: PatentRecord
     imported_id: uuid.UUID | None = None
-    similarity: float | None = None  # semantic similarity to the reference invention
+    similarity: float | None = None  # semantic similarity to the reference or the query
     also_published_as: list[str] = field(default_factory=list)  # same family
+
+    @property
+    def full_text_likely(self) -> bool:
+        return full_text_likely(self.record)
 
 
 @dataclass
@@ -110,9 +122,17 @@ class PatentService:
         dedup: bool = True,
         reference_document_id: uuid.UUID | None = None,
         reference_patent_id: uuid.UUID | None = None,
+        rank_by_relevance: bool = True,
+        rank_text: str | None = None,
     ) -> SearchOutcome:
         """Search sources; optionally merge patent families and rank by similarity to a
-        reference invention (an uploaded document or imported patent)."""
+        reference invention (an uploaded document or imported patent).
+
+        Without a reference, keyword results are ranked by semantic relevance to the
+        query: the patent office returns matches newest first, not best first, so a
+        larger pool is fetched, ranked by title + abstract, and the best `limit` kept.
+        `rank_text` ranks against a fuller description (e.g. the user's question) than the
+        keywords sent to the patent office."""
         if query.is_empty():
             raise ValidationFailedError("Enter keywords, a CPC code or an applicant to search.")
         names = source_names or list(self.sources)
@@ -123,6 +143,12 @@ class PatentService:
             raise ValidationFailedError(
                 "No patent source is configured. Add EPO credentials to .env (see README)."
             )
+
+        has_reference = bool(reference_document_id or reference_patent_id)
+        rank_query = rank_by_relevance and not has_reference and bool(query.keywords.strip())
+        wanted = query.limit
+        if rank_query:
+            query = replace(query, limit=max(query.limit, self.settings.patent_search_pool))
 
         outcome = SearchOutcome(results=[])
         records: list[PatentRecord] = []
@@ -136,6 +162,7 @@ class PatentService:
                 "date_from": query.date_from,
                 "date_to": query.date_to,
                 "limit": query.limit,
+                "countries": sorted(query.countries),
             }
             try:
                 cached = self.cache.get(f"{name}.search", params)
@@ -175,6 +202,17 @@ class PatentService:
             ranked = rank_by_similarity(self.embedder, text, [i.record for i in items])
             items = []
             for scored in ranked:
+                item = by_number[scored.record.publication_number]
+                item.similarity = round(scored.similarity, 4)
+                items.append(item)
+
+        elif rank_query and items:
+            target = (rank_text or query.keywords).strip()
+            outcome.reference_label = f'relevance to "{target}"'
+            by_number = {i.record.publication_number: i for i in items}
+            ranked = rank_by_similarity(self.embedder, target, [i.record for i in items])
+            items = []
+            for scored in ranked[:wanted]:
                 item = by_number[scored.record.publication_number]
                 item.similarity = round(scored.similarity, 4)
                 items.append(item)

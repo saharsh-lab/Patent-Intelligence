@@ -80,6 +80,7 @@ export function AskWorkspace() {
         retrieval_mode: mode || null,
         rerank: rerank === "" ? null : rerank === "on",
         pipeline,
+        live_search: false,
       });
       await loadedRun.mutate(result, { revalidate: false });
       router.replace(`${pathname}?run=${result.run_id}`, { scroll: false });

@@ -43,6 +43,7 @@ class Judgement:
     best_passage: int | None  # index into the passages given
     reason: str = ""
     contradicted: bool = False
+    contradiction: float = 0.0  # highest contradiction probability seen (NLI only)
 
 
 class Verifier(ABC):
@@ -183,13 +184,112 @@ class NliVerifier(Verifier):
             else:
                 verdict, reason = UNSUPPORTED, f"not stated in the passage (p={entail:.2f})"
             contradicted = verdict == UNSUPPORTED and contra >= 0.5
-            out.append(Judgement(verdict, round(entail, 3), j, reason, contradicted=contradicted))
+            out.append(
+                Judgement(
+                    verdict,
+                    round(entail, 3),
+                    j,
+                    reason,
+                    contradicted=contradicted,
+                    contradiction=round(contra, 3),
+                )
+            )
         return out
 
 
 @lru_cache
 def _shared_nli(model_name: str) -> NliVerifier:
     return NliVerifier(model_name)
+
+
+# ---------------------------------------------------------------- NLI + lexical rescue
+
+_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+_NEGATION = re.compile(r"\b(not|no|never|without|neither|nor|cannot|none)\b|n't\b", re.IGNORECASE)
+
+
+_OPPOSITES = [
+    ("increase", "decrease"),
+    ("higher", "lower"),
+    ("more", "less"),
+    ("above", "below"),
+    ("before", "after"),
+    ("maximum", "minimum"),
+    ("upper", "lower"),
+    ("inlet", "outlet"),
+    ("open", "close"),
+    ("enable", "disable"),
+    ("heat", "cool"),
+    ("left", "right"),
+    ("first", "second"),
+    ("inside", "outside"),
+    ("series", "parallel"),
+]
+
+
+def _has(word: str, text: str) -> bool:
+    return re.search(rf"\b{word}", text, re.IGNORECASE) is not None
+
+
+def safe_to_rescue(claim: str, passage: str) -> bool:
+    """Word overlap is fooled by a changed number, an added negation or a swapped
+    direction ("increases" for "decreases"): refuse the rescue in those cases."""
+    if not set(_NUMBER.findall(claim)) <= set(_NUMBER.findall(passage)):
+        return False
+    if _NEGATION.search(claim) and not _NEGATION.search(passage):
+        return False
+    for a, b in _OPPOSITES:
+        for word, opposite in ((a, b), (b, a)):
+            if _has(word, claim) and not _has(word, passage) and _has(opposite, passage):
+                return False
+    return True
+
+
+class NliLexicalVerifier(Verifier):
+    """NLI, with a guarded second look at the statements it does not support.
+
+    Observed (Experiment I, 2026-10-04): the small NLI model flagged 30% of statements a
+    labeller judged supported, mostly paraphrases ("combines these likelihoods" for "a
+    combined probability ... used to select the token") and metadata ("the patent's title
+    is ..."). If at least 75% of the key words of such a statement appear in one passage
+    (the lexical verifier's "supported" level), its numbers match, and it adds no negation
+    or opposite direction word, it counts as supported. Requiring all key words removed
+    almost all of the gain on the development labels (23 vs 11 false alarms of 69). Known
+    limit: one unstated detail in a short statement can pass. See docs/report 6.6.
+    """
+
+    name = "nli_lexical"
+
+    def __init__(self, nli: NliVerifier):
+        self.nli = nli
+        self.lexical = LexicalVerifier()
+
+    def judge(self, claims, passages_per_claim):
+        nli = self.nli.judge(claims, passages_per_claim)
+        lexical = self.lexical.judge(claims, passages_per_claim)
+        out = []
+        for claim, passages, n, w in zip(claims, passages_per_claim, nli, lexical, strict=True):
+            rescue = (
+                n.verdict != SUPPORTED
+                and w.verdict == SUPPORTED
+                and w.best_passage is not None
+                # NLI's contradiction score is not used: the small model gave 0.8-0.99 to
+                # many correct paraphrases on the development labels
+                and safe_to_rescue(claim, passages[w.best_passage])
+            )
+            if rescue:
+                out.append(
+                    Judgement(
+                        SUPPORTED,
+                        w.score,
+                        w.best_passage,
+                        f"all key terms in the passage ({w.reason}); NLI p={n.score:.2f}",
+                        contradiction=n.contradiction,
+                    )
+                )
+            else:
+                out.append(n)
+        return out
 
 
 # ---------------------------------------------------------------- LLM judge
@@ -246,11 +346,13 @@ def build_verifier(method: str, *, nli_model: str, llm: LLMProvider | None) -> V
         try:
             import sentence_transformers  # noqa: F401
 
-            method = "nli"
+            method = "nli_lexical"
         except ImportError:
             method = "lexical"
     if method == "nli":
         return _shared_nli(nli_model)
+    if method == "nli_lexical":
+        return NliLexicalVerifier(_shared_nli(nli_model))
     if method == "llm_judge":
         if llm is None:
             raise ConfigurationError("The LLM judge verifier needs an LLM.")

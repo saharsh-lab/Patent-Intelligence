@@ -34,6 +34,10 @@ class AskRequest(BaseModel):
     pipeline: Literal["agentic", "baseline"] | None = Field(
         default=None, description="Default: DEFAULT_PIPELINE setting"
     )
+    live_search: bool = Field(
+        default=False,
+        description="Agent only: also search the patent databases and import the best matches",
+    )
 
 
 class AnswerSentenceOut(BaseModel):

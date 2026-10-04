@@ -29,8 +29,9 @@ def ask(
     pipeline="baseline": fixed retrieve-then-generate over the local index.
     Returns 200 for both answered and 'insufficient_evidence' outcomes; check `status`.
     """
-    service = agent if (body.pipeline or settings.default_pipeline) == "agentic" else baseline
-    run = service.ask(
+    agentic = (body.pipeline or settings.default_pipeline) == "agentic"
+    extra = {"live_search": body.live_search} if agentic else {}
+    run = (agent if agentic else baseline).ask(
         body.question,
         document_ids=body.document_ids,
         patent_ids=body.patent_ids,
@@ -38,6 +39,7 @@ def ask(
         top_k=body.top_k,
         retrieval_mode=body.retrieval_mode,
         rerank=body.rerank,
+        **extra,
     )
     return AskResponse.from_run(run)
 

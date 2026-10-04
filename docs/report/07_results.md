@@ -383,6 +383,27 @@ Confusion matrix of the NLI verifier used in the system (rows: label, columns: v
 - **Word overlap** reached the highest κ (0.24) and detection F1 (0.42), but with only 9
   unsupported statements these differences between methods are within noise.
 
+**Follow-up: reducing false alarms (after the main experiments).** A verifier variant was
+designed on half of these labels and measured on the other half (split by a hash of the
+statement id; `experiments/results/exp_i_verifier_choice/20261004-160727`). `nli_lexical`
+keeps the NLI verdict but rescues a rejected statement when at least 75% of its key words
+appear in one passage, its numbers all appear there, and it adds no negation or opposite
+direction word.
+
+| Half | Method | Accuracy | κ | False alarms | Unsupported caught |
+|---|---|---|---|---|---|
+| development (72) | nli | 0.653 | 0.114 | 24/69 | 3/3 |
+| development (72) | nli_lexical | 0.833 | 0.250 | 11/69 | 3/3 |
+| test (78) | nli | 0.718 | 0.249 | 17/68 | 4/6 |
+| test (78) | nli_lexical | 0.744 | 0.278 | 15/68 | 4/6 |
+
+On the held-out half the gain is small (two fewer false alarms, no change in detection);
+the larger development-half gain partly reflects that the guards were designed there.
+Two further changes that do not depend on these labels were made at the same time:
+uncited statements that a passage supports now count as supported (citation coverage is
+reported separately), and each premise states the document title. The application uses
+these changes; the experiments in 6.1–6.5 were measured with the original verifier.
+
 RQ4 is therefore answered only partially and with caution: on this sample, none of the
 three automatic verifiers agrees well with the (AI-assisted, single-annotator) labels,
 and the deployed NLI verifier errs on the side of flagging statements.

@@ -35,7 +35,7 @@ from app.patents.registry import choose_source
 from app.rag.embeddings import EmbeddingProvider
 from app.rag.reranker import Reranker
 from app.rag.retrieval import RetrievalConfig, RetrievalResult, RetrievedPassage, retrieve
-from app.services.patents import PatentService
+from app.services.patents import FULL_TEXT_OFFICES, PatentService
 
 
 @dataclass
@@ -173,22 +173,59 @@ def retrieve_document_section(
 
 @tool
 def search_patents(
-    ctx: ToolContext, keywords: str, limit: int = 10, reference: Target | None = None
+    ctx: ToolContext,
+    keywords: str,
+    limit: int = 10,
+    reference: Target | None = None,
+    full_text_first: bool = True,
+    rank_text: str | None = None,
 ) -> ToolResult:
     """Search external databases; merge patent families; if a reference invention is
-    given, rank candidates by semantic similarity to it."""
+    given, rank candidates by semantic similarity to it.
+
+    `full_text_first`: search the offices whose claims and description can be imported
+    (EP, WO) first, and fill up from all offices only if that finds too few. Observed
+    (2026-10-04): an unrestricted battery search returned mostly CN/US publications,
+    which import with an abstract only, so the agent could not discuss their claims."""
     if not ctx.patents.sources:
         raise AppError("No patent source is configured.", code="no_patent_source")
     indexed_reference = reference if reference and reference.id else None
-    outcome = ctx.patents.search(
-        PatentQuery(keywords=keywords, limit=limit),
-        reference_document_id=indexed_reference.id
+    reference_args = {
+        "reference_document_id": indexed_reference.id
         if indexed_reference and indexed_reference.kind == "document"
         else None,
-        reference_patent_id=indexed_reference.id
+        "reference_patent_id": indexed_reference.id
         if indexed_reference and indexed_reference.kind == "patent"
         else None,
-    )
+    }
+
+    def run(words: str, countries: list[str]):
+        return ctx.patents.search(
+            PatentQuery(keywords=words, limit=limit, countries=countries),
+            rank_text=rank_text,
+            **reference_args,
+        )
+
+    def search(countries: list[str]):
+        # The office requires every keyword in the title/abstract: when nothing matches,
+        # drop the last keyword and try again (down to two).
+        words = keywords.split()
+        outcome = run(" ".join(words), countries)
+        while not outcome.results and len(words) > 2:
+            words = words[:-1]
+            outcome = run(" ".join(words), countries)
+        return outcome
+
+    outcome = search(list(FULL_TEXT_OFFICES)) if full_text_first else None
+    if outcome is None or len(outcome.results) < 3:
+        broad = search([])
+        if outcome is not None:  # keep the full-text hits first
+            known = {i.record.publication_number for i in outcome.results}
+            broad.results = outcome.results + [
+                i for i in broad.results if i.record.publication_number not in known
+            ]
+            broad.sources = outcome.sources + broad.sources
+        outcome = broad
     failures = [s for s in outcome.sources if s.error]
     if failures and len(failures) == len(outcome.sources):
         raise AppError("; ".join(f"{s.source}: {s.error}" for s in failures), code="search_failed")
@@ -200,6 +237,7 @@ def search_patents(
             "imported_id": str(item.imported_id) if item.imported_id else None,
             "similarity": item.similarity,
             "also_published_as": item.also_published_as,
+            "full_text": item.full_text_likely,
         }
         for item in outcome.results
     ]
@@ -213,9 +251,10 @@ def search_patents(
         extras.append(f"{outcome.deduplicated} family duplicates merged")
     if outcome.reference_label and candidates:
         best = candidates[0]
+        label = outcome.reference_label
+        ranked_by = label if label.startswith("relevance") else f"similarity to {label}"
         extras.append(
-            f"ranked by similarity to {outcome.reference_label} "
-            f"(best {best['publication_number']} {best['similarity']:.2f})"
+            f"ranked by {ranked_by} (best {best['publication_number']} {best['similarity']:.2f})"
         )
     return ToolResult(
         f'"{keywords}" → ' + ", ".join(parts) + "".join(f"; {e}" for e in extras),

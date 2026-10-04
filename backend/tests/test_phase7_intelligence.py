@@ -217,7 +217,8 @@ def test_search_merges_families_and_ranks_by_similarity(api, docs):
 @pytest.mark.db
 def test_search_without_dedup_or_ranking_keeps_api_order(api):
     body = api.post(
-        "/patents/search", json={"keywords": "pump", "sources": ["stub"], "dedup": False}
+        "/patents/search",
+        json={"keywords": "pump", "sources": ["stub"], "dedup": False, "rank_by_relevance": False},
     ).json()
     assert [r["publication_number"] for r in body["results"]] == [
         "XX0000010A1",

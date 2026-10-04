@@ -40,6 +40,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   const [error, setError] = useState<unknown>(null);
   const [dragging, setDragging] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [liveSearch, setLiveSearch] = useState(false); // also search the patent databases
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
@@ -79,7 +80,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
     let id: string | null = null;
     try {
       id = await ensureConversation();
-      await chat.send(id, message);
+      await chat.send(id, message, liveSearch);
       await Promise.all([mutateGlobal(`/conversations/${id}`), mutateGlobal("/conversations")]);
     } catch (e) {
       // A slow answer can outlast the connection although the server finished it:
@@ -182,7 +183,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
             </span>
           ))}
           <span className="ml-auto text-xs text-muted">
-            {documents.length ? `Answers use ${documents.length === 1 ? "this document" : "these documents"}` : "Answers search all your documents"}
+            {documents.length ? `Answers use ${documents.length === 1 ? "this document" : "these documents"}` : liveSearch ? "Answers search your library and the patent databases" : "Answers search your library (and the patent databases if it has no answer)"}
           </span>
         </div>
       </header>
@@ -237,7 +238,8 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
               )}
               {documents.length === 0 && (
                 <p className="mt-6 text-xs text-muted">
-                  Or just type a question: it searches your <Link href="/documents" className="text-accent hover:underline">library</Link>.
+                  Or just type a question: it searches your <Link href="/documents" className="text-accent hover:underline">library</Link>,
+                  and the patent databases when the library has no answer. Try &ldquo;latest patents on battery immersion cooling&rdquo;.
                 </p>
               )}
             </div>
@@ -253,7 +255,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
               <div className="flex gap-3">
                 <AssistantAvatar />
                 <div className="rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 text-sm shadow-card">
-                  <Spinner label={`Searching, answering and checking every sentence… ${elapsed} s`} />
+                  <Spinner label={`${liveSearch ? "Searching the patent databases, importing, answering" : "Searching, answering"} and checking every sentence… ${elapsed} s`} />
                 </div>
               </div>
             </div>
@@ -277,6 +279,19 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
             className="rounded-xl p-2 text-muted hover:bg-surface-2 hover:text-accent" title="Attach PDF, DOCX or TXT">
             <icons.paperclip />
           </button>
+          <button
+            type="button"
+            onClick={() => setLiveSearch((v) => !v)}
+            aria-pressed={liveSearch}
+            aria-label="Search patent databases"
+            title={liveSearch
+              ? "On: each question also searches the patent databases (EPO) and imports the most relevant patents"
+              : "Off: answers come from your library; the patent databases are searched only when it has no answer"}
+            className={`flex items-center gap-1 rounded-xl px-2 py-2 text-xs font-medium ${liveSearch ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-accent"}`}
+          >
+            <icons.globe width={16} height={16} />
+            <span className="hidden sm:inline">Patent DBs</span>
+          </button>
           <textarea
             ref={textarea}
             value={draft}
@@ -284,7 +299,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
             onKeyDown={onKeyDown}
             rows={1}
             maxLength={2000}
-            placeholder={documents.length ? "Ask about the attached documents…" : "Ask about your patents…"}
+            placeholder={documents.length ? "Ask about the attached documents…" : liveSearch ? "Ask anything: patent databases are searched too…" : "Ask about patents…"}
             aria-label="Message"
             className="max-h-40 min-h-[2.5rem] flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none"
             style={{ height: `${Math.min(160, 40 + Math.max(0, draft.split("\n").length - 1) * 20)}px` }}
