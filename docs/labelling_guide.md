@@ -49,14 +49,22 @@ Edge cases:
 
 ## Procedure
 
-1. Two team members label the **same** file independently, saving their copies as
-   `<file>_A.csv` and `<file>_B.csv`.
-2. Compute the agreement between the two people (Cohen's κ). The same function the
-   framework uses works: `app.evaluation.metrics.cohen_kappa`. Human-human agreement is
-   the ceiling: no verifier can be expected to agree with people better than people agree
-   with each other.
-3. Discuss the disagreements and agree on a final verdict for each. Save the result as
-   the file that `experiments/configs/exp_i_verifiers.yaml` points to.
+The file to label for the final results is `experiments/labels/test_claims_unlabelled.csv`
+(150 statements sampled from the final Experiment A answers on the test set).
+
+1. Two team members label the **same** file independently, without talking about it,
+   saving their copies as `experiments/labels/test_claims_A.csv` and `test_claims_B.csv`.
+   Open the CSV in Excel/Numbers/Google Sheets; fill only `human_verdict` (`s`, `p` or
+   `u`) and, if useful, `notes`. Save as CSV (UTF-8).
+2. `make eval-agreement LABELS=experiments/labels/test_claims` prints the agreement
+   between the two people (Cohen's κ) and writes `test_claims.csv`, with every verdict
+   you both agree on already filled in. Human-human agreement is the ceiling: no
+   verifier can be expected to agree with people better than people agree with each
+   other. Write the κ down for the report (it is also saved in
+   `test_claims.agreement.json`).
+3. In `test_claims.csv`, the rows whose notes start with `TO SETTLE` are your
+   disagreements: discuss each one, fill in the agreed verdict. The verifier experiment
+   refuses to run while any of them is still empty.
 4. Run `make eval-verifier`.
 
 Report human-human κ next to each verifier's κ and accuracy.

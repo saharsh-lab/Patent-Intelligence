@@ -204,3 +204,40 @@ def test_label_check_reports_a_mistyped_quote(tmp_path):
     path.write_text(text.replace("corpus/", f"{DEV.parent}/corpus/"))
     problems = check_labels(load_dataset(path), get_settings())
     assert any("q01" in p and "matches nothing (section_aware)" in p for p in problems)
+
+
+def test_two_labellers_are_compared_and_disagreements_left_to_settle(tmp_path):
+    import csv
+
+    from app.evaluation.verifier_eval import compare_labellers, load_labels
+
+    fields = ["claim_id", "question", "statement", "cited", "passages", "human_verdict", "notes"]
+
+    def write(path, verdicts):
+        with path.open("w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fields)
+            writer.writeheader()
+            for i, v in enumerate(verdicts):
+                writer.writerow(
+                    {"claim_id": f"r:{i}", "statement": f"s{i}", "passages": "p", "cited": "E1"}
+                    | {"question": "q", "human_verdict": v, "notes": ""}
+                )
+
+    a, b, out = tmp_path / "x_A.csv", tmp_path / "x_B.csv", tmp_path / "x.csv"
+    write(a, ["s", "s", "u", "p", "s"])
+    write(b, ["s", "supported", "u", "u", ""])
+    result = compare_labellers(a, b, out)
+    assert result["labelled_by_both"] == 4 and result["disagreements"] == 1
+    assert result["missing_a_label"] == 1
+    assert result["agreement"]["accuracy"] == 0.75
+    assert (tmp_path / "x.agreement.json").exists()
+
+    merged = list(csv.DictReader(out.open()))
+    assert [r["human_verdict"] for r in merged] == ["supported", "supported", "unsupported", "", ""]
+    assert merged[3]["notes"].startswith("TO SETTLE: A=partially_supported B=unsupported")
+    with pytest.raises(ValueError, match="not settled"):
+        load_labels(out)  # unsettled rows are never silently dropped
+
+    write(b, ["s", "s", "u"])  # a different export
+    with pytest.raises(ValueError, match="different statements"):
+        compare_labellers(a, b, out)

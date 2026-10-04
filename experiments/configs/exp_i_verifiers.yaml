@@ -4,5 +4,5 @@
 # 3. point `labels` at it and run: python -m app.evaluation verifier --config <this file>
 name: exp_i_verifiers
 description: NLI vs. LLM judge vs. lexical overlap, scored against human labels (Experiment I).
-labels: ../labels/dev_claims.csv
+labels: ../labels/test_claims.csv  # merged + settled labels of test_claims_unlabelled.csv
 methods: [lexical, nli, llm_judge]

@@ -132,6 +132,12 @@ def load_labels(path: Path) -> list[dict]:
             raise ValueError(f"{path}: missing columns {sorted(missing)}")
         for line, row in enumerate(reader, start=2):
             if not (row.get("human_verdict") or "").strip():
+                if (row.get("notes") or "").startswith("TO SETTLE"):
+                    # skipping these would drop exactly the hard cases from the evaluation
+                    raise ValueError(
+                        f"{path} line {line}: a disagreement between the labellers is not "
+                        "settled yet (fill in human_verdict)"
+                    )
                 continue
             verdict = normalize_verdict(row["human_verdict"])
             if verdict is None:
@@ -144,6 +150,75 @@ def load_labels(path: Path) -> list[dict]:
     if not rows:
         raise ValueError(f"{path}: no labelled rows yet (fill in the human_verdict column)")
     return rows
+
+
+def compare_labellers(path_a: Path, path_b: Path, out: Path) -> dict:
+    """Agreement between two people who labelled the same export independently.
+
+    Writes `out`: verdicts both agree on are filled in; disagreements (and statements only
+    one person labelled) are left empty with both answers in `notes`, to be settled in a
+    discussion. Returns human-human agreement (κ is the ceiling for any verifier)."""
+
+    def read(path: Path) -> tuple[list[str], dict[str, dict]]:
+        with Path(path).open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            fields = list(reader.fieldnames or [])
+            if "claim_id" not in fields or "human_verdict" not in fields:
+                raise ValueError(f"{path}: not an exported label file (claim_id, human_verdict)")
+            rows = {row["claim_id"]: row for row in reader}
+        for line, row in enumerate(rows.values(), start=2):
+            value = (row.get("human_verdict") or "").strip()
+            if value and normalize_verdict(value) is None:
+                raise ValueError(f"{path} line {line}: human_verdict {value!r} is not s/p/u")
+        return fields, rows
+
+    fields, rows_a = read(path_a)
+    _, rows_b = read(path_b)
+    if set(rows_a) != set(rows_b):
+        raise ValueError("the two files contain different statements; label the same export")
+
+    both_a, both_b, merged = [], [], []
+    disagreements = unlabelled = 0
+    for claim_id, row in rows_a.items():
+        a = normalize_verdict(row.get("human_verdict") or "")
+        b = normalize_verdict(rows_b[claim_id].get("human_verdict") or "")
+        notes = [n for n in (row.get("notes"), rows_b[claim_id].get("notes")) if n]
+        out_row = dict(row)
+        if a and b:
+            both_a.append(a)
+            both_b.append(b)
+        if a and a == b:
+            out_row["human_verdict"] = a
+            out_row["notes"] = " | ".join(notes)
+        else:
+            if a and b:
+                disagreements += 1
+            else:
+                unlabelled += 1
+            out_row["human_verdict"] = ""
+            out_row["notes"] = f"TO SETTLE: A={a or '-'} B={b or '-'}" + (
+                " | " + " | ".join(notes) if notes else ""
+            )
+        merged.append(out_row)
+
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(merged)
+
+    result = {
+        "file_a": str(path_a),
+        "file_b": str(path_b),
+        "statements": len(rows_a),
+        "labelled_by_both": len(both_a),
+        "disagreements": disagreements,
+        "missing_a_label": unlabelled,
+        "agreement": agreement(both_a, both_b) if both_a else None,
+    }
+    out.with_suffix(".agreement.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    return result
 
 
 # ------------------------------------------------------------------ evaluation

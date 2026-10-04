@@ -353,6 +353,30 @@ def cmd_selfcheck(args) -> int:
     return 0
 
 
+def cmd_agreement(args) -> int:
+    """Experiment I, step 2: human-human agreement and a merged file to settle."""
+    from app.evaluation.verifier_eval import compare_labellers
+
+    out = args.out or args.a.with_name(args.a.stem.removesuffix("_A") + ".csv")
+    result = compare_labellers(args.a, args.b, out)
+    stats = result["agreement"]
+    _log(f"{result['labelled_by_both']} of {result['statements']} statements labelled by both.")
+    if stats:
+        kappa = stats["cohen_kappa"]
+        _log(
+            f"Agreement {stats['accuracy']:.1%}, Cohen's kappa "
+            f"{'undefined' if kappa is None else f'{kappa:.3f}'} (report this next to the "
+            "verifiers' kappa: it is the ceiling)."
+        )
+    _log(
+        f"Wrote {out}: {result['disagreements']} disagreements and "
+        f"{result['missing_a_label']} statements labelled by only one person are left empty "
+        "(see 'TO SETTLE' in notes). Settle them together, fill in human_verdict, then point "
+        "exp_i_verifiers.yaml at this file and run the verifier command."
+    )
+    return 0
+
+
 def cmd_verifier(args) -> int:
     from app.evaluation.verifier_eval import evaluate_verifiers, load_verifier_config
 
@@ -412,6 +436,12 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("selfcheck", help="invention-analysis self-check (no labels needed)")
     p.add_argument("--config", required=True, type=Path)
     p.set_defaults(func=cmd_selfcheck)
+
+    p = sub.add_parser("agreement", help="compare two people's labels (Experiment I step 2)")
+    p.add_argument("--a", required=True, type=Path, help="first person's CSV (<file>_A.csv)")
+    p.add_argument("--b", required=True, type=Path, help="second person's CSV (<file>_B.csv)")
+    p.add_argument("--out", type=Path, help="merged CSV (default: <file>.csv)")
+    p.set_defaults(func=cmd_agreement)
 
     p = sub.add_parser("verifier", help="score verifier methods against human labels")
     p.add_argument("--config", required=True, type=Path)
