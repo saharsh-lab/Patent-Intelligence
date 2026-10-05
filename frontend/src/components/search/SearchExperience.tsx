@@ -8,7 +8,7 @@ import { useSWRConfig } from "swr";
 import { AnswerPanel } from "@/components/search/AnswerPanel";
 import { Background } from "@/components/search/Background";
 import { LoadingState } from "@/components/search/LoadingState";
-import { LogoMark } from "@/components/search/Logo";
+import { LogoMark, NEW_SEARCH_EVENT } from "@/components/search/Logo";
 import { SearchBar } from "@/components/search/SearchBar";
 import { SourceCard } from "@/components/search/SourceCard";
 import { SUGGESTIONS, SearchError, demoResult, describeError, followUpSuggestions, runTurn, type SearchResult } from "@/lib/search";
@@ -116,6 +116,18 @@ export function SearchExperience() {
   }
 
   useEffect(() => () => controller.current?.abort(), []);
+
+  // The sidebar logo means "start over", even when this page is already open
+  useEffect(() => {
+    const onNew = () => {
+      controller.current?.abort();
+      setTurns([]);
+      setQuery("");
+      setConversationId(null);
+    };
+    window.addEventListener(NEW_SEARCH_EVENT, onNew);
+    return () => window.removeEventListener(NEW_SEARCH_EVENT, onNew);
+  }, []);
 
   const busy = turns.some((t) => t.phase === "loading");
   const started = turns.length > 0;

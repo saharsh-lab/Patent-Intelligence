@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import useSWR from "swr";
 
 import { icons } from "@/components/icons";
-import { Wordmark } from "@/components/search/Logo";
+import { NEW_SEARCH_EVENT, Wordmark } from "@/components/search/Logo";
 import { Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
 import { auth, initials, useAuth, type User } from "@/lib/auth";
@@ -141,7 +141,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/search" className="rounded-lg">
+    <Link
+      href="/search"
+      // Already on /search, a link to the same URL would change nothing: ask the
+      // search page to return to its start screen, like the logo in its top bar
+      onClick={() => window.dispatchEvent(new Event(NEW_SEARCH_EVENT))}
+      className="rounded-lg"
+    >
       <Wordmark compact={compact} draw />
     </Link>
   );

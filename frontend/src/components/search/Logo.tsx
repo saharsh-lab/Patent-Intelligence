@@ -11,6 +11,9 @@ export function LogoMark({ size = 32, draw = false, className = "" }: { size?: n
   );
 }
 
+/** Fired by the sidebar logo; the search page resets to its start screen. */
+export const NEW_SEARCH_EVENT = "pi:new-search";
+
 export function Wordmark({ compact = false, draw = false }: { compact?: boolean; draw?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
