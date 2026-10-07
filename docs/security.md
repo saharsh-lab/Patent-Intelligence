@@ -19,7 +19,7 @@ needed for HTTPS when the app is exposed to a network.
 
 | Requirement | Implementation | Verified by |
 |---|---|---|
-| `.env` configuration | `app/core/config.py` (Pydantic Settings); `.env` is git-ignored; `.env.example` documents every variable | — |
+| `.env` configuration | `app/core/config.py` (Pydantic Settings); `.env` is git-ignored; `app/core/config.py` documents every variable | — |
 | No hard-coded secrets | Keys exist only as `SecretStr` settings read from the environment; prints as `**********` | tests (Phase 0) |
 | Never log secrets | Redacting log formatter masks API keys, bearer tokens, DB passwords (`app/core/logging.py`); request logs hold method, path, status and time only | tests (Phase 0) |
 | Secrets never reach the frontend | The browser only calls the Next.js server; `/api/*` is proxied server-side; `/system/info` returns an allow-list of harmless values; in Docker, the web container receives no secrets | `/system/info` test; `docker exec rag-web-1 env` check (Phase 11) |

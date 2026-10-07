@@ -73,7 +73,7 @@ and [docs/concepts.md](docs/concepts.md) for plain-language explanations.
 Requirements: Python 3.12, Docker Desktop, Node 20+ (from Phase 4).
 
 ```bash
-make setup     # virtualenv + dependencies + creates .env from .env.example
+make setup     # virtualenv + dependencies (+ .env from a local .env.example, if you have one)
 make db-up     # start PostgreSQL + pgvector on localhost:5434
 make migrate   # create the tables
 make test      # run the test suite
@@ -129,7 +129,7 @@ Without `make`, the same steps are:
 ```bash
 python3.12 -m venv backend/.venv
 backend/.venv/bin/pip install -r backend/requirements-dev.txt
-cp .env.example .env
+# optional: create .env with your settings (see "Environment variables" below)
 docker compose up -d --wait db
 cd backend && .venv/bin/alembic upgrade head && .venv/bin/pytest
 .venv/bin/uvicorn app.main:app --reload
@@ -166,8 +166,9 @@ and [docs/labelling_guide.md](docs/labelling_guide.md).
 
 ## Environment variables
 
-All configuration is in `.env` (copied from [.env.example](.env.example)). Never
-commit `.env`. The defaults run fully offline and free (`LLM_PROVIDER=fake`,
+All configuration is in an optional `.env` file in the project root. Every setting,
+its default and its description is defined in `backend/app/core/config.py` (the
+`.env` template is kept out of the repository). Never commit `.env`. The defaults run fully offline and free (`LLM_PROVIDER=fake`,
 `EMBEDDING_PROVIDER=fake`).
 
 ## API keys: what you need and where to get it

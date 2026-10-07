@@ -9,7 +9,8 @@ help:  ## List available commands
 setup:  ## Create the Python virtualenv and install dependencies
 	python3.12 -m venv backend/.venv
 	$(PY)/pip install -r backend/requirements-dev.txt
-	@test -f .env || (cp .env.example .env && echo "Created .env from .env.example")
+	@test -f .env || test ! -f .env.example || (cp .env.example .env && echo "Created .env from .env.example")
+	@test -f .env || echo "No .env: running on the built-in defaults (see 'Environment variables' in README.md)"
 
 setup-ml:  ## Install local embedding models support (PyTorch, ~1 GB)
 	$(PY)/pip install -r backend/requirements-ml.txt
