@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Patent Intelligence: web app
 
-## Getting Started
+The web interface of the Agentic RAG patent intelligence system. It is a Next.js 16
+(App Router, React 19) app styled with Tailwind CSS 4 and animated with framer-motion.
+The browser only talks to this Next.js server; requests to `/api/*` are forwarded to
+the FastAPI backend (see `next.config.ts`), so the backend address never reaches the
+browser and no CORS setup is needed.
 
-First, run the development server:
+## Pages
+
+| Route | What it does |
+|---|---|
+| `/search` (home) | Ask a question; the answer cites numbered sources, and follow-ups continue the same thread |
+| `/chat` | Conversations with attached documents or patents, with memory for follow-ups |
+| `/documents`, `/patents`, `/compare` | Library: upload documents, find and import patents, compare 2–4 sources |
+| `/invention` | Invention analysis: feature-by-feature comparison against the closest documents |
+| `/watches` | Patent watch: follow a topic and see newly published patents |
+| `/evaluation`, `/ask`, `/settings` | Research tools: experiment results, the full-option research console, system status |
+
+If the backend cannot be reached, `/search` answers from the backend's built-in
+**synthetic** demo patents (country code "XX") and says so on screen.
+
+## Run it
+
+From the project root (the backend must be running too, see the main README):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+make web-setup   # install dependencies
+make web         # http://localhost:3000, backend expected at http://localhost:8000
+make demo        # or: API on :8100 + this UI on :3000 with the real local models
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Or directly:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+BACKEND_URL=http://localhost:8000 npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`BACKEND_URL` is server-side only. It is read when the dev server starts and baked
+into a production build, so set it for `npm run build` as well.
 
-## Learn More
+## Checks
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run typecheck   # TypeScript
+npm run lint        # ESLint
+npm test            # unit tests (Vitest)
+npm run gen:api     # regenerate src/types/api.d.ts after backend API changes
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Layout
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/app/            routes (one folder per page); template.tsx animates page entry
+src/components/     UI by feature (search, chat, ask, invention, evaluation, …) + ui.tsx
+src/lib/            API clients, citation parsing, formatting (with unit tests)
+src/types/api.d.ts  types generated from the backend's OpenAPI schema
+```
 
-## Deploy on Vercel
+Design tokens (colours, fonts, the grid-paper background) and the shared animation
+classes live in `src/app/globals.css`. Motion respects `prefers-reduced-motion`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Technical information only: the app reports technical similarity and evidence from
+sources. It is not legal advice and does not assess patent validity or infringement.
