@@ -110,6 +110,17 @@ Check it works: open http://localhost:8000/health/ready. You should see
 3. Record real responses once, so tests also check the real format:
    `cd backend && .venv/bin/python -m scripts.record_epo_fixtures`
 
+### Web search (general questions)
+
+Questions that are not about your own documents ("What is a patent claim?", "How do
+solid-state batteries work?") are answered from web pages found for the question; every
+sentence cites a page and goes through the hallucination check. Pages are used for that
+answer only and never stored in the library.
+
+- With `TAVILY_API_KEY` in `.env` (free at https://tavily.com): the open web.
+- Without it: Wikipedia only (no key needed).
+- `WEB_SEARCH_PROVIDER=off` turns web search off; experiments always run without it.
+
 Without keys you can still try the Patent Search page with `PATENT_DEMO_SOURCE=true`
 (synthetic records with country code `XX`; never use them for experiments).
 
@@ -179,6 +190,7 @@ its default and its description is defined in `backend/app/core/config.py` (the
 | `LENS_API_TOKEN` | Phase 5 (cross-check) | lens.org account → request Patent API access | Free for academic/non-commercial use, on approval (**apply early**) |
 | `USPTO_API_KEY` | Phase 5 (optional) | USPTO Open Data Portal (data.uspto.gov); requires identity verification | Free |
 | `LLM_API_KEY` | Phase 3 | e.g. platform.openai.com, or a free-tier OpenAI-compatible provider. Not needed for a local Ollama model | Pay-per-use or free tier |
+| `TAVILY_API_KEY` | Optional (web search) | tavily.com → sign up → API key | Free tier (1 credit per question) |
 | `LANGSMITH_API_KEY` | Optional | smith.langchain.com | Free developer tier |
 
 WIPO PATENTSCOPE's web-service API is a paid subscription, so the plan uses Lens

@@ -23,12 +23,15 @@ from app.patents.base import PatentSource
 from app.rag.embeddings import EmbeddingProvider
 from app.services.answering import AnswerService
 from app.services.patents import PatentService
+from app.web.search import build_web_search
 
 logger = logging.getLogger(__name__)
 
 SOURCE_OF_TOOL = {
     "search_patents": "patent_databases",
     "get_patent_details": "patent_databases",
+    "search_patent_abstracts": "patent_databases",
+    "search_web": "web",
 }
 
 
@@ -97,6 +100,9 @@ class AgentService(AnswerService):
                 "patent_sources": sorted(self.patent_sources),
                 "live_fallback": self.settings.agent_live_fallback,
                 "live_search": live_search,
+                "web_search": self.settings.web_search_provider
+                if self.settings.agent_web_search
+                else "off",
             }
         }
         run = self._start_run(
@@ -118,6 +124,7 @@ class AgentService(AnswerService):
             retrieval=config,
             reranker=reranker,
             use_llm_helpers=planner == "llm",
+            web=build_web_search(self.settings) if self.settings.agent_web_search else None,
         )
         agent = AgentGraph(
             ctx,
@@ -126,6 +133,7 @@ class AgentService(AnswerService):
             max_recoveries=self.settings.agent_max_recoveries,
             tool_policy=self.settings.agent_tool_policy,
             live_fallback=self.settings.agent_live_fallback,
+            web_search=self.settings.agent_web_search,
             live_import_limit=self.settings.agent_live_import_limit,
         )
         try:

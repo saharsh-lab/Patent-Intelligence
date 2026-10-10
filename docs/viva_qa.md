@@ -328,3 +328,16 @@ that accepts synonyms but not added reasons. That keeps cost proportional to dou
 Yes, since this fix: if a sentence names a patent number and its supporting passage comes
 from a different patent, it is marked unsupported, however well the words match. Meaning-
 based checks alone cannot see this, because the text itself is correct.
+
+**59. Can it answer general questions, like ChatGPT?**
+Yes, but differently: it searches the web (Tavily, or Wikipedia without a key) and answers
+from the pages it found, citing each sentence and checking it with the same hallucination
+checker. ChatGPT answers from what the model remembers; ours answers from sources it can
+show you, which is the point of the project. Web pages are used for that answer only,
+not stored.
+
+**60. Why not just let the model answer general questions from its own knowledge?**
+Because nothing could check it. Experiment E showed the model confidently invents details
+about things it has not seen (it called a wireless-charging patent "a photovoltaic
+system"). With web pages as evidence, each sentence has a source the checker can compare
+against.

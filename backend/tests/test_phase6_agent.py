@@ -361,18 +361,19 @@ def test_all_tools_policy_skips_unavailable_patent_search(api, battery, settings
 
 def test_empty_library_falls_back_to_the_patent_databases(api):
     body = ask(api, "How does the wireless charging coil detect metal objects?")
-    assert tools_used(body)[:3] == [
+    assert tools_used(body) == [
         "search_uploaded_documents",  # nothing in the library ...
-        "search_patents",  # ... so the patent databases are searched
-        "get_patent_details",  # and the most relevant patent imported
+        "search_patent_abstracts",  # ... so the patent offices are searched
     ]
     assert body["status"] == "succeeded"
-    assert {e["source_label"] for e in body["evidence"]} == {"XX0000002B1"}
+    assert "XX0000002B1" in {e["source_label"] for e in body["evidence"]}
+    # answered from the abstracts: nothing was imported into the library (2026-10-10)
+    assert api.get("/patents").json() == []
 
 
 def test_live_search_switch_adds_database_results_to_the_library(api, battery):
     body = ask(api, "How is the coolant pump controlled?", live_search=True)
-    assert tools_used(body)[:2] == ["search_uploaded_documents", "search_patents"]
+    assert tools_used(body)[:2] == ["search_uploaded_documents", "search_patent_abstracts"]
     labels = {e["source_label"] for e in body["evidence"]}
     assert "battery.txt" in labels and any(label.startswith("XX") for label in labels)
 
@@ -380,7 +381,7 @@ def test_live_search_switch_adds_database_results_to_the_library(api, battery):
 def test_insufficient_answer_from_the_library_triggers_one_live_search(api, battery, llm):
     llm.replies = ["INSUFFICIENT_EVIDENCE: the library does not cover wireless chargers."]
     body = ask(api, "How does a wireless charger detect metal objects?")
-    assert tools_used(body).count("search_patents") == 1
+    assert tools_used(body).count("search_patent_abstracts") == 1
     assert "XX0000002B1" in {e["source_label"] for e in body["evidence"]}
 
 
@@ -395,7 +396,8 @@ def test_live_fallback_is_off_in_experiments():
 
 def test_topic_search_is_not_framed_as_similarity_to_an_invention(api, llm):
     body = ask(api, "Find patents about battery cooling")
-    assert body["intent"] == "find_similar" and "search_patents" in tools_used(body)
+    assert body["intent"] == "find_similar" and "search_patent_abstracts" in tools_used(body)
+    assert api.get("/patents").json() == []  # a topic search imports nothing
     answer_prompt = llm.prompts[-1]
     assert "the user did not provide one" in answer_prompt
     assert "overlap with the user's invention" not in answer_prompt
@@ -408,7 +410,7 @@ def test_live_search_terms_are_rewritten_into_patent_language(api, settings):
         update={"agent_planner": "llm"}
     )
     body = ask(api, "How does a wireless charger notice a coin on the pad?")
-    search = next(s for s in body["steps"] if s["tool_name"] == "search_patents")
+    search = next(s for s in body["steps"] if s["tool_name"] == "search_patent_abstracts")
     assert search["output_summary"].startswith('"metal object detection charger"')
     assert "patent documents use" in llm.prompts[1]  # the rewrite request
 

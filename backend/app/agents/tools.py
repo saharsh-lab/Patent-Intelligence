@@ -35,7 +35,9 @@ from app.patents.registry import choose_source
 from app.rag.embeddings import EmbeddingProvider
 from app.rag.reranker import Reranker
 from app.rag.retrieval import RetrievalConfig, RetrievalResult, RetrievedPassage, retrieve
+from app.rag.transient import ExternalSource, TransientChunk, rank_transient
 from app.services.patents import FULL_TEXT_OFFICES, PatentService
+from app.web.search import WebSearch
 
 
 @dataclass
@@ -67,6 +69,7 @@ class ToolContext:
     retrieval: RetrievalConfig
     reranker: Reranker | None = None
     use_llm_helpers: bool = False  # e.g. LLM-based concept extraction
+    web: WebSearch | None = None  # general questions: cited, verified web pages
 
 
 @dataclass
@@ -75,6 +78,7 @@ class ToolResult:
     passages: list[RetrievedPassage] = field(default_factory=list)
     retrieval: RetrievalResult | None = None
     direct: bool = False  # passages fetched by exact section, not by similarity
+    external: bool = False  # web pages / patent-office results used for this answer only
     new_targets: list[Target] = field(default_factory=list)
     data: dict[str, Any] = field(default_factory=dict)
 
@@ -370,3 +374,69 @@ def extract_key_concepts(ctx: ToolContext, target: Target) -> ToolResult:
 
 def normalize_number(text: str) -> str:
     return parse_publication_number(text).normalized
+
+
+# ---------------------------------------------------------------- sources used once
+# (web pages and patent-office search results: cited and verified, never stored)
+
+EXTERNAL_PER_SOURCE = 4  # passages kept from each external search
+
+
+@tool
+def search_web(ctx: ToolContext, query: str) -> ToolResult:
+    """Search the web for a general question; the best passages become evidence."""
+    if ctx.web is None:
+        raise AppError("Web search is not configured.", code="no_web_search")
+    results = ctx.web.search(query, ctx.settings.web_search_max_results)
+    chunks = [
+        TransientChunk(
+            text=f"{r.title}. {r.content}",
+            external=ExternalSource(ctx.web.name, r.site or r.title, r.title, r.url or None),
+            section="web page",
+        )
+        for r in results
+    ]
+    passages = rank_transient(ctx.embedder, query, chunks, EXTERNAL_PER_SOURCE)
+    sites = ", ".join(dict.fromkeys(p.chunk.external.label for p in passages)) or "nothing usable"
+    return ToolResult(
+        f"{ctx.web.label}: {len(results)} pages; using {len(passages)} ({sites})",
+        passages=passages,
+        external=True,
+        data={"sources": [ctx.web.name]},
+    )
+
+
+@tool
+def search_patent_abstracts(
+    ctx: ToolContext, keywords: str, question: str, limit: int = 10
+) -> ToolResult:
+    """Search the patent offices and answer from the hits' titles and abstracts, without
+    importing anything into the library (user request, 2026-10-10: "I don't want to
+    import the patents every time")."""
+    if not ctx.patents.sources:
+        raise AppError("No patent source is configured.", code="no_patent_source")
+    outcome = ctx.patents.search(PatentQuery(keywords=keywords, limit=limit), rank_text=question)
+    chunks = []
+    for item in outcome.results:
+        r = item.record
+        if not (r.abstract or "").strip():
+            continue
+        date = f" (published {r.publication_date})" if r.publication_date else ""
+        chunks.append(
+            TransientChunk(
+                text=f"{r.publication_number}: {r.title or ''}{date}. {r.abstract.strip()}",
+                external=ExternalSource(
+                    r.source, r.publication_number, r.title or r.publication_number, r.url
+                ),
+                section="abstract",
+            )
+        )
+    passages = rank_transient(ctx.embedder, question, chunks, EXTERNAL_PER_SOURCE)
+    totals = ", ".join(f"{s.source}: {s.total}" for s in outcome.sources if not s.error)
+    return ToolResult(
+        f'"{keywords}" → {totals or "no results"}; using {len(passages)} abstracts '
+        f"({', '.join(p.chunk.external.label for p in passages) or 'none'})",
+        passages=passages,
+        external=True,
+        data={"sources": [s.source for s in outcome.sources if not s.error]},
+    )

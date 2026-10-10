@@ -185,6 +185,20 @@ class AnswerService:
 
     def _record(self, run: AgentRun, passage: RetrievedPassage) -> RetrievalResult:
         chunk = passage.chunk
+        external = getattr(chunk, "external", None)
+        if external is not None:  # not in the database: keep the text, no chunk link
+            result = RetrievalResult(
+                rank=passage.rank,
+                source_type=external.kind,
+                chunk_id=None,
+                patent_id=None,
+                method=passage.method,
+                score=passage.score,
+                rerank_score=passage.rerank_score,
+                retrieved_text=chunk.text,
+            )
+            run.retrieval_results.append(result)
+            return result
         result = RetrievalResult(
             rank=passage.rank,
             source_type="upload" if chunk.document_id else chunk.patent.source,
@@ -356,6 +370,29 @@ class AnswerService:
     @staticmethod
     def _evidence_json(passage: RetrievedPassage, label: str | None, cited: bool) -> dict:
         chunk = passage.chunk
+        external = getattr(chunk, "external", None)
+        if external is not None:
+            return {
+                "label": label,
+                "cited": cited,
+                "chunk_id": str(chunk.id),
+                "document_id": None,
+                "patent_id": None,
+                "source_label": external.label,
+                "source_type": external.kind,
+                "source_url": external.url,
+                "source_title": external.title,
+                "section": chunk.section,
+                "claim_number": None,
+                "page_number": None,
+                "text": chunk.text,
+                "rank": passage.rank,
+                "method": passage.method,
+                "score": passage.score,
+                "vector_similarity": passage.vector_similarity,
+                "keyword_score": None,
+                "rerank_score": None,
+            }
         return {
             "label": label,
             "cited": cited,

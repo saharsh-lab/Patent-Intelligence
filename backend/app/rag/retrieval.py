@@ -41,6 +41,9 @@ class RetrievedPassage:
 
     @property
     def method(self) -> str:
+        external = getattr(self.chunk, "external", None)
+        if external is not None:  # a web page or patent-office result (app/rag/transient.py)
+            return external.kind
         if self.direct:
             return "section"
         if self.vector_similarity is not None and self.keyword_score is not None:

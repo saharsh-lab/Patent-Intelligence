@@ -139,6 +139,14 @@ class Settings(BaseSettings):
     max_regenerations: int = Field(default=1, ge=0, le=2)
 
     # --- Patent sources ---
+    # --- Web search (general questions are answered from cited, verified web pages) ---
+    # auto = Tavily when TAVILY_API_KEY is set, else Wikipedia (no key needed)
+    web_search_provider: Literal["auto", "tavily", "wikipedia", "off"] = "auto"
+    tavily_api_key: SecretStr = SecretStr("")
+    web_search_max_results: int = Field(default=6, ge=1, le=10)
+    # Unscoped questions also search the web (and patent abstracts when about patents)
+    agent_web_search: bool = True
+
     epo_ops_key: SecretStr = SecretStr("")
     epo_ops_secret: SecretStr = SecretStr("")
     uspto_api_key: SecretStr = SecretStr("")

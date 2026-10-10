@@ -43,6 +43,9 @@ def _point_everything_at_test_databases() -> None:
     # Tests never call live patent services, whatever credentials the developer's .env has.
     for name in ("EPO_OPS_KEY", "EPO_OPS_SECRET", "USPTO_API_KEY", "LENS_API_TOKEN"):
         os.environ[name] = ""
+    # ... and never the web (tests that need it inject a stand-in)
+    os.environ["WEB_SEARCH_PROVIDER"] = "off"
+    os.environ["TAVILY_API_KEY"] = ""
 
 
 _point_everything_at_test_databases()

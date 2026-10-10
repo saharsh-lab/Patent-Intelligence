@@ -124,6 +124,15 @@ class AgentState(TypedDict, total=False):
     extra_timings: dict[str, int]
     regeneration_added_passages: int
     live_search: bool
+    external_passages: list[RetrievedPassage]  # web pages / patent abstracts, this answer only
+
+
+# Searches whose results are used for one answer only (app/rag/transient.py)
+_EXTERNAL_TOOLS = {"search_patents", "search_patent_abstracts", "search_web"}
+# A general question about patents: also search the patent offices' abstracts
+_ABOUT_PATENTS = re.compile(
+    r"\b(patent(?:s|ed)?|inventions?|prior art|assignees?|patent office)\b", re.IGNORECASE
+)
 
 
 class AgentGraph:
@@ -136,6 +145,7 @@ class AgentGraph:
         max_recoveries: int,
         tool_policy: str = "select",
         live_fallback: bool = False,
+        web_search: bool = False,
         live_import_limit: int = 3,
     ):
         self.ctx = ctx
@@ -146,6 +156,8 @@ class AgentGraph:
         self.similar_import_limit = similar_import_limit
         self.max_recoveries = max_recoveries
         self.live_fallback = live_fallback
+        # Unscoped questions also search the web (and patent abstracts when about patents)
+        self.web_search = web_search
         self.live_import_limit = live_import_limit
         self._live_terms: str | None = None
         self._verifier = None
@@ -206,6 +218,7 @@ class AgentGraph:
             "tool_log": [],
             "passages": [],
             "direct_passages": [],
+            "external_passages": [],
             "retrievals": [],
             "attempts": 0,
             "recoveries": [],
@@ -373,6 +386,20 @@ class AgentGraph:
                     "the search scope, name it (e.g. 'my battery patent'), or describe it."
                 ),
             }
+        elif (
+            analysis.intent == "find_similar"
+            and self.web_search
+            and self._task(state) == "find_topic"
+            and self.ctx.patents.sources
+        ):
+            # A topic search ("latest patents on X"): answer from the hits' abstracts,
+            # without importing them into the library
+            steps.append(
+                Step(
+                    "search_patent_abstracts",
+                    {"keywords": self._live_keywords(state), "question": question},
+                )
+            )
         elif analysis.intent == "find_similar":
             if subjects:
                 steps.append(Step("extract_key_concepts", {"target": "$first_target"}))
@@ -405,8 +432,9 @@ class AgentGraph:
             steps.append(Step("retrieve_evidence", {"query": question, "targets": "$targets"}))
         else:
             steps.append(Step("search_uploaded_documents", {"query": question}))
-            if state.get("live_search") and self._can_search_live(state):
-                steps += self._live_steps(state)
+            if self._can_search_live(state) and (self.web_search or state.get("live_search")):
+                about_patents = bool(state.get("live_search") or _ABOUT_PATENTS.search(question))
+                steps += self._live_steps(state, patents=about_patents)
         return {"steps": steps}
 
     def _every_tool(self, state: AgentState) -> list[Step]:
@@ -453,6 +481,7 @@ class AgentGraph:
         log = list(state["tool_log"])
         passages = list(state["passages"])
         direct = list(state["direct_passages"])
+        external = list(state.get("external_passages") or [])
         retrievals = list(state["retrievals"])
         concepts = state.get("concepts", "")
         candidates = list(state["candidates"])
@@ -508,7 +537,10 @@ class AgentGraph:
                     )
                     for c in picks
                 ] + queue
-            (direct if result.direct else passages).extend(result.passages)
+            if result.external:
+                external.extend(result.passages)
+            else:
+                (direct if result.direct else passages).extend(result.passages)
             if result.retrieval is not None:
                 retrievals.append(result.retrieval)
 
@@ -517,6 +549,7 @@ class AgentGraph:
             "tool_log": log,
             "passages": passages,
             "direct_passages": direct,
+            "external_passages": external,
             "retrievals": retrievals,
             "concepts": concepts,
             "candidates": candidates,
@@ -532,8 +565,8 @@ class AgentGraph:
             # Passages about the user's OWN invention are not evidence of similar patents
             can_retry = state["attempts"] < self.max_recoveries and self._recovery_plan(state)
             return "recover" if can_retry else "finish"
-        if state["direct_passages"]:
-            return "generate"
+        if state["direct_passages"] or state.get("external_passages"):
+            return "generate"  # the model judges web/abstract relevance (it may abstain)
         merged = self._merged_retrieval(state)
         sufficient, _ = has_sufficient_evidence(merged, self.ctx.retrieval)
         if sufficient:
@@ -561,11 +594,11 @@ class AgentGraph:
             )
         else:
             reply = (
-                "Hello! I answer questions about patents from their actual text: attach a "
-                "patent (PDF, Word or text), pick one from your library, or just ask, e.g. "
-                '"What are the latest patents on battery immersion cooling?". I cite the '
-                "source of every sentence and check each one, and I do not give legal "
-                "opinions."
+                "Hello! Ask me anything: I search your library, the patent offices and the "
+                'web, and answer from what I find, e.g. "What are the latest patents on '
+                'battery immersion cooling?" or "How do solid-state batteries work?". I '
+                "cite the source of every sentence and check each one, and I do not give "
+                "legal opinions."
             )
         parsed = ParsedAnswer(status="answered", text=reply)
         return {
@@ -601,7 +634,12 @@ class AgentGraph:
         parsed = state.get("parsed")
         if parsed is not None and parsed.status == "insufficient_evidence":
             # The model judged these passages insufficient: answer from the new ones
-            update |= {"passages": [], "direct_passages": [], "retrievals": []}
+            update |= {
+                "passages": [],
+                "direct_passages": [],
+                "retrievals": [],
+                "external_passages": [],
+            }
         return update
 
     def _task(self, state: AgentState) -> str:
@@ -615,20 +653,27 @@ class AgentGraph:
         return intent
 
     def _can_search_live(self, state: AgentState) -> bool:
-        """A general question (no document selected or named) that the patent databases
-        could answer, and no database search has been made for it yet."""
+        """A general question (no document selected or named) that the web or the patent
+        databases could answer, and no such search has been made for it yet."""
         analysis = state["analysis"]
         return bool(
-            self.ctx.patents.sources
+            (self._patents_allowed(state) or self.ctx.web is not None)
             and analysis.intent == "document_qa"
             and not state["document_ids"]
             and not state["patent_ids"]
             and not analysis.refers_to_scope
-            # the LLM planner judged it off-topic: search the library, not the patent offices
-            and analysis.analyzer != "llm_scope_override"
             and not any(t.kind in ("document", "patent", "external") for t in state["targets"])
-            and not any(e["tool_name"] == "search_patents" for e in state["tool_log"])
+            and not any(e["tool_name"] in _EXTERNAL_TOOLS for e in state["tool_log"])
             and self._live_keywords(state)
+        )
+
+    def _patents_allowed(self, state: AgentState) -> bool:
+        """The patent offices are searched only for questions that could be about patents:
+        when the LLM planner judged a question off-topic ("a good pasta recipe?"), the web
+        may answer it, the patent offices may not (2026-10-10: general questions should be
+        answered like a general assistant)."""
+        return bool(self.ctx.patents.sources) and (
+            state["analysis"].analyzer != "llm_scope_override"
         )
 
     def _live_keywords(self, state: AgentState) -> str:
@@ -656,19 +701,19 @@ class AgentGraph:
                     logger.info("Search-term rewrite failed; using the question's keywords")
         return self._live_terms
 
-    def _live_steps(self, state: AgentState) -> list[Step]:
-        return [
-            Step(
-                "search_patents",
-                {
-                    "keywords": self._live_keywords(state),
-                    "import_top": self.live_import_limit,
-                    # rank candidates against the whole question, not just the keywords
-                    "rank_text": state["question"],
-                },
-            ),
-            Step("retrieve_evidence", {"query": state["question"], "targets": "$targets"}),
-        ]
+    def _live_steps(self, state: AgentState, patents: bool = True) -> list[Step]:
+        """The web and/or the patent offices, used for this answer only (no import)."""
+        steps = []
+        if self.ctx.web is not None:
+            steps.append(Step("search_web", {"query": state["question"]}))
+        if patents and self._patents_allowed(state):
+            steps.append(
+                Step(
+                    "search_patent_abstracts",
+                    {"keywords": self._live_keywords(state), "question": state["question"]},
+                )
+            )
+        return steps
 
     def generate(self, state: AgentState) -> dict:
         analysis = state["analysis"]
@@ -940,7 +985,11 @@ class AgentGraph:
 
     @staticmethod
     def _missing_similar_patents(state: AgentState) -> bool:
-        return state["analysis"].intent == "find_similar" and not state["candidates"]
+        return (
+            state["analysis"].intent == "find_similar"
+            and not state["candidates"]
+            and not state.get("external_passages")  # a topic search found abstracts
+        )
 
     def _merged_retrieval(self, state: AgentState) -> RetrievalResult:
         retrievals = state["retrievals"]
@@ -1000,6 +1049,14 @@ class AgentGraph:
     def _final_passages(self, state: AgentState) -> list[RetrievedPassage]:
         seen, merged = set(), []
         ranked = sorted(state["passages"], key=lambda p: p.rank)
+        external = state.get("external_passages") or []
+        if external:
+            # Interleave library and external passages so each gets a fair share of the
+            # evidence budget (their scores are not comparable)
+            mixed = []
+            for i in range(max(len(ranked), len(external))):
+                mixed += ranked[i : i + 1] + external[i : i + 1]
+            ranked = mixed
         for passage in state["direct_passages"] + ranked:
             if passage.chunk.id not in seen:
                 seen.add(passage.chunk.id)

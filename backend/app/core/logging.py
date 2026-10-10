@@ -21,6 +21,8 @@ _SECRET_PATTERNS = [
     ),
     # OpenAI-style keys
     re.compile(r"()()()\bsk-[A-Za-z0-9_\-]{8,}"),
+    # Tavily web-search keys
+    re.compile(r"()()()\btvly-[A-Za-z0-9_\-]{8,}"),
     # Passwords embedded in connection URLs: scheme://user:password@host
     re.compile(r"(://[^:/\s]+)(:)()[^@\s]+(?=@)"),
 ]

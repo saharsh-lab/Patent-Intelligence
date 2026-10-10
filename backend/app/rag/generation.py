@@ -86,6 +86,9 @@ class ParsedAnswer:
 
 def source_label(passage: RetrievedPassage) -> str:
     chunk = passage.chunk
+    external = getattr(chunk, "external", None)
+    if external is not None:
+        return external.label
     if chunk.document is not None:
         return chunk.document.filename
     if chunk.patent is not None:

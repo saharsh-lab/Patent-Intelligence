@@ -120,6 +120,7 @@ def variant_settings(base: Settings, config: ExperimentConfig, variant: VariantC
     overrides.setdefault("patent_demo_source", False)
     # Added after the experiments were run; off so reruns measure the same system.
     overrides.setdefault("agent_live_fallback", False)
+    overrides.setdefault("agent_web_search", False)  # added after the experiments too
     overrides.setdefault("verifier_uncited_supported", False)
     data = base.model_dump() | overrides
     try:

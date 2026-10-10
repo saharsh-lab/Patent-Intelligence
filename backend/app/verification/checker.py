@@ -122,7 +122,11 @@ def premise_for(item: EvidenceItem) -> str:
     """
     location = re.sub(r"^\[E\d+\]\s*", "", item.header).replace(" · ", ", ")
     chunk = item.passage.chunk
-    owner = getattr(chunk, "document", None) or getattr(chunk, "patent", None)
+    owner = (
+        getattr(chunk, "external", None)
+        or getattr(chunk, "document", None)
+        or getattr(chunk, "patent", None)
+    )
     title = (getattr(owner, "title", None) or "").strip()
     titled = f' The title of this document is "{title}".' if title else ""
     return f"Source: {location}.{titled}\n{item.passage.chunk.text}"

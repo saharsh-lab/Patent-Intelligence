@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { isWebSource } from "@/lib/search";
 import { Badge } from "@/components/ui";
 import { formatScore, locationLabel } from "@/lib/format";
 import type { EvidenceOut } from "@/lib/types";
@@ -32,13 +33,17 @@ function EvidenceCard({ item, idPrefix }: { item: EvidenceOut; idPrefix: string 
         </span>
         {item.source_type !== "upload" && (
           <Badge tone={item.source_type === "demo" ? "warn" : "neutral"}>
-            {item.source_type === "demo" ? "Demo patent" : `${item.source_type.toUpperCase()} patent`}
+            {item.source_type === "demo"
+              ? "Demo patent"
+              : isWebSource(item.source_type)
+                ? "Web page"
+                : `${item.source_type.toUpperCase()} patent`}
           </Badge>
         )}
         {item.cited ? <Badge tone="accent">Cited</Badge> : <Badge>Not cited</Badge>}
         {item.source_url && (
           <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-accent hover:underline">
-            Espacenet ↗
+            {isWebSource(item.source_type) ? "Open page ↗" : "Espacenet ↗"}
           </a>
         )}
       </div>

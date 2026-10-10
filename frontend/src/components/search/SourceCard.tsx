@@ -80,6 +80,7 @@ export function SourceCard({
         <span className="flex min-w-0 items-baseline gap-2">
           {source.location && <span className="shrink-0 border border-line px-1.5 text-[11px]">{source.location}</span>}
           {source.patent_number && source.patent_number !== source.title && <span className="truncate">{source.patent_number}</span>}
+          {source.site && <span className="truncate">{source.site}</span>}
         </span>
       </div>
 

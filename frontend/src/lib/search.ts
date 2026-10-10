@@ -27,7 +27,13 @@ export interface Source {
   cited?: boolean;
   patentId?: string | null;
   synthetic?: boolean;
+  /** For web pages: the site, e.g. "en.wikipedia.org" */
+  site?: string | null;
 }
+
+/** Evidence from the web (used for one answer, never stored) rather than a patent or upload */
+const WEB_SOURCE_TYPES = new Set(["web", "tavily", "wikipedia"]);
+export const isWebSource = (sourceType: string | null | undefined) => WEB_SOURCE_TYPES.has(sourceType ?? "");
 
 export interface SearchResult {
   query: string;
@@ -263,11 +269,13 @@ export function normalizeResult(raw: unknown, query: string): SearchResult {
     : [...evidence].sort((a, b) => a.rank - b.rank).slice(0, 5).map((e, i) => ({ e, id: i + 1 }));
 
   const sources: Source[] = chosen.map(({ e, id }) => {
-    const isPatent = e.source_type !== "upload";
+    const web = isWebSource(e.source_type);
+    const isPatent = !web && e.source_type !== "upload";
     return {
       id,
       title: e.source_title || e.source_label,
       patent_number: isPatent ? e.source_label : null,
+      site: web ? e.source_label : null,
       assignee: null,
       year: null,
       snippet: e.text,

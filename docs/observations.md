@@ -518,3 +518,34 @@ NLI). Reproduced: 6 threads embedding and NLI-checking concurrently on `mps:0` c
 the process without the lock (exit 134, "A command encoder is already encoding to this
 command buffer") and finished in 3.8 s without errors with it. Test:
 `tests/test_inference_lock.py` (4 concurrent calls overlap without the lock, never with it).
+
+### 2026-10-10 — "Not responding correctly", and a GPT-like assistant with web search
+
+**Root cause of the bad answers:** Ollama was no longer installed (the qwen3:8b weights
+were still in ~/.ollama), so there was no real LLM; the search page also falls back to
+synthetic demo answers when the backend is unreachable. Reinstalled from ollama.com
+(notarized, Developer ID Infra Technologies); the existing model was picked up.
+
+**User request:** answer generic questions like a general assistant, search the web, and
+stop importing patents for every question. **Changes:**
+- `search_web` (Tavily with TAVILY_API_KEY, otherwise Wikipedia; Wikimedia returns 403
+  without a User-Agent that names a contact) and `search_patent_abstracts` (EPO hits'
+  titles and abstracts) produce *transient* passages (`app/rag/transient.py`): cited and
+  verified like library passages, recorded in the run without a chunk, never stored in
+  the library.
+- Unscoped questions search the library and the web, plus patent abstracts when the
+  question is about patents or the "Patent DBs" switch is on; topic searches ("latest
+  patents on X") answer from abstracts; the library-has-no-answer fallback uses web +
+  abstracts instead of importing. Importing remains for named patents and for "similar
+  to my invention", which need full text.
+- A question the LLM planner calls off-topic goes to the web but not to the patent
+  offices (first version blocked both, so "How do solid-state batteries work?" ended in
+  "insufficient evidence").
+- Tests never reach the web (WEB_SEARCH_PROVIDER=off in conftest); experiments pin
+  `agent_web_search=false`.
+
+Live check (isolated database): "hello" → greeting; "What is a patent claim?" → Wikipedia,
+5/5 statements verified; "Who invented the lithium-ion battery?" → Whittingham, Goodenough,
+Yoshino, 5/5; "How do solid-state batteries work?" → 3/5 (two added explanations flagged,
+correctly); "latest patents on battery immersion cooling" → four EPO abstracts, 13/13,
+nothing imported.
