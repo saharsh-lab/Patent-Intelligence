@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type DragEvent, type KeyboardEvent, type RefObject } from "react";
 import useSWR, { useSWRConfig } from "swr";
 
 import { AssistantAvatar, ChatMessageView, UserBubble } from "@/components/chat/ChatMessageView";
@@ -292,6 +292,7 @@ function Composer({
   textarea: RefObject<HTMLTextAreaElement | null>;
 }) {
   const hero = variant === "hero";
+  const narrow = useNarrowScreen();
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
@@ -299,18 +300,21 @@ function Composer({
     }
   }
   const lines = Math.max(0, draft.split("\n").length - 1);
+  // One row: tools, text and button share the same height and are centred together.
+  // Several lines of text: everything sits at the bottom, next to the line being typed.
+  const tool = `flex shrink-0 items-center justify-center gap-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-text ${hero ? "h-11" : "h-9"}`;
   return (
     <form
       // Reference search-bar look: ink border and hard shadow, both turn blue on focus
-      className="flex items-end gap-1.5 border-[1.5px] border-text bg-surface p-1.5 shadow-hard transition-[border-color,box-shadow] duration-200 focus-within:border-cite focus-within:[box-shadow:var(--shadow-hard-focus)]"
+      className={`flex gap-1 border-[1.5px] border-text bg-surface p-1.5 shadow-hard transition-[border-color,box-shadow] duration-200 focus-within:border-cite focus-within:[box-shadow:var(--shadow-hard-focus)] ${lines ? "items-end" : "items-center"}`}
       onSubmit={(e) => {
         e.preventDefault();
         onSend();
       }}
     >
       <button type="button" onClick={onAttach} aria-label="Attach documents" title="Attach PDF, DOCX or TXT"
-        className="p-2 text-muted hover:bg-surface-2 hover:text-text">
-        <icons.paperclip />
+        className={`${tool} ${hero ? "w-11" : "w-9"}`}>
+        <icons.paperclip width={18} height={18} />
       </button>
       <button
         type="button"
@@ -320,11 +324,13 @@ function Composer({
         title={liveSearch
           ? "On: every question also searches the patent offices (EPO) and uses the best abstracts"
           : "Off: the patent offices are searched for patent questions, or when your library has no answer"}
-        className={`flex items-center gap-1 px-2 py-2 text-xs font-medium ${liveSearch ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface-2 hover:text-text"}`}
+        className={`${tool} px-2.5 text-[13px] leading-none font-medium ${liveSearch ? "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent" : ""}`}
       >
-        <icons.globe width={16} height={16} />
+        <icons.globe width={18} height={18} />
         <span className="hidden sm:inline">Patent DBs</span>
       </button>
+      {/* Follows the tools: centred on one row, beside the last line when there are several */}
+      <span aria-hidden className={`mx-1 w-px shrink-0 bg-line ${hero ? "h-6" : "h-5"} ${lines ? (hero ? "mb-2.5" : "mb-2") : ""}`} />
       <textarea
         ref={textarea}
         value={draft}
@@ -333,14 +339,14 @@ function Composer({
         rows={1}
         maxLength={2000}
         autoFocus={hero}
-        placeholder={hasDocuments ? "Ask about the attached documents…" : "Describe a technology or ask a question"}
+        placeholder={hasDocuments ? (narrow ? "Ask about them…" : "Ask about the attached documents…") : narrow ? "Ask a question…" : "Describe a technology or ask a question"}
         aria-label="Message"
-        className={`max-h-40 flex-1 resize-none bg-transparent px-2 outline-none placeholder:text-muted ${hero ? "py-3 text-[1.05rem]" : "py-2 text-sm"}`}
-        style={{ height: `${Math.min(160, (hero ? 50 : 40) + lines * 20)}px` }}
+        className={`max-h-40 min-w-0 flex-1 resize-none bg-transparent px-1 outline-none placeholder:text-muted ${hero ? "py-[11px] text-[1.05rem] leading-[22px]" : "py-2 text-sm leading-5"}`}
+        style={{ height: `${Math.min(160, (hero ? 44 : 36) + lines * (hero ? 22 : 20))}px` }}
       />
       <button type="submit" disabled={!draft.trim() || pending} aria-label="Send"
-        className={`shrink-0 self-stretch bg-brand font-medium hover:opacity-90 disabled:opacity-40 ${hero ? "px-[22px]" : "px-3"}`}>
-        {hero ? "Ask" : <icons.send />}
+        className={`flex shrink-0 items-center justify-center bg-brand font-medium hover:opacity-90 disabled:opacity-40 ${hero ? "h-11 px-[22px]" : "h-9 w-10"}`}>
+        {hero ? "Ask" : <icons.send width={18} height={18} />}
       </button>
     </form>
   );
@@ -375,5 +381,18 @@ function DocumentChips({
         </span>
       ))}
     </div>
+  );
+}
+
+/** True on phone-width screens, where the long placeholder would wrap and be cut off. */
+function useNarrowScreen(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = window.matchMedia("(max-width: 639px)");
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia("(max-width: 639px)").matches,
+    () => false, // server render: the wide placeholder
   );
 }
