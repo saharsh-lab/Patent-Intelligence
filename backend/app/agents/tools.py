@@ -396,7 +396,9 @@ def search_web(ctx: ToolContext, query: str) -> ToolResult:
         )
         for r in results
     ]
-    passages = rank_transient(ctx.embedder, query, chunks, EXTERNAL_PER_SOURCE)
+    passages = rank_transient(
+        ctx.embedder, query, chunks, EXTERNAL_PER_SOURCE, ctx.settings.external_min_similarity
+    )
     sites = ", ".join(dict.fromkeys(p.chunk.external.label for p in passages)) or "nothing usable"
     return ToolResult(
         f"{ctx.web.label}: {len(results)} pages; using {len(passages)} ({sites})",
@@ -416,6 +418,9 @@ def search_patent_abstracts(
     if not ctx.patents.sources:
         raise AppError("No patent source is configured.", code="no_patent_source")
     outcome = ctx.patents.search(PatentQuery(keywords=keywords, limit=limit), rank_text=question)
+    failed = [s for s in outcome.sources if s.error]
+    if failed and len(failed) == len(outcome.sources):  # unreachable, not "nothing found"
+        raise AppError("; ".join(f"{s.source}: {s.error}" for s in failed), code="search_failed")
     chunks = []
     for item in outcome.results:
         r = item.record
@@ -431,7 +436,9 @@ def search_patent_abstracts(
                 section="abstract",
             )
         )
-    passages = rank_transient(ctx.embedder, question, chunks, EXTERNAL_PER_SOURCE)
+    passages = rank_transient(
+        ctx.embedder, question, chunks, EXTERNAL_PER_SOURCE, ctx.settings.external_min_similarity
+    )
     totals = ", ".join(f"{s.source}: {s.total}" for s in outcome.sources if not s.error)
     return ToolResult(
         f'"{keywords}" → {totals or "no results"}; using {len(passages)} abstracts '

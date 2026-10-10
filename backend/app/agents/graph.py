@@ -127,6 +127,8 @@ class AgentState(TypedDict, total=False):
     external_passages: list[RetrievedPassage]  # web pages / patent abstracts, this answer only
 
 
+_UNREACHABLE = re.compile(r"could not reach|timed out|ConnectError|connection", re.IGNORECASE)
+
 # Searches whose results are used for one answer only (app/rag/transient.py)
 _EXTERNAL_TOOLS = {"search_patents", "search_patent_abstracts", "search_web"}
 # A general question about patents: also search the patent offices' abstracts
@@ -664,7 +666,8 @@ class AgentGraph:
             and not analysis.refers_to_scope
             and not any(t.kind in ("document", "patent", "external") for t in state["targets"])
             and not any(e["tool_name"] in _EXTERNAL_TOOLS for e in state["tool_log"])
-            and self._live_keywords(state)
+            # the web takes the whole question; the patent offices need keywords
+            and (self.ctx.web is not None or self._live_keywords(state))
         )
 
     def _patents_allowed(self, state: AgentState) -> bool:
@@ -706,7 +709,7 @@ class AgentGraph:
         steps = []
         if self.ctx.web is not None:
             steps.append(Step("search_web", {"query": state["question"]}))
-        if patents and self._patents_allowed(state):
+        if patents and self._patents_allowed(state) and self._live_keywords(state):
             steps.append(
                 Step(
                     "search_patent_abstracts",
@@ -929,7 +932,14 @@ class AgentGraph:
             failures = [
                 entry["output_summary"] for entry in state["tool_log"] if not entry["success"]
             ]
-            if failures:
+            unreachable = [f for f in failures if _UNREACHABLE.search(f or "")]
+            if unreachable and len(unreachable) == len(failures):
+                reason = (
+                    "The web and patent offices could not be reached just now (is the internet "
+                    "connection working?), and your library has nothing on this. Please try "
+                    "again in a moment."
+                )
+            elif failures:
                 reason = "Evidence could not be gathered: " + "; ".join(failures)
             else:
                 _, reason = has_sufficient_evidence(

@@ -16,7 +16,7 @@ behaviour carries over; rehearse once in the chat UI to confirm timings.
    `make demo` starts the API on port 8100 with Qwen3-8B, BGE-M3 and the balanced
    hallucination checks, and the web UI on port 3000 connected to it (Ctrl+C stops both).
    It does not change `.env`. Port 8000 is left alone (another project uses it).
-3. Open http://localhost:3000 and log in. The bottom of the sidebar should show **Connected**.
+3. Open http://localhost:3000 and log in (the app opens on a new chat: the start screen with the big question box). The bottom of the sidebar should show **Connected**.
 4. **Library → My documents:** these four patents should be listed as Ready. If not, upload them
    from `experiments/datasets/real_v1/corpus/`. Delete any test files (e.g.
    `wireless_patent.txt`) so only real patents are searched.

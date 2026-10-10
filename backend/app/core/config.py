@@ -144,6 +144,10 @@ class Settings(BaseSettings):
     web_search_provider: Literal["auto", "tavily", "wikipedia", "off"] = "auto"
     tavily_api_key: SecretStr = SecretStr("")
     web_search_max_results: int = Field(default=6, ge=1, le=10)
+    # Web pages / patent abstracts below this similarity to the question are dropped.
+    # Observed (2026-10-11): "What is a patent claim?" brought patents on fluid lenses and
+    # floor cleaners (0.47-0.51) next to the relevant Wikipedia pages (0.65-0.71).
+    external_min_similarity: float = Field(default=0.55, ge=-1.0, le=1.0)
     # Unscoped questions also search the web (and patent abstracts when about patents)
     agent_web_search: bool = True
 

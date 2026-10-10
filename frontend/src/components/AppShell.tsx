@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import useSWR from "swr";
 
 import { icons } from "@/components/icons";
-import { NEW_SEARCH_EVENT, Wordmark } from "@/components/search/Logo";
+import { Wordmark } from "@/components/search/Logo";
 import { Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
 import { auth, initials, useAuth, type User } from "@/lib/auth";
@@ -17,10 +17,9 @@ import type { HealthReady, WatchOut } from "@/lib/types";
 
 const AUTH_PAGES = ["/login", "/register"];
 
-// Four tools besides chat. Research tools (evaluation, research console, system status)
+// Three tools besides chat (which is also where you search). Research tools (evaluation, research console, system status)
 // live in the user menu: they are for the project team, not everyday use.
 const TOOLS = [
-  { href: "/search", label: "Search", icon: icons.search, also: [] },
   { href: "/documents", label: "Library", icon: icons.file, also: ["/patents", "/compare"] },
   { href: "/invention", label: "Invention analysis", icon: icons.bulb, also: [] },
   { href: "/watches", label: "Patent watch", icon: icons.bell, also: [] },
@@ -141,13 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <Link
-      href="/search"
-      // Already on /search, a link to the same URL would change nothing: ask the
-      // search page to return to its start screen, like the logo in its top bar
-      onClick={() => window.dispatchEvent(new Event(NEW_SEARCH_EVENT))}
-      className="rounded-lg"
-    >
+    <Link href="/chat" className="rounded-lg" aria-label="Patent Intelligence: new chat">
       <Wordmark compact={compact} draw />
     </Link>
   );

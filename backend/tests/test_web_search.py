@@ -204,3 +204,56 @@ def test_off_topic_question_goes_to_the_web_but_not_the_patent_offices(api, web)
     body = api.post("/ask", json={"question": "How do solid-state batteries work?"}).json()
     tools = [s["tool_name"] for s in body["steps"]]
     assert "search_web" in tools and "search_patent_abstracts" not in tools
+
+
+def test_a_dropped_connection_is_retried_once(monkeypatch):
+    import app.web.search as search_module
+
+    monkeypatch.setattr(search_module.time, "sleep", lambda s: None)
+    calls = {"n": 0}
+
+    def handler(request):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise httpx.ConnectError("network down")
+        return httpx.Response(
+            200, json={"results": [{"title": "A", "url": "https://a.com", "content": "x"}]}
+        )
+
+    tavily = TavilySearch("tvly-k", http=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert len(tavily.search("q", 3)) == 1 and calls["n"] == 2
+
+
+class OfflineWeb(WebSearch):
+    name = "tavily"
+    label = "Web (Tavily)"
+
+    def search(self, query, max_results):
+        from app.core.errors import AppError
+
+        raise AppError("Could not reach the web search service.", code="web_search_unreachable")
+
+
+@pytest.mark.db
+def test_offline_sources_are_reported_as_unreachable_not_as_nothing_found(api, monkeypatch):
+    monkeypatch.setattr(agent_module, "build_web_search", lambda settings: OfflineWeb())
+    body = api.post("/ask", json={"question": "What is a patent claim?"}).json()
+    assert body["status"] == "insufficient_evidence"
+    assert "could not be reached" in body["insufficient_reason"]
+
+
+def test_low_relevance_external_passages_are_dropped():
+    from app.rag.transient import ExternalSource, TransientChunk, rank_transient
+
+    class Stub:
+        vectors = {"q": [1.0, 0.0], "relevant": [0.8, 0.6], "off-topic": [0.4, 0.92]}
+
+        def embed_documents(self, texts):
+            return [self.vectors[t] for t in texts]
+
+        def embed_query(self, text):
+            return self.vectors[text]
+
+    chunks = [TransientChunk(t, ExternalSource("web", t, t)) for t in ("off-topic", "relevant")]
+    kept = rank_transient(Stub(), "q", chunks, limit=4, min_similarity=0.55)
+    assert [p.chunk.text for p in kept] == ["relevant"] and kept[0].rank == 1

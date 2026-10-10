@@ -287,7 +287,7 @@ class EpoOpsSource(PatentSource):
                 "Accept": "application/json",
             }
             try:
-                response = self._http.get(url, params=params, headers=headers)
+                response = _get_with_retry(self._http, url, params, headers)
             except httpx.TimeoutException as exc:
                 raise ExternalServiceError("The EPO patent service timed out.") from exc
             except httpx.HTTPError as exc:
@@ -353,3 +353,13 @@ class EpoOpsSource(PatentSource):
         record.has_claims = bool(record.claims_text)
         record.has_description = bool(record.description_text)
         return record
+
+
+def _get_with_retry(http: httpx.Client, url: str, params, headers) -> httpx.Response:
+    """One retry after a dropped connection (observed 2026-10-11: a brief network outage
+    turned two questions into failures)."""
+    try:
+        return http.get(url, params=params, headers=headers)
+    except httpx.TransportError:
+        time.sleep(1.0)
+        return http.get(url, params=params, headers=headers)

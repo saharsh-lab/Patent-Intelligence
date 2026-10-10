@@ -55,7 +55,11 @@ export function ChatAnswer({ run, onCite, showChecks }: { run: AskResponse; onCi
 
       {run.status === "insufficient_evidence" && (
         <div>
-          <p>I couldn&apos;t find this in your documents, so I won&apos;t guess.</p>
+          <p>
+            {/could not be reached/i.test(run.insufficient_reason ?? "")
+              ? "I couldn't reach my sources just now, so I won't guess."
+              : "I couldn't find this in your documents or sources, so I won't guess."}
+          </p>
           {run.insufficient_reason && <p className="mt-1 text-sm text-muted">{run.insufficient_reason}</p>}
         </div>
       )}

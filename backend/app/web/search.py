@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -24,6 +25,15 @@ USER_AGENT = (
     "(https://github.com/saharsh-lab/Agentic-RAG-System-for-Patent-analysis; student project) "
     "httpx"
 )
+
+
+def _retry(call):
+    """One retry after a dropped connection or timeout."""
+    try:
+        return call()
+    except httpx.TransportError:
+        time.sleep(1.0)
+        return call()
 
 
 @dataclass
@@ -57,20 +67,22 @@ class TavilySearch(WebSearch):
 
     def search(self, query: str, max_results: int) -> list[WebResult]:
         try:
-            response = self._http.post(
-                self.URL,
-                headers={"Authorization": f"Bearer {self._key}"},
-                json={
-                    "query": query[:400],
-                    "search_depth": "basic",  # 1 credit; returns the relevant chunks
-                    "chunks_per_source": 3,
-                    "max_results": max_results,
-                    "include_answer": False,  # we write and verify our own answer
-                },
+            response = _retry(
+                lambda: self._http.post(
+                    self.URL,
+                    headers={"Authorization": f"Bearer {self._key}"},
+                    json={
+                        "query": query[:400],
+                        "search_depth": "basic",  # 1 credit; returns the relevant chunks
+                        "chunks_per_source": 3,
+                        "max_results": max_results,
+                        "include_answer": False,  # we write and verify our own answer
+                    },
+                )
             )
-        except httpx.HTTPError as exc:
+        except httpx.HTTPError:
             raise AppError(
-                f"Web search failed: {type(exc).__name__}", code="web_search_failed"
+                "Could not reach the web search service.", code="web_search_unreachable"
             ) from None
         if response.status_code in (401, 403):
             raise AppError(
@@ -106,30 +118,34 @@ class WikipediaSearch(WebSearch):
 
     def search(self, query: str, max_results: int) -> list[WebResult]:
         try:
-            found = self._http.get(
-                self.API,
-                params={
-                    "action": "query",
-                    "list": "search",
-                    "srsearch": query[:300],
-                    "srlimit": max_results,
-                    "format": "json",
-                },
+            found = _retry(
+                lambda: self._http.get(
+                    self.API,
+                    params={
+                        "action": "query",
+                        "list": "search",
+                        "srsearch": query[:300],
+                        "srlimit": max_results,
+                        "format": "json",
+                    },
+                )
             ).json()
             titles = [hit["title"] for hit in found.get("query", {}).get("search", [])]
             if not titles:
                 return []
-            pages = self._http.get(
-                self.API,
-                params={
-                    "action": "query",
-                    "prop": "extracts|info",
-                    "exintro": 1,
-                    "explaintext": 1,
-                    "inprop": "url",
-                    "titles": "|".join(titles),
-                    "format": "json",
-                },
+            pages = _retry(
+                lambda: self._http.get(
+                    self.API,
+                    params={
+                        "action": "query",
+                        "prop": "extracts|info",
+                        "exintro": 1,
+                        "explaintext": 1,
+                        "inprop": "url",
+                        "titles": "|".join(titles),
+                        "format": "json",
+                    },
+                )
             ).json()
         except (httpx.HTTPError, ValueError) as exc:
             raise AppError(

@@ -549,3 +549,22 @@ Live check (isolated database): "hello" → greeting; "What is a patent claim?" 
 Yoshino, 5/5; "How do solid-state batteries work?" → 3/5 (two added explanations flagged,
 correctly); "latest patents on battery immersion cooling" → four EPO abstracts, 13/13,
 nothing imported.
+
+### 2026-10-11 — One page for chat and search; resilience to a dropped connection
+
+- **One page.** Chat and the separate Search page are merged (user request: "same UI for
+  both"): a new chat opens on the search-style start screen (greeting, big question box
+  with attach and Patent DBs, suggestions, tool shortcuts) and continues as a
+  conversation with the box docked at the bottom. `/` and `/search` redirect to `/chat`;
+  the Search sidebar item and the search-only components were removed.
+- **Network outage.** Two questions failed with "Web search failed: ConnectError" /
+  "no passages found" during a brief outage (01:57–02:02); the second message wrongly
+  implied nothing existed. Now web and EPO requests retry once after a dropped
+  connection, an unreachable patent office is a failure rather than "no results", and
+  the answer says "I couldn't reach my sources just now" instead of "couldn't find this".
+- **Keyword-less questions.** "What is a patent claim?" has no keywords after filler
+  words are removed, which also blocked the web search; the web now takes the whole
+  question (patent searches still need keywords).
+- **Relevance cut-off.** The same question brought EPO abstracts on fluid lenses and floor
+  cleaners (similarity 0.47–0.51) next to Wikipedia (0.65–0.71); external passages below
+  0.55 are now dropped (`EXTERNAL_MIN_SIMILARITY`).

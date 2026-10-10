@@ -1,10 +1,6 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { SearchExperience } from "@/components/search/SearchExperience";
-
-export const metadata: Metadata = { title: "Search" };
-
-/** Single-question patent search: one answer with numbered, linked sources. */
+/** Search and chat are one page now (2026-10-11); old /search links land on a new chat. */
 export default function SearchPage() {
-  return <SearchExperience />;
+  redirect("/chat");
 }

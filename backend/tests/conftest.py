@@ -45,6 +45,8 @@ def _point_everything_at_test_databases() -> None:
         os.environ[name] = ""
     # ... and never the web (tests that need it inject a stand-in)
     os.environ["WEB_SEARCH_PROVIDER"] = "off"
+    # Stand-in embeddings give arbitrary similarities: keep every external passage
+    os.environ["EXTERNAL_MIN_SIMILARITY"] = "-1"
     os.environ["TAVILY_API_KEY"] = ""
 
 
