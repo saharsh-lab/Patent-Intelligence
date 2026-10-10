@@ -10,12 +10,12 @@ required); live patent data comes from the EPO Open Patent Services.
 
 | Layer | Technology | Responsibility |
 |---|---|---|
-| Frontend | Next.js 16, React 19, Tailwind CSS | Pages for documents, questions, patent search, comparison, evaluation, settings; proxies `/api` to the backend so no secret reaches the browser |
-| API | FastAPI (Python 3.12) | 21 endpoints; validation, rate and size limits, uniform JSON errors with request IDs |
+| Frontend | Next.js 16, React 19, Tailwind CSS | One asking page (a chat that opens on a search-style start screen), Library, Invention analysis, Patent watch, research pages; proxies `/api` to the backend so no secret reaches the browser |
+| API | FastAPI (Python 3.12) | 47 operations; validation, rate and size limits, uniform JSON errors with request IDs |
 | Agent | LangGraph | State machine that analyses the question, plans and runs tools, generates, verifies, regenerates |
 | Storage | PostgreSQL 17 + pgvector 0.8 | Documents, patents, passages with 1024-d embeddings (HNSW index) and full-text vectors (GIN index), run records for evaluation |
-| Models | Qwen3-8B (Ollama), BGE-M3, DeBERTa-v3 NLI, BGE reranker v2-m3 | Generation, embeddings, verification, optional reranking |
-| External | EPO OPS v3.2 | Search, bibliographic data, claims and descriptions of published patents |
+| Models | Qwen3-8B (Ollama), BGE-M3, DeBERTa-v3 NLI, BGE reranker v2-m3 | Generation, embeddings, verification (NLI, with an LLM second opinion), optional reranking |
+| External | EPO OPS v3.2; Tavily or Wikipedia | Patent search, bibliographic data, claims and descriptions; web search for general questions |
 
 ## 3.2 Ingestion design
 Patents are split along their structure rather than at fixed lengths (Figure 3.2): text is
@@ -38,23 +38,46 @@ no keyword matches, which prevents answers from nothing.
 ## 3.4 Agent design
 The agent is an explicit graph (Figure 3.3; generated from code in docs/agent_graph.md):
 
-1. **Analyse:** classify intent (document question, patent lookup, find similar,
-   compare) and extract publication numbers, claim numbers, sections and legal wording,
+1. **Analyse:** recognise small talk ("hello", "thanks"), which gets a short reply with
+   no retrieval; otherwise classify intent (document question, patent lookup, find
+   similar, compare) and extract publication numbers, claim numbers, sections and legal wording,
    using rules or an LLM planner whose output is validated (numbers, sections and the
    similar-search intent are only accepted if the question contains them).
 2. **Resolve targets:** map "my battery patent" or "EP1234567" to indexed documents, or
    mark them for fetching.
 3. **Plan and execute tools:** `search_uploaded_documents`, `retrieve_evidence`,
    `retrieve_document_section`, `search_patents`, `get_patent_details`,
-   `compare_patents`, `extract_key_concepts`.
+   `compare_patents`, `extract_key_concepts`, `search_web`, `search_patent_abstracts`.
 4. **Check and recover:** if evidence is insufficient, one recovery step broadens the
-   search.
+   search; if the library has no answer (or the model reads its passages and replies
+   "insufficient evidence"), the web and patent offices are searched once (Section 3.4.1).
 5. **Generate:** a grounded prompt with numbered evidence `[E1]…`; evidence is marked as
    untrusted data (prompt-injection hardening); interpretation is separated from facts;
    legal questions are reframed as technical comparisons with a disclaimer.
 6. **Verify and regenerate** (Section 3.5).
 
 *Figure 3.3: Question-answering flow (docs/diagrams/3_answer_flow).*
+
+### 3.4.1 Sources used for one answer (added after the experiments)
+To behave like a general assistant without giving up verification, questions that are not
+about the user's own documents also draw on outside sources, used for that answer only:
+
+| Question | Sources searched |
+|---|---|
+| About attached or named documents | Those documents only |
+| General ("How do solid-state batteries work?") | Library + web |
+| About patents, or with the "Patent DBs" switch | Library + web + patent-office abstracts |
+| Topic search ("latest patents on X") | Patent-office abstracts |
+| A named patent; "similar to my invention" | Patent imported (full text needed) |
+
+Web pages (Tavily, or Wikipedia when no key is configured) and patent-office hits (title
+and abstract) become *transient passages*: ranked by embedding similarity to the
+question, dropped below a similarity of 0.55, cited and verified exactly like library
+passages, recorded in the run, but never stored in the library or indexed. A question the
+LLM planner judges off-topic may use the web but not the patent offices. Web and EPO
+requests retry once after a dropped connection, and an answer says when its sources
+could not be reached rather than that nothing exists. All of this is switched off in the
+experiments (Chapter 6 measured the system without it).
 
 ## 3.5 Verification design
 Answers are split into statements (disclaimers and the interpretation paragraph are
@@ -67,8 +90,25 @@ model to rewrite with explicit feedback, at most once, and keeps the better-grou
 attempt.
 
 The NLI judgement (Figure 3.5) scores the passage, each of its sentences and each pair of
-neighbouring sentences, prefixed with the passage's location, and takes the maximum
-entailment probability (≥ 0.5 supported, ≥ 0.15 partial).
+neighbouring sentences, prefixed with the passage's location and document title, and
+takes the maximum entailment probability (≥ 0.5 supported, ≥ 0.15 partial).
+
+**After the experiments**, users saw correct sentences flagged (Section 6.6), and the
+application now verifies in up to three stages:
+
+1. **NLI**, as above.
+2. **Guarded word-overlap rescue** of what NLI rejects: a statement counts as supported if at
+   least 75% of its key words appear in one passage, all its numbers appear there, and it
+   adds no negation or opposite direction word ("increases" vs. "decreases").
+3. **LLM second opinion** ("balanced", the default): only statements still flagged are
+   re-checked by Qwen3-8B (batches of four, three most relevant passages each), which
+   accepts synonyms but not added reasons or implications. "Strict" mode, a per-user
+   setting, stops after stage 2.
+
+Two rules apply in every mode. A statement that names a patent number cannot be supported
+by a passage from a different patent. An uncited statement that a passage supports counts
+as supported (citation coverage is reported separately). Chapter 6 reports the original
+NLI verifier; Section 6.6 measures the new stages.
 
 *Figure 3.4: Verification (docs/diagrams/4_verification). Figure 3.5: One NLI judgement
 (docs/diagrams/4b_nli_judgement).*
@@ -112,3 +152,6 @@ credentials.
 | PostgreSQL for vectors, text, cache and runs | Separate vector DB + Redis | One service to operate; transactions across corpus and run records |
 | Feature chart decided by retrieval + NLI | LLM writes the chart | A generated chart could assert disclosures that are not in the document; a computed one cites a passage for every ✓ |
 | NLI verifier | LLM-as-judge only | Deterministic, free, fast; the LLM judge is kept as an alternative (Experiment I) |
+| LLM only as a second opinion on flagged statements | LLM judges everything | Cost proportional to doubt; the LLM alone accepted plausible but unstated reasons (Section 6.6) |
+| Web pages and abstracts used for one answer | Import everything found | Fast, no library clutter, and still cited and verified; full import only when full text is needed |
+| Web answers from cited pages | Model's own knowledge | Only sources can be verified; Experiment E showed the model inventing details about unseen patents |

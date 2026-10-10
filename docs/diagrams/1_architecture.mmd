@@ -11,7 +11,7 @@ flowchart LR
         watch["Patent watch<br/>scheduled EPO checks"]
         ingest["Ingestion<br/>extract → sections → chunks → embeddings"]
         agent["Agent · LangGraph<br/>analyze → plan → tools → generate"]
-        verify["Verification<br/>claim-level NLI check + regeneration"]
+        verify["Verification<br/>NLI + LLM second opinion<br/>+ regeneration"]
         inv["Invention analysis<br/>features → candidates → verified chart"]
         eval["Evaluation framework<br/>(command line)"]
     end
@@ -25,7 +25,10 @@ flowchart LR
         nli["DeBERTa NLI<br/>(verification)"]
         rr["BGE reranker<br/>(optional)"]
     end
-    epo["EPO Open Patent Services<br/>(live patents)"]
+    subgraph External["External sources (used per answer)"]
+        epo["EPO Open Patent Services<br/>(live patents)"]
+        web["Web search<br/>(Tavily or Wikipedia)"]
+    end
 
     user --> pages --> proxy --> mw
     mw --> auth --> authdb
@@ -41,6 +44,7 @@ flowchart LR
     agent --> llm
     agent --> rr
     agent --> epo
+    agent --> web
     verify --> nli
     inv --> pg
     inv --> nli
