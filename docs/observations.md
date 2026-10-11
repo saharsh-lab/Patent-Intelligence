@@ -568,3 +568,124 @@ nothing imported.
 - **Relevance cut-off.** The same question brought EPO abstracts on fluid lenses and floor
   cleaners (similarity 0.47–0.51) next to Wikipedia (0.65–0.71); external passages below
   0.55 are now dropped (`EXTERNAL_MIN_SIMILARITY`).
+
+### 2026-10-11 — Phase 13: Hallucination X-ray; chat could not scroll back up
+
+- **X-ray.** The chat's "Show checks" became a "Hallucination X-ray": every checked
+  sentence is coloured (green supported, amber partly supported or cited the wrong
+  passage, red not found), and clicking one shows the passage it was judged against, the
+  checker's reason and score, and the words the passage shares with the sentence (a
+  reading aid; the checker judges meaning, not word overlap). When the answer was
+  rewritten after the check, the first draft is shown next to the final answer with the
+  dropped sentences struck through. Only the display changed: answering and checking are
+  as measured in the experiments. The draft's sentence verdicts are now stored with each
+  attempt (they were computed before but only the counts were kept), so drafts from
+  before this change show no comparison.
+- **Scrolling bug found while testing it.** In a conversation taller than the screen the
+  top of the thread was pushed above the window and could not be scrolled back to. The
+  decorative background layer (one screen tall, with a negative margin of one screen) was
+  being shrunk by the flex layout while its margin was not, which shifted all content up
+  by the difference (185 px in the test). The layer now keeps its height (`shrink-0`).
+  The earlier full browser check's screenshot of a long answer showed the same cut-off
+  top but it was not noticed then.
+- Browser check of the X-ray used a mocked API response (a hand-written answer with a
+  rejected draft), because a real regeneration cannot be triggered on demand; Phase 14's
+  "inject a false fact" mode will make that possible with the real models.
+
+### 2026-10-11 — "When I ask a question it is not responding"
+
+- **What happened.** Two questions from the start-screen suggestions. "How do battery packs
+  use immersion cooling?" took 96 s: about 20 s loading the embedding and NLI models on
+  the first question, then writing, checking (32 s), one regeneration and a second check.
+  The answer was poor ("Battery packs do not use immersion cooling as described in the
+  evidence"), because the only evidence was the introduction of the Wikipedia article on
+  cooling electronics. "How do wireless chargers detect metal objects?" ended "couldn't
+  find this": the introduction of "Inductive charging" does not describe detection, and
+  the patent offices were not searched because the question does not say "patent".
+- **Changes.** (1) Wikipedia: the best three articles are read in full and split into
+  passages by section (reference lists skipped); the similarity ranking picks the
+  relevant ones. (2) Technology questions judged in scope by the LLM planner also search
+  the patent offices' abstracts (no import). (3) The local models load in the background
+  when the API starts (10 s), not on the first question. (4) The waiting box's stages
+  follow real timings and, after 25 s, say that checking can take a minute or two; the
+  old 2.2 s stages reached "Checking every sentence" after 7 s and stayed there.
+- **After** (same two questions, real models, throwaway database): immersion cooling 58 s,
+  7/7 sentences verified, citing Wikipedia sections and three immersed-battery-pack
+  filings; wireless chargers 44 s, 7/7 verified, citing EP4815257A1, US20260299157A1,
+  CN119482996A and TW202211585A. The first attempt of the second question failed in 5 s
+  because both Wikipedia and EPO were unreachable for a moment (the app said so); the
+  retry a minute later worked. Experiments are unaffected (live search and web search are
+  pinned off there).
+- **Follow-up the same morning: "no answer is coming" (screenshot).** The question was
+  answered in 55 s, but the page never showed it. Asking in a new chat creates the
+  conversation and moves the page from `/chat` to `/chat/<id>`, which mounts a fresh page
+  that does not know a question is pending; it loaded the conversation while the answer
+  was still "running" (the run row is saved when work starts) and drew it as an empty
+  answer, then never fetched again. Now a running answer shows the waiting box with the
+  real elapsed time, and the page re-checks every 3 s until it is done (this also covers
+  a reload or switching chats mid-answer). Reproduced and verified with a mocked
+  conversation that stays "running" for four fetches.
+
+### 2026-10-11 — Phase 14: "plant a false fact" checker test; the checker missed changed numbers
+
+- **Feature.** From the X-ray, "Plant a false fact" re-asks the question with one false
+  sentence planted in the first draft (changed number, else reversed direction word, else an
+  invented detail; citation kept). The verifier is not told which. If it flags the sentence
+  the answer is regenerated (even above the grounding threshold) and the X-ray opens on the
+  planted sentence; a miss is shown as a miss. `DEMO_INJECTION_ENABLED` (refused in
+  production); experiments never set it.
+- **First live test missed it.** "...stays below 120 degrees Celsius [E2]" (true value 40):
+  NLI p=0.02, but the lexical rescue passed it because "120" occurs in the passage as the
+  reference numeral of the cooling channels. With that fixed (numbers must match with their
+  unit), the LLM second opinion confirmed it instead, its reason quoting "below 40°C"; in
+  another run the same model caught the same sentence, so its number checking is unreliable.
+  Rule added: the LLM cannot confirm a statement whose numbers are not in its passages.
+- **Before/after, 5 checker tests on the battery patent** (throwaway database, real models):
+  before 3 caught and rewritten, 1 flagged partly supported but left in, 1 missed; after 5/5
+  caught and rewritten. One repeat run failed with a sandbox PermissionError reading CA
+  certificates (the test server, not the app) and was re-run.
+- **Cost on the labelled statements** (`exp_i_verifier_choice/20261011-062122`): balanced
+  8/137 false alarms (was 7), caught 5/9 (unchanged); strict unchanged. An intermediate
+  version also treated "S1"/"E3"/"claim 7" as numbers (9/137); that run was discarded and the
+  rule fixed before the final measurement.
+
+### 2026-10-11 — Phase 15: live agent trace
+
+- While an answer is written, the chat shows the agent's steps as they happen instead of a
+  generic progress box: understanding the question (with the planner's reading), the
+  chosen tools in order, each tool call with the reason it was chosen and its result
+  ("metal object detection wireless → epo: 150; using 4 abstracts"), writing, checking and
+  any rewrite. Each row has its duration. The finished trace is stored with the answer
+  ("Agent steps" tab). Reasons are derived from the tool and the question analysis, not
+  asked of the model, so they cannot be invented.
+- How: every graph node is wrapped by a recorder (app/agents/trace.py) and every tool call
+  adds a row; rows go to an in-memory store per conversation that the page polls once a
+  second (`GET /conversations/{id}/progress`, owner only). Polling rather than streaming
+  keeps working after the page changes address mid-answer and through the Next.js proxy.
+  The agent's behaviour is unchanged; a failing display can never stop an answer.
+- Browser check (real models, throwaway database): rows appeared at 8 s (understanding),
+  22 s (plan and three tools, EPO still running) and 42 s (checking); the 50 s answer
+  verified 7/7. Found and fixed: the trace's markers were drawn over the docked question
+  box when scrolled under it.
+
+### 2026-10-11 — Phase 16: patent landscape map
+
+- New page "Landscape map": the patents found for a topic (titles and abstracts from EPO,
+  nothing imported) placed on a 2D map of meaning, grouped into clusters, with the user's
+  library as squares and an optional invention (described, or a library document) as a
+  star with lines to its five closest patents. Clusters: k-means on the BGE-M3 vectors
+  (k from the number of patents, fixed seed); positions: t-SNE when scikit-learn is
+  installed (the local setup), PCA otherwise (the base Docker image); the caption says
+  which, and that 2D distances are approximate. Library items use the mean of their chunk
+  vectors.
+- Real run ("battery immersion cooling", 60 patents, local models): drawn in 10–15 s.
+  The first cluster names were patent boilerplate ("invention, control, operation",
+  "utility, model, module", from Chinese abstracts' "The invention relates to…/The utility
+  model discloses…"); with boilerplate removed and two-word phrases preferred they read
+  "liquid cooling, thermal management", "battery pack, cooling", "thermal management,
+  immersion cooling", "battery pack, circuit". Phrases may not span punctuation (titles were
+  repeated and produced "pack battery"); the phrase weight (1.6) was chosen by comparing two
+  real maps. One of the five closest patents was drawn far from the star: t-SNE keeps local
+  neighbourhoods, not every distance, which the caption states.
+- Fixed in the browser check: on a phone the map rendered at full drawing size (a grid
+  column without a minimum width grew to 1,121 px); cluster names were cut off.

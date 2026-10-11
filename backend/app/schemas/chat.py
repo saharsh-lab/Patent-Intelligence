@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.models import AgentRun, Document, Patent
 from app.models.conversation import Conversation
-from app.schemas.answers import AskResponse
+from app.schemas.answers import AskResponse, TraceStep
 
 
 class ConversationCreate(BaseModel):
@@ -22,6 +22,10 @@ class MessageIn(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     live_search: bool = Field(
         default=False, description="Also search the patent databases for this message"
+    )
+    inject_false_fact: bool = Field(
+        default=False,
+        description="Demo mode: plant a false sentence in the first draft to test the checker",
     )
 
 
@@ -100,3 +104,8 @@ class ChatMessageOut(BaseModel):
 
 class ConversationDetail(ConversationSummary):
     messages: list[ChatMessageOut]
+
+
+class ProgressOut(BaseModel):
+    running: bool
+    steps: list[TraceStep]

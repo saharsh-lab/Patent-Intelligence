@@ -138,6 +138,7 @@ def production(**overrides):
             "cors_origins": ["https://patents.example.org"],
             "patent_demo_source": False,
             "rate_limit_enabled": True,
+            "demo_injection_enabled": False,
             **overrides,
         }
     )
@@ -148,11 +149,13 @@ def test_production_refuses_unsafe_settings():
         database_url=f"postgresql+psycopg://u:{DEFAULT_DB_PASSWORD}@db/x",
         cors_origins=["*"],
         patent_demo_source=True,
+        demo_injection_enabled=True,
     )
     with pytest.raises(ConfigurationError) as error:
         check_production_settings(unsafe)
     message = str(error.value)
     assert "example password" in message and "'*'" in message and "PATENT_DEMO" in message
+    assert "DEMO_INJECTION" in message
     assert DEFAULT_DB_PASSWORD not in message.replace("example password", "")  # no secret echo
 
 

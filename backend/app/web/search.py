@@ -107,60 +107,90 @@ class TavilySearch(WebSearch):
 
 
 class WikipediaSearch(WebSearch):
-    """No key needed: search, then the plain-text introduction of each article."""
+    """No key needed: search, then the full text of the best articles, split into
+    passages by section. The introduction alone often lacks the answer (2026-10-11: "how
+    do wireless chargers detect metal objects?" — the detection method is in the body of
+    "Inductive charging", not its introduction)."""
 
     name = "wikipedia"
     label = "Wikipedia"
     API = "https://en.wikipedia.org/w/api.php"
+    FULL_ARTICLES = 3  # the API returns one full article per request
+    PASSAGE_CHARS = 900
+    PASSAGES_PER_ARTICLE = 20
+    SKIP_SECTIONS = {
+        "see also",
+        "references",
+        "external links",
+        "further reading",
+        "notes",
+        "bibliography",
+        "sources",
+        "citations",
+        "footnotes",
+    }
 
     def __init__(self, timeout: float = 15.0, http: httpx.Client | None = None):
         self._http = http or httpx.Client(timeout=timeout, headers={"User-Agent": USER_AGENT})
 
+    def _get(self, **params) -> dict:
+        return _retry(lambda: self._http.get(self.API, params={**params, "format": "json"})).json()
+
     def search(self, query: str, max_results: int) -> list[WebResult]:
         try:
-            found = _retry(
-                lambda: self._http.get(
-                    self.API,
-                    params={
-                        "action": "query",
-                        "list": "search",
-                        "srsearch": query[:300],
-                        "srlimit": max_results,
-                        "format": "json",
-                    },
-                )
-            ).json()
+            found = self._get(
+                action="query", list="search", srsearch=query[:300], srlimit=max_results
+            )
             titles = [hit["title"] for hit in found.get("query", {}).get("search", [])]
-            if not titles:
-                return []
-            pages = _retry(
-                lambda: self._http.get(
-                    self.API,
-                    params={
-                        "action": "query",
-                        "prop": "extracts|info",
-                        "exintro": 1,
-                        "explaintext": 1,
-                        "inprop": "url",
-                        "titles": "|".join(titles),
-                        "format": "json",
-                    },
+            pages = [
+                self._get(
+                    action="query", prop="extracts|info", explaintext=1, inprop="url", titles=title
                 )
-            ).json()
+                for title in titles[: self.FULL_ARTICLES]
+            ]
         except (httpx.HTTPError, ValueError) as exc:
             raise AppError(
                 f"Web search failed: {type(exc).__name__}", code="web_search_failed"
             ) from None
-        by_title = {
-            page.get("title"): page for page in pages.get("query", {}).get("pages", {}).values()
-        }
         results = []
-        for title in titles:  # keep Wikipedia's ranking
-            page = by_title.get(title) or {}
-            text = _clean(page.get("extract") or "")[:2500]
-            if text:
-                results.append(WebResult(title, page.get("fullurl") or "", text))
+        for data in pages:  # keep Wikipedia's ranking
+            for page in data.get("query", {}).get("pages", {}).values():
+                title, url = page.get("title") or "", page.get("fullurl") or ""
+                for section, text in self.passages(page.get("extract") or ""):
+                    label = f"{title} — {section}" if section else title
+                    results.append(WebResult(label, url, text))
         return results
+
+    @classmethod
+    def passages(cls, extract: str) -> list[tuple[str, str]]:
+        """Split an article ("== Heading ==" lines between paragraphs) into passages of
+        about PASSAGE_CHARS, each labelled with its section; reference lists are skipped."""
+        out: list[tuple[str, str]] = []
+        section, buffer = "", ""
+
+        def flush():
+            nonlocal buffer
+            if buffer.strip():
+                out.append((section, _clean(buffer)))
+            buffer = ""
+
+        for line in extract.splitlines():
+            heading = re.fullmatch(r"\s*(=+)\s*(.*?)\s*\1\s*", line)
+            if heading:
+                flush()
+                level, name = len(heading.group(1)), heading.group(2)
+                if level == 2:
+                    section = name
+                elif section.split(" — ")[0].lower() not in cls.SKIP_SECTIONS:
+                    section = f"{section.split(' — ')[0]} — {name}" if section else name
+                continue
+            if section.split(" — ")[0].lower() in cls.SKIP_SECTIONS or not line.strip():
+                continue
+            if buffer and len(buffer) + len(line) > cls.PASSAGE_CHARS:
+                flush()
+            buffer += " " + line
+        flush()
+        return out[: cls.PASSAGES_PER_ARTICLE]
 
 
 def _clean(text: str) -> str:

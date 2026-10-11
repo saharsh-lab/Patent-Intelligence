@@ -6,21 +6,37 @@ import { useEffect, useState } from "react";
 // The agent runs these stages in order; the last one is held until the answer
 // arrives (a local model can take a minute or more).
 const STAGES = ["Searching filings", "Ranking sources", "Writing answer", "Checking every citation"];
+// Seconds at which each stage starts, from real runs with the local model (2026-10-11:
+// search ~10 s, writing ~12 s, checking 20–50 s). The old 2.2 s steps reached the last
+// stage after 7 s and sat there for a minute, which read as "stuck".
+const STAGE_START = [0, 6, 12, 26];
+const SLOW_AFTER = 25;
 
 /** The reference's scan box (a blue line sweeping a white sheet) with a rotating status line. */
-export function ScanStatus({ height = 120, stages = STAGES, className = "" }: { height?: number; stages?: string[]; className?: string }) {
+export function ScanStatus({
+  height = 120,
+  stages = STAGES,
+  className = "",
+  since,
+}: {
+  height?: number;
+  stages?: string[];
+  className?: string;
+  /** When the work started (ms), if before this box appeared, e.g. after a page change */
+  since?: number;
+}) {
   const [stage, setStage] = useState(0);
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
-    const started = Date.now();
+    const started = since ?? Date.now();
     const timer = setInterval(() => {
       const seconds = (Date.now() - started) / 1000;
       setElapsed(Math.floor(seconds));
-      setStage(Math.min(stages.length - 1, Math.floor(seconds / 2.2)));
+      setStage(Math.max(0, Math.min(stages.length - 1, STAGE_START.findLastIndex((t) => seconds >= t))));
     }, 250);
     return () => clearInterval(timer);
-  }, [stages.length]);
+  }, [stages.length, since]);
 
   return (
     <div
@@ -44,6 +60,11 @@ export function ScanStatus({ height = 120, stages = STAGES, className = "" }: { 
           </motion.span>
         </AnimatePresence>
       </div>
+      {elapsed >= SLOW_AFTER && (
+        <span className="pi-in absolute right-12 bottom-2 left-3 text-[11px] leading-tight">
+          Still working: checking every sentence can take a minute or two.
+        </span>
+      )}
       <span className="absolute right-3 bottom-2 font-mono text-[11px] tabular-nums">{elapsed}s</span>
     </div>
   );

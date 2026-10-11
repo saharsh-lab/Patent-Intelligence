@@ -289,6 +289,27 @@ export interface paths {
         patch: operations["rename_conversation_conversations__conversation_id__patch"];
         trace?: never;
     };
+    "/conversations/{conversation_id}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Answer Progress
+         * @description What the agent is doing for the answer being written now (polled by the chat page;
+         *     the finished trace is also stored with the answer).
+         */
+        get: operations["answer_progress_conversations__conversation_id__progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/conversations/{conversation_id}/messages": {
         parameters: {
             query?: never;
@@ -668,6 +689,28 @@ export interface paths {
         patch: operations["set_active_watches__watch_id__patch"];
         trace?: never;
     };
+    "/landscape": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Draw Landscape
+         * @description Search the patent offices for a topic and place every hit on a 2D map of meaning,
+         *     grouped into clusters; optionally with the user's library and invention. Technical
+         *     similarity only, not a legal assessment.
+         */
+        post: operations["draw_landscape_landscape_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -712,6 +755,12 @@ export interface components {
              * @default false
              */
             live_search: boolean;
+            /**
+             * Inject False Fact
+             * @description Demo mode: plant a false sentence in the first draft to test the checker
+             * @default false
+             */
+            inject_false_fact: boolean;
         };
         /** AskResponse */
         AskResponse: {
@@ -771,6 +820,18 @@ export interface components {
             }[];
             /** Error Message */
             error_message: string | null;
+            /**
+             * Trace
+             * @description The agent's steps and tool calls, with reasons and durations (Phase 15)
+             */
+            trace?: components["schemas"]["TraceStep"][];
+            /**
+             * Demo Injection
+             * @description Demo mode: the planted false sentence and whether it was caught
+             */
+            demo_injection?: {
+                [key: string]: unknown;
+            } | null;
             /** Evidence */
             evidence: components["schemas"]["EvidenceOut"][];
             summary: components["schemas"]["RunSummaryOut"];
@@ -1164,6 +1225,111 @@ export interface components {
              */
             max_candidates: number;
         };
+        /** LandscapeClusterOut */
+        LandscapeClusterOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Size */
+            size: number;
+        };
+        /** LandscapeInventionOut */
+        LandscapeInventionOut: {
+            /** Label */
+            label: string;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+        };
+        /** LandscapeOut */
+        LandscapeOut: {
+            /** Query */
+            query: string;
+            /**
+             * Method
+             * @description t-SNE or PCA: how 1,024 dimensions were drawn in two
+             */
+            method: string;
+            /** Points */
+            points: components["schemas"]["LandscapePointOut"][];
+            /** Clusters */
+            clusters: components["schemas"]["LandscapeClusterOut"][];
+            invention: components["schemas"]["LandscapeInventionOut"] | null;
+            /** Found */
+            found: number;
+            /** Notes */
+            notes: string[];
+        };
+        /** LandscapePointOut */
+        LandscapePointOut: {
+            /** Key */
+            key: string;
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Title */
+            title: string;
+            /** Applicants */
+            applicants: string[];
+            /** Date */
+            date: string | null;
+            /** Abstract */
+            abstract: string;
+            /** Url */
+            url: string | null;
+            /** Source */
+            source: string | null;
+            /** Full Text Likely */
+            full_text_likely: boolean;
+            /** In Library */
+            in_library: boolean;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** Cluster */
+            cluster: number | null;
+            /** Similarity */
+            similarity: number | null;
+            /** Closest */
+            closest: boolean;
+        };
+        /** LandscapeRequest */
+        LandscapeRequest: {
+            /**
+             * Keywords
+             * @description The technology area
+             */
+            keywords: string;
+            /**
+             * Invention
+             * @description Your invention, described in words
+             */
+            invention?: string | null;
+            /**
+             * Document Id
+             * @description ...or a library document
+             */
+            document_id?: string | null;
+            /**
+             * Patent Id
+             * @description ...or an imported patent
+             */
+            patent_id?: string | null;
+            /**
+             * Include Library
+             * @default true
+             */
+            include_library: boolean;
+            /**
+             * Limit
+             * @default 60
+             */
+            limit: number;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -1181,6 +1347,12 @@ export interface components {
              * @default false
              */
             live_search: boolean;
+            /**
+             * Inject False Fact
+             * @description Demo mode: plant a false sentence in the first draft to test the checker
+             * @default false
+             */
+            inject_false_fact: boolean;
         };
         /** PasswordIn */
         PasswordIn: {
@@ -1361,6 +1533,13 @@ export interface components {
                 [key: string]: string;
             } | null;
         };
+        /** ProgressOut */
+        ProgressOut: {
+            /** Running */
+            running: boolean;
+            /** Steps */
+            steps: components["schemas"]["TraceStep"][];
+        };
         /** RegisterIn */
         RegisterIn: {
             /** Email */
@@ -1521,6 +1700,37 @@ export interface components {
             output_summary: string | null;
             /** Latency Ms */
             latency_ms: number | null;
+        };
+        /** TraceStep */
+        TraceStep: {
+            /**
+             * Kind
+             * @description step (an agent stage) or tool (a tool call)
+             */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @description running | done | failed
+             */
+            status: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Why
+             * @default
+             */
+            why: string;
+            /** At Ms */
+            at_ms: number;
+            /** Ms */
+            ms?: number | null;
         };
         /** UploadResponse */
         UploadResponse: {
@@ -2316,6 +2526,37 @@ export interface operations {
             };
         };
     };
+    answer_progress_conversations__conversation_id__progress_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     send_message_conversations__conversation_id__messages_post: {
         parameters: {
             query?: never;
@@ -3043,6 +3284,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WatchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draw_landscape_landscape_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LandscapeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LandscapeOut"];
                 };
             };
             /** @description Validation Error */

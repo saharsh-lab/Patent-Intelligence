@@ -45,3 +45,18 @@ def test_concurrent_embedding_calls_are_serialised():
         t.join()
     assert errors == []
     assert model.max_active == 1  # never two model calls at once
+
+
+def test_warm_up_runs_only_for_real_local_models(monkeypatch):
+    from app.core import warmup
+    from app.core.config import get_settings
+
+    settings = get_settings()
+    assert settings.embedding_provider == "fake"
+    assert warmup.start_warm_up(settings) is None  # tests and fake mode load nothing
+
+    loaded = []
+    monkeypatch.setattr(warmup, "warm_up", lambda s: loaded.append(s.embedding_provider))
+    thread = warmup.start_warm_up(settings.model_copy(update={"embedding_provider": "local"}))
+    thread.join(timeout=5)
+    assert loaded == ["local"]

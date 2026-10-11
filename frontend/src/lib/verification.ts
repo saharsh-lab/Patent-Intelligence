@@ -29,6 +29,8 @@ export interface VerificationAttempt {
   counts: Verification["counts"];
   answer_text: string;
   kept: boolean;
+  /** Sentence verdicts of this attempt (missing on answers stored before 2026-10-11) */
+  claims?: ClaimResult[];
 }
 
 export type Segment = { text: string; claim?: ClaimResult };

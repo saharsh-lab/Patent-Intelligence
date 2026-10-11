@@ -1,9 +1,11 @@
 "use client";
 
-import { Highlighted, renderInlines } from "@/components/ask/AnswerView";
+import { renderInlines } from "@/components/ask/AnswerView";
 import { parseAnswer, parseInline, stripInterpretation } from "@/lib/citations";
 import type { AskResponse } from "@/lib/types";
-import type { Verification } from "@/lib/verification";
+import type { ClaimResult, Verification } from "@/lib/verification";
+
+import { type XRaySelection, XRayText, useDeveloped } from "@/components/chat/XRay";
 
 /** Plain-language summary of the sentence checks, e.g. "9 of 10 statements supported". */
 export function trustSummary(verification: Verification | null | undefined) {
@@ -15,18 +17,29 @@ export function trustSummary(verification: Verification | null | undefined) {
   return { supported, unsupported, partial: claims.length - supported - unsupported, total: claims.length, tone };
 }
 
-/** The answer itself, kept calm: text with source numbers; checks only on request. */
-export function ChatAnswer({ run, onCite, showChecks }: { run: AskResponse; onCite: (label: string) => void; showChecks: boolean }) {
+type XRayMode = { selected: XRaySelection; onSelect: (s: XRaySelection) => void; planted?: ClaimResult };
+
+/** The answer itself, kept calm: text with source numbers. In X-ray mode every checked
+ *  sentence is coloured by its verdict and opens the passage it was checked against. */
+export function ChatAnswer({ run, onCite, xray }: { run: AskResponse; onCite: (label: string) => void; xray?: XRayMode | null }) {
   const verification = run.verification as unknown as Verification | null | undefined;
   const claims = (verification?.claims ?? []).filter((c) => c.location === "answer");
   const blocks = parseAnswer(run.answer ? stripInterpretation(run.answer) : "");
+  const developed = useDeveloped(!!xray);
 
   const line = (raw: string) =>
-    showChecks ? <Highlighted raw={raw} claims={claims} onCite={onCite} /> : <>{renderInlines(parseInline(raw), onCite)}</>;
+    xray ? (
+      <XRayText raw={raw} claims={claims} selected={xray.selected} onSelect={xray.onSelect} planted={xray.planted} />
+    ) : (
+      <>{renderInlines(parseInline(raw), onCite)}</>
+    );
 
   return (
     // Paragraphs arrive one after another (stagger), citations pop in (pi-cite)
-    <div className="stagger space-y-3 font-serif text-[1.08rem] leading-[1.65]">
+    <div
+      className={`stagger relative space-y-3 font-serif text-[1.08rem] leading-[1.65] ${xray ? "xr-on" : ""} ${developed ? "xr-developed" : ""}`}
+    >
+      {xray && <span aria-hidden className="xr-scan" />}
       {run.legal_question && (
         <p className="rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">
           This asks for a legal opinion, which I can&apos;t give. Below is technical information from the sources only.

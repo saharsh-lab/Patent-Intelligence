@@ -854,6 +854,50 @@
         }
       }
     },
+    "/conversations/{conversation_id}/progress": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Answer Progress",
+        "description": "What the agent is doing for the answer being written now (polled by the chat page;\nthe finished trace is also stored with the answer).",
+        "operationId": "answer_progress_conversations__conversation_id__progress_get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/conversations/{conversation_id}/messages": {
       "post": {
         "tags": [
@@ -1862,6 +1906,48 @@
           }
         }
       }
+    },
+    "/landscape": {
+      "post": {
+        "tags": [
+          "landscape"
+        ],
+        "summary": "Draw Landscape",
+        "description": "Search the patent offices for a topic and place every hit on a 2D map of meaning,\ngrouped into clusters; optionally with the user's library and invention. Technical\nsimilarity only, not a legal assessment.",
+        "operationId": "draw_landscape_landscape_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandscapeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandscapeOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2001,6 +2087,12 @@
             "type": "boolean",
             "title": "Live Search",
             "description": "Agent only: also search the patent databases and import the best matches",
+            "default": false
+          },
+          "inject_false_fact": {
+            "type": "boolean",
+            "title": "Inject False Fact",
+            "description": "Demo mode: plant a false sentence in the first draft to test the checker",
             "default": false
           }
         },
@@ -2154,6 +2246,27 @@
               }
             ],
             "title": "Error Message"
+          },
+          "trace": {
+            "items": {
+              "$ref": "#/components/schemas/TraceStep"
+            },
+            "type": "array",
+            "title": "Trace",
+            "description": "The agent's steps and tool calls, with reasons and durations (Phase 15)"
+          },
+          "demo_injection": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Demo Injection",
+            "description": "Demo mode: the planted false sentence and whether it was caught"
           },
           "evidence": {
             "items": {
@@ -3224,6 +3337,304 @@
         "type": "object",
         "title": "InventionRequest"
       },
+      "LandscapeClusterOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "size"
+        ],
+        "title": "LandscapeClusterOut"
+      },
+      "LandscapeInventionOut": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "x": {
+            "type": "number",
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "title": "Y"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "x",
+          "y"
+        ],
+        "title": "LandscapeInventionOut"
+      },
+      "LandscapeOut": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method",
+            "description": "t-SNE or PCA: how 1,024 dimensions were drawn in two"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/LandscapePointOut"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "clusters": {
+            "items": {
+              "$ref": "#/components/schemas/LandscapeClusterOut"
+            },
+            "type": "array",
+            "title": "Clusters"
+          },
+          "invention": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LandscapeInventionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "found": {
+            "type": "integer",
+            "title": "Found"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "method",
+          "points",
+          "clusters",
+          "invention",
+          "found",
+          "notes"
+        ],
+        "title": "LandscapeOut"
+      },
+      "LandscapePointOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "applicants": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Applicants"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "abstract": {
+            "type": "string",
+            "title": "Abstract"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "full_text_likely": {
+            "type": "boolean",
+            "title": "Full Text Likely"
+          },
+          "in_library": {
+            "type": "boolean",
+            "title": "In Library"
+          },
+          "x": {
+            "type": "number",
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "title": "Y"
+          },
+          "cluster": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cluster"
+          },
+          "similarity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similarity"
+          },
+          "closest": {
+            "type": "boolean",
+            "title": "Closest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "kind",
+          "label",
+          "title",
+          "applicants",
+          "date",
+          "abstract",
+          "url",
+          "source",
+          "full_text_likely",
+          "in_library",
+          "x",
+          "y",
+          "cluster",
+          "similarity",
+          "closest"
+        ],
+        "title": "LandscapePointOut"
+      },
+      "LandscapeRequest": {
+        "properties": {
+          "keywords": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Keywords",
+            "description": "The technology area"
+          },
+          "invention": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invention",
+            "description": "Your invention, described in words"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id",
+            "description": "...or a library document"
+          },
+          "patent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patent Id",
+            "description": "...or an imported patent"
+          },
+          "include_library": {
+            "type": "boolean",
+            "title": "Include Library",
+            "default": true
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 10.0,
+            "title": "Limit",
+            "default": 60
+          }
+        },
+        "type": "object",
+        "required": [
+          "keywords"
+        ],
+        "title": "LandscapeRequest"
+      },
       "LoginIn": {
         "properties": {
           "email": {
@@ -3256,6 +3667,12 @@
             "type": "boolean",
             "title": "Live Search",
             "description": "Also search the patent databases for this message",
+            "default": false
+          },
+          "inject_false_fact": {
+            "type": "boolean",
+            "title": "Inject False Fact",
+            "description": "Demo mode: plant a false sentence in the first draft to test the checker",
             "default": false
           }
         },
@@ -3835,6 +4252,27 @@
         "type": "object",
         "title": "ProfileIn"
       },
+      "ProgressOut": {
+        "properties": {
+          "running": {
+            "type": "boolean",
+            "title": "Running"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/TraceStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "running",
+          "steps"
+        ],
+        "title": "ProgressOut"
+      },
       "RegisterIn": {
         "properties": {
           "email": {
@@ -4322,6 +4760,62 @@
         ],
         "title": "StepOut",
         "description": "One tool call made by the agent (safe summary, no hidden reasoning)."
+      },
+      "TraceStep": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "description": "step (an agent stage) or tool (a tool call)"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "running | done | failed"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "default": ""
+          },
+          "why": {
+            "type": "string",
+            "title": "Why",
+            "default": ""
+          },
+          "at_ms": {
+            "type": "integer",
+            "title": "At Ms"
+          },
+          "ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "name",
+          "label",
+          "status",
+          "at_ms"
+        ],
+        "title": "TraceStep"
       },
       "UploadResponse": {
         "properties": {

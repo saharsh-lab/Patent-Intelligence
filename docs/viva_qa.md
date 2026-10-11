@@ -341,3 +341,64 @@ Because nothing could check it. Experiment E showed the model confidently invent
 about things it has not seen (it called a wireless-charging patent "a photovoltaic
 system"). With web pages as evidence, each sentence has a source the checker can compare
 against.
+
+**61. What is the Hallucination X-ray?**
+A view of the checker's work on one answer. Each sentence is coloured by its verdict, and
+clicking it shows the exact passage it was compared with and why it passed or failed. If
+the first draft failed the check and was rewritten, the draft is shown beside the final
+answer, so you can see which invented sentence was caught and removed.
+
+**62. The X-ray highlights matching words. Is that how the checker decides?**
+No. The highlights are only a reading aid that shows which words the sentence and the
+passage share. The checker is an NLI model (plus an LLM second opinion for flagged
+sentences) that judges whether the passage *means* the sentence is true. A sentence can
+share many words with a passage and still be unsupported, for example by changing a number
+or reversing a relation.
+
+**63. Did adding the X-ray change your experiment results?**
+No. It only displays verdicts the system already computed. The one backend change keeps
+the first draft's per-sentence verdicts, which were computed before but only summarised;
+answering and checking are unchanged.
+
+**64. What does "Plant a false fact" do?**
+It answers your question again, but secretly changes one sentence of the first draft into a
+false one (a wrong number, a reversed direction, or an invented detail) while keeping its
+citation. The checker is not told which sentence. You then see whether it caught the
+planted sentence, and the rewritten answer without it, or an honest "missed" message.
+
+**65. Isn't that cheating, since you know where the error is?**
+The checker doesn't know: it checks every sentence exactly as it does normally. Only the
+display knows which sentence was planted, so it can show whether it was caught. A miss is
+shown as a miss.
+
+**66. Did the test ever fail?**
+Yes, and that was useful. The first test changed "40 °C" to "120 degrees" and the checker
+missed it: "120" appeared in the patent as a part number (the cooling channels are "120"),
+and the LLM second opinion confirmed the sentence while quoting 40 °C in its own reason.
+We added a rule that numbers must match with their units and that the LLM cannot confirm
+a sentence whose numbers are not in the source. Re-measured on the 150 labelled sentences,
+it costs one extra false alarm; five checker tests afterwards were all caught.
+
+**67. How can I see that the system is really "agentic"?**
+Open "Agent steps" under an answer, or watch while it works: it shows how the agent read
+the question, which tools it chose and in what order, why each was chosen, what each one
+found, and how long it took, including any retry or rewrite. A plain RAG pipeline would
+always do the same two steps; here the steps change with the question.
+
+**68. Are the "Why" lines the model explaining itself?**
+No. They are written by the program from the planner's decision (for example "no document
+was named, so the whole library is searched first"), so they always match what actually
+happened and cannot be made up by the language model.
+
+**69. How is the landscape map made?**
+Each patent's title and abstract is turned into the same 1,024-number meaning vector used
+for search (BGE-M3). Similar patents have similar vectors. K-means groups the vectors into
+clusters; t-SNE then squeezes the 1,024 dimensions into two so they can be drawn, keeping
+neighbours together. The invention is placed the same way, and the five patents with the
+most similar vectors are linked to it.
+
+**70. Two dots are close on the map. Are those patents similar?**
+Probably, in meaning: nearby dots usually describe similar technology. But flattening
+1,024 dimensions into two distorts distances, so the map is for a first overview. The
+similarity numbers in the side panel are computed in the full space and are the reliable
+ones. Neither says anything about legal overlap.

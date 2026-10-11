@@ -32,5 +32,6 @@ export const icons = {
   logout: (p: SVGProps<SVGSVGElement>) => <Icon {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></Icon>,
   trash: (p: SVGProps<SVGSVGElement>) => <Icon {...p}><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></Icon>,
   pencil: (p: SVGProps<SVGSVGElement>) => <Icon {...p}><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" /></Icon>,
+  map: (p: SVGProps<SVGSVGElement>) => <Icon {...p}><circle cx="6" cy="7" r="2" /><circle cx="17" cy="6" r="2" /><circle cx="9" cy="17" r="2" /><circle cx="18" cy="16" r="2" /><path d="m7.6 8.4 6.8 6.4M11 17h5" /></Icon>,
   user: (p: SVGProps<SVGSVGElement>) => <Icon {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></Icon>,
 };

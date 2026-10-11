@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.api.deps import AgentServiceDep, AnswerServiceDep, SessionDep, SettingsDep
-from app.core.errors import NotFoundError
+from app.core.errors import NotFoundError, ValidationFailedError
 from app.core.ownership import restrict, visible
 from app.models import AgentRun
 from app.models import Query as QueryModel
@@ -30,7 +30,13 @@ def ask(
     Returns 200 for both answered and 'insufficient_evidence' outcomes; check `status`.
     """
     agentic = (body.pipeline or settings.default_pipeline) == "agentic"
-    extra = {"live_search": body.live_search} if agentic else {}
+    extra = (
+        {"live_search": body.live_search, "inject_false_fact": body.inject_false_fact}
+        if agentic
+        else {}
+    )
+    if body.inject_false_fact and not agentic:
+        raise ValidationFailedError("The checker test needs the agent pipeline.")
     run = (agent if agentic else baseline).ask(
         body.question,
         document_ids=body.document_ids,

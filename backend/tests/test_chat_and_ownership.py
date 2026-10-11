@@ -282,3 +282,24 @@ def test_greeting_in_a_chat_with_a_patent_gets_a_reply_not_a_summary(app_factory
     run = reply["response"]
     assert run["intent"] == "small_talk" and run["evidence"] == []
     assert run["answer"].startswith("Hello! Ask me anything about the attached document")
+
+
+def test_live_progress_of_an_answer_is_visible_only_to_its_owner(app_factory, monkeypatch):
+    from app.services import progress
+
+    snapshots = []
+    original = progress.publish
+    monkeypatch.setattr(
+        progress,
+        "publish",
+        lambda key, rows: (snapshots.append([r["status"] for r in rows]), original(key, rows)),
+    )
+    app = app_factory(accounts=True)
+    alice, bob = user(app, "alice@example.com"), user(app, "bob@example.com")
+    cid = alice.post("/conversations", json={}).json()["id"]
+    alice.post(f"/conversations/{cid}/messages", json={"message": "How is the pump controlled?"})
+
+    assert len(snapshots) > 3 and snapshots[0] == ["running"]  # rows arrive as work starts
+    done = alice.get(f"/conversations/{cid}/progress").json()
+    assert done["running"] is False and done["steps"][0]["name"] == "analyze"
+    assert bob.get(f"/conversations/{cid}/progress").status_code == 404

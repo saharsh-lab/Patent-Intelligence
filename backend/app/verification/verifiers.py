@@ -25,7 +25,7 @@ import logging
 import re
 import threading
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 
 from app.core.errors import ConfigurationError
@@ -235,10 +235,55 @@ def _has(word: str, text: str) -> bool:
     return re.search(rf"\b{word}", text, re.IGNORECASE) is not None
 
 
+# A number and the word after it ("40 degrees", "10 Hz"); unit spellings are unified
+# not digits inside labels ("S1", "E3", "EP123") and not structure references ("claim 7")
+_QUANTITY = re.compile(
+    r"(?<![a-z0-9.,])(?<!claim )(?<!claims )(?<!fig\. )(?<!fig )(?<!figure )(?<!figures )"
+    r"(?<!paragraph )(?<!step )(\d+(?:[.,]\d+)?)\s*(°\s*[cf]\b|%|[a-z]+)?",
+    re.IGNORECASE,
+)
+_UNIT_ALIASES = {
+    "°c": "deg", "°f": "deg", "degrees": "deg", "degree": "deg", "deg": "deg", "c": "deg",
+    "%": "percent", "per": "", "percent": "percent", "seconds": "s", "second": "s", "sec": "s",
+    "minutes": "min", "minute": "min", "hours": "h", "hour": "h", "hz": "hz", "hertz": "hz",
+}  # fmt: skip
+# Only these count as units; other words after a number are just the next word
+# ("cells 102 carry": a reference numeral, not a quantity of anything)
+_UNITS = {
+    "deg", "percent", "s", "min", "h", "hz", "khz", "mhz", "ms", "mm", "cm", "m", "km",
+    "um", "nm", "g", "kg", "mg", "v", "kv", "mv", "a", "ma", "w", "kw", "mw", "kwh", "wh",
+    "ah", "mah", "rpm", "bar", "pa", "kpa", "mpa", "psi", "l", "ml", "k", "db", "times",
+    "cells", "layers", "steps", "days", "years", "months", "weeks",
+}  # fmt: skip
+
+
+def _quantities(text: str) -> set[tuple[str, str]]:
+    out = set()
+    for number, unit in _QUANTITY.findall(text):
+        unit = re.sub(r"\s+", "", unit.lower())
+        unit = _UNIT_ALIASES.get(unit, unit)
+        unit = unit if unit in _UNITS else ""
+        out.add((number.replace(",", "."), unit))
+    return out
+
+
+def _numbers_match(claim: str, passage: str) -> bool:
+    """Every number in the claim is in the passage, with the same unit when the claim
+    gives one. Observed (2026-10-11, Phase 14 demo): "below 120 degrees Celsius" was
+    rescued against a passage saying "below 40 °C" because "coolant pump 120" (a patent
+    reference numeral) supplied the number."""
+    have = _quantities(passage)
+    numbers = {n for n, _ in have}
+    for number, unit in _quantities(claim):
+        if number not in numbers or (unit and (number, unit) not in have):
+            return False
+    return True
+
+
 def safe_to_rescue(claim: str, passage: str) -> bool:
     """Word overlap is fooled by a changed number, an added negation or a swapped
     direction ("increases" for "decreases"): refuse the rescue in those cases."""
-    if not set(_NUMBER.findall(claim)) <= set(_NUMBER.findall(passage)):
+    if not _numbers_match(claim, passage):
         return False
     if _NEGATION.search(claim) and not _NEGATION.search(passage):
         return False
@@ -386,7 +431,8 @@ class SecondOpinionVerifier(Verifier):
     ("... averages these likelihoods using a neural network"). Only flagged statements
     reach the LLM (one call for all of them), so cost stays proportional to doubt.
     The LLM can only confirm or downgrade-to-partial; when it says unsupported, the
-    first stage's verdict stands."""
+    first stage's verdict stands. It cannot confirm a statement whose numbers are not in
+    the passages (with their units)."""
 
     name = "nli_llm"
 
@@ -427,6 +473,16 @@ class SecondOpinionVerifier(Verifier):
         self.last_usage = (prompt_tokens, completion_tokens)
         for i, opinion in zip(doubtful, second, strict=True):
             first = out[i]
+            if opinion.verdict != UNSUPPORTED and not _numbers_match(
+                claims[i], "\n".join(passages_per_claim[i])
+            ):
+                # Observed (2026-10-11, Phase 14 demo): Qwen3-8B confirmed "below 120 degrees
+                # Celsius" against "below 40 °C", its reason quoting 40 °C. A number that is
+                # not in the passages is not overruled by the LLM.
+                out[i] = replace(
+                    first, reason=f"{first.reason}; a number in it is not in the passages"
+                )
+                continue
             if opinion.verdict == SUPPORTED:
                 out[i] = Judgement(
                     SUPPORTED,

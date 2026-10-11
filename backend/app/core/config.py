@@ -163,6 +163,9 @@ class Settings(BaseSettings):
     # A built-in source of SYNTHETIC patents (country code "XX") so the search UI can be
     # tried before real API keys exist. Never enable it for experiments.
     patent_demo_source: bool = False
+    # Phase 14 demo mode: the chat may ask the agent to plant a false sentence in its first
+    # draft to show the checker catching it. Off in production.
+    demo_injection_enabled: bool = True
 
     # --- Evaluation (Phase 9) ---
     # Datasets, experiment configs, human labels and result folders

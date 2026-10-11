@@ -52,8 +52,11 @@ export const chat = {
   create: (title?: string) => call<ConversationDetail>("/conversations", { method: "POST", ...json({ title: title ?? null }) }),
   rename: (id: string, title: string) => call<ConversationSummary>(`/conversations/${id}`, { method: "PATCH", ...json({ title }) }),
   remove: (id: string) => call<void>(`/conversations/${id}`, { method: "DELETE" }),
-  send: (id: string, message: string, liveSearch = false) =>
-    call<ChatMessage>(`/conversations/${id}/messages`, { method: "POST", ...json({ message, live_search: liveSearch }) }),
+  send: (id: string, message: string, liveSearch = false, injectFalseFact = false) =>
+    call<ChatMessage>(`/conversations/${id}/messages`, {
+      method: "POST",
+      ...json({ message, live_search: liveSearch, inject_false_fact: injectFalseFact }),
+    }),
   attach: (id: string, file: File) => {
     const form = new FormData();
     form.append("file", file);

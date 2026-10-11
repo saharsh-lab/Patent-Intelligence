@@ -17,11 +17,12 @@ import type { HealthReady, WatchOut } from "@/lib/types";
 
 const AUTH_PAGES = ["/login", "/register"];
 
-// Three tools besides chat (which is also where you search). Research tools (evaluation, research console, system status)
+// Four tools besides chat (which is also where you search). Research tools (evaluation, research console, system status)
 // live in the user menu: they are for the project team, not everyday use.
 const TOOLS = [
   { href: "/documents", label: "Library", icon: icons.file, also: ["/patents", "/compare"] },
   { href: "/invention", label: "Invention analysis", icon: icons.bulb, also: [] },
+  { href: "/landscape", label: "Landscape map", icon: icons.map, also: [] },
   { href: "/watches", label: "Patent watch", icon: icons.bell, also: [] },
 ];
 const RESEARCH = [

@@ -34,7 +34,9 @@ from app.agents.analysis import (
     asks_to_compare,
     keywords_from_text,
 )
+from app.agents.demo_injection import Injection, find_planted, plant_false_fact
 from app.agents.tools import TOOLS, Target, ToolContext, ToolResult
+from app.agents.trace import TOOL_LABELS, TraceRecorder, tool_reason
 from app.core.errors import AppError
 from app.core.ownership import restrict, visible
 from app.intelligence.comparison import ComparisonBuilder
@@ -124,6 +126,8 @@ class AgentState(TypedDict, total=False):
     extra_timings: dict[str, int]
     regeneration_added_passages: int
     live_search: bool
+    inject_false_fact: bool  # demo mode (Phase 14): plant a false sentence in the draft
+    injection: Injection | None
     external_passages: list[RetrievedPassage]  # web pages / patent abstracts, this answer only
 
 
@@ -149,6 +153,7 @@ class AgentGraph:
         live_fallback: bool = False,
         web_search: bool = False,
         live_import_limit: int = 3,
+        trace: TraceRecorder | None = None,
     ):
         self.ctx = ctx
         self.planner = planner  # "rules" | "llm"
@@ -163,25 +168,27 @@ class AgentGraph:
         self.live_import_limit = live_import_limit
         self._live_terms: str | None = None
         self._verifier = None
+        self.trace = trace or TraceRecorder()
         self.graph = self._build()
 
     # ------------------------------------------------------------------ graph
 
     def _build(self):
         g = StateGraph(AgentState)
-        g.add_node("analyze", self.analyze)
-        g.add_node("resolve_targets", self.resolve_targets)
-        g.add_node("plan", self.plan)
+        traced = self.trace.traced  # a trace row per node (tools get rows in execute)
+        g.add_node("analyze", traced("analyze", self.analyze))
+        g.add_node("resolve_targets", traced("resolve_targets", self.resolve_targets))
+        g.add_node("plan", traced("plan", self.plan))
         g.add_node("execute", self.execute)
         g.add_node("check", lambda state: {})
-        g.add_node("recover", self.recover)
-        g.add_node("generate", self.generate)
-        g.add_node("finish", self.finish)
-        g.add_node("verify", self.verify)
-        g.add_node("regenerate", self.regenerate)
+        g.add_node("recover", traced("recover", self.recover))
+        g.add_node("generate", traced("generate", self.generate))
+        g.add_node("finish", traced("finish", self.finish))
+        g.add_node("verify", traced("verify", self.verify))
+        g.add_node("regenerate", traced("regenerate", self.regenerate))
 
         g.add_edge(START, "analyze")
-        g.add_node("small_talk", self.small_talk)
+        g.add_node("small_talk", traced("small_talk", self.small_talk))
         g.add_conditional_edges(
             "analyze",
             lambda s: {"out_of_scope": "finish", "small_talk": "small_talk"}.get(
@@ -210,11 +217,19 @@ class AgentGraph:
         return g.compile()
 
     def run(
-        self, question: str, document_ids: list, patent_ids: list, *, live_search: bool = False
+        self,
+        question: str,
+        document_ids: list,
+        patent_ids: list,
+        *,
+        live_search: bool = False,
+        inject_false_fact: bool = False,
     ) -> AgentState:
         initial: AgentState = {
             "question": question,
             "live_search": live_search,
+            "inject_false_fact": inject_false_fact,
+            "injection": None,
             "document_ids": document_ids,
             "patent_ids": patent_ids,
             "tool_log": [],
@@ -435,7 +450,17 @@ class AgentGraph:
         else:
             steps.append(Step("search_uploaded_documents", {"query": question}))
             if self._can_search_live(state) and (self.web_search or state.get("live_search")):
-                about_patents = bool(state.get("live_search") or _ABOUT_PATENTS.search(question))
+                # Patent filings also answer technology questions ("how do battery packs use
+                # immersion cooling?" found only a Wikipedia page on cooling electronics,
+                # 2026-10-11). The LLM planner rules out off-topic questions; without it,
+                # only questions that mention patents go to the patent offices.
+                in_scope = analysis.analyzer.startswith("llm") and analysis.analyzer not in (
+                    "llm_fallback_rules",
+                    "llm_scope_override",
+                )
+                about_patents = bool(
+                    state.get("live_search") or _ABOUT_PATENTS.search(question) or in_scope
+                )
                 steps += self._live_steps(state, patents=about_patents)
         return {"steps": steps}
 
@@ -498,13 +523,21 @@ class AgentGraph:
                 log.append(self._log(step.tool, step.args, False, "skipped: no indexed target", 0))
                 continue
             started = time.perf_counter()
+            row = self.trace.start(
+                "tool",
+                step.tool,
+                TOOL_LABELS.get(step.tool, step.tool),
+                why=tool_reason(step.tool, args, state),
+            )
             try:
                 result: ToolResult = TOOLS[step.tool](self.ctx, **args)
             except AppError as exc:
                 # Undo any half-finished database work (e.g. a partly indexed patent)
                 self.ctx.session.rollback()
                 log.append(self._log(step.tool, args, False, exc.message, started))
+                self.trace.end(row, exc.message, ok=False)
                 continue
+            self.trace.end(row, result.summary)
             entry = self._log(step.tool, args, True, result.summary, started)
             if result.data.get("sources"):
                 entry["sources"] = result.data["sources"]  # which external databases were used
@@ -744,7 +777,14 @@ class AgentGraph:
             max_tokens=self.ctx.settings.llm_max_tokens,
         )
         parsed = parse_answer(response.text, {item.label for item in evidence})
+        injection = None
+        if state.get("inject_false_fact") and state.get("injection") is None:
+            planted = plant_false_fact(parsed, {item.label for item in evidence})
+            if planted is not None:
+                parsed, injection = planted
+                logger.info("Demo mode: planted a false sentence (%s)", injection.kind)
         return {
+            "injection": injection or state.get("injection"),
             "parsed": parsed,
             "evidence": evidence,
             "llm_response": response,
@@ -830,10 +870,16 @@ class AgentGraph:
             or state.get("comparison") is not None  # tables are flagged, not rewritten
             or state["regenerations"] >= settings.max_regenerations
             or latest is None
-            or (latest.grounding_score or 0.0) >= settings.grounding_threshold
             or not latest.unsupported()
         ):
             return "end"
+        if (latest.grounding_score or 0.0) >= settings.grounding_threshold:
+            # Demo mode: one planted sentence among many can leave grounding above the
+            # threshold; when the checker caught it, rewrite anyway so the demo shows the
+            # full loop (flag -> feedback -> corrected answer).
+            injection = state.get("injection")
+            caught = injection and find_planted(latest.unsupported(), injection)
+            return "regenerate" if caught and state["regenerations"] == 0 else "end"
         return "regenerate"
 
     def regenerate(self, state: AgentState) -> dict:

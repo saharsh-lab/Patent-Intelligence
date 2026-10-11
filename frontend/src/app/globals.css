@@ -33,6 +33,13 @@
   --bad: #b8322a;
   --bad-soft: #f9e4e2;
   --highlight: #dce8fb;
+  /* landscape map clusters (Phase 16) */
+  --map-1: #1f5fd6;
+  --map-2: #1e7a4f;
+  --map-3: #b8322a;
+  --map-4: #9a5800;
+  --map-5: #7a3fb3;
+  --map-6: #0f7c8c;
   --glow: rgb(31 95 214 / 0.1);
   --shadow: 0 1px 0 rgb(22 35 58 / 0.05);
   --shadow-hard: 6px 6px 0 var(--text);
@@ -66,6 +73,12 @@
   --bad: #f08a80;
   --bad-soft: #3a1c1c;
   --highlight: #1f3a66;
+  --map-1: #5b8fef;
+  --map-2: #6fd3a0;
+  --map-3: #f08a80;
+  --map-4: #f0b860;
+  --map-5: #c39af0;
+  --map-6: #5ccbd8;
   --glow: rgb(91 143 239 / 0.14);
   --shadow: 0 1px 0 rgb(0 0 0 / 0.25);
   --shadow-hard: 6px 6px 0 #070d17;
@@ -100,6 +113,12 @@
     --bad: #f08a80;
     --bad-soft: #3a1c1c;
     --highlight: #1f3a66;
+    --map-1: #5b8fef;
+    --map-2: #6fd3a0;
+    --map-3: #f08a80;
+    --map-4: #f0b860;
+    --map-5: #c39af0;
+    --map-6: #5ccbd8;
     --glow: rgb(91 143 239 / 0.14);
     --shadow: 0 1px 0 rgb(0 0 0 / 0.25);
     --shadow-hard: 6px 6px 0 #070d17;
@@ -378,6 +397,58 @@ body {
 .pi-card.flash {
   transform: translateX(-4px);
 }
+
+/* Hallucination X-ray: each checked sentence takes its verdict colour in turn
+   (transition-delay per sentence) while a scan line passes over the answer once. */
+@keyframes pi-xray {
+  from { transform: translateY(-100%); opacity: 1; }
+  85% { opacity: 1; }
+  to { transform: translateY(0); opacity: 0; }
+}
+.stagger > .xr-scan,
+.xr-scan {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(to bottom, transparent calc(100% - 28px), color-mix(in srgb, var(--cite) 22%, transparent) calc(100% - 2px), var(--cite) 100%);
+  animation: pi-xray 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.xr-sentence {
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0 1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color 0.45s ease, box-shadow 0.45s ease;
+}
+.xr-sentence:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.xr-developed .xr-ok,
+.xr-sentence.xr-ok:where(:not(.xr-on *)) {
+  background-color: var(--ok-soft);
+  box-shadow: inset 0 -2px 0 var(--ok);
+}
+.xr-developed .xr-warn,
+.xr-sentence.xr-warn:where(:not(.xr-on *)) {
+  background-color: var(--warn-soft);
+  box-shadow: inset 0 -2px 0 var(--warn);
+}
+.xr-developed .xr-bad,
+.xr-sentence.xr-bad:where(:not(.xr-on *)) {
+  background-color: var(--bad-soft);
+  box-shadow: inset 0 -2px 0 var(--bad);
+}
+.xr-sentence:hover {
+  filter: saturate(1.6);
+}
+.xr-sentence.xr-selected {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
 @media (max-width: 760px) {
   .pi-card.is-active,
   .pi-card.flash {
@@ -466,4 +537,20 @@ body {
   button:not(:disabled):active {
     scale: none;
   }
+}
+
+/* Landscape map (Phase 16): dots pop in, lines to the closest patents draw in */
+.lm-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pi-pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1.2) backwards;
+  transition: opacity 0.25s;
+}
+.lm-star {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pi-pop 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.3) 0.7s backwards;
+}
+.lm-line {
+  animation: pi-fade 0.6s ease 1s backwards;
 }

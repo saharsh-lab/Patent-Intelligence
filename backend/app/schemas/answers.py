@@ -38,6 +38,10 @@ class AskRequest(BaseModel):
         default=False,
         description="Agent only: also search the patent databases and import the best matches",
     )
+    inject_false_fact: bool = Field(
+        default=False,
+        description="Demo mode: plant a false sentence in the first draft to test the checker",
+    )
 
 
 class AnswerSentenceOut(BaseModel):
@@ -65,6 +69,17 @@ class EvidenceOut(BaseModel):
     vector_similarity: float | None
     keyword_score: float | None
     rerank_score: float | None
+
+
+class TraceStep(BaseModel):
+    kind: str = Field(description="step (an agent stage) or tool (a tool call)")
+    name: str
+    label: str
+    status: str = Field(description="running | done | failed")
+    detail: str = ""
+    why: str = ""
+    at_ms: int
+    ms: int | None = None
 
 
 class StepOut(BaseModel):
@@ -124,6 +139,13 @@ class AskResponse(BaseModel):
         description="Grounding of each attempt when the answer was regenerated",
     )
     error_message: str | None
+    trace: list[TraceStep] = Field(
+        default_factory=list,
+        description="The agent's steps and tool calls, with reasons and durations (Phase 15)",
+    )
+    demo_injection: dict | None = Field(
+        default=None, description="Demo mode: the planted false sentence and whether it was caught"
+    )
     evidence: list[EvidenceOut]
     summary: RunSummaryOut
     metrics: RunMetricsOut
@@ -156,6 +178,8 @@ class AskResponse(BaseModel):
             verification=answer.get("verification"),
             verification_attempts=answer.get("verification_attempts", []),
             error_message=run.error_message,
+            demo_injection=answer.get("demo_injection"),
+            trace=answer.get("trace", []),
             evidence=evidence,
             summary=RunSummaryOut(
                 sources_searched=[

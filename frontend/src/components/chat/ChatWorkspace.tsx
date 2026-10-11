@@ -8,7 +8,7 @@ import useSWR, { useSWRConfig } from "swr";
 import { AssistantAvatar, ChatMessageView, UserBubble } from "@/components/chat/ChatMessageView";
 import { icons } from "@/components/icons";
 import { Background } from "@/components/search/Background";
-import { ScanStatus } from "@/components/search/LoadingState";
+import { LiveTrace } from "@/components/chat/AgentTrace";
 import { LogoMark } from "@/components/search/Logo";
 import { ErrorNotice, Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
@@ -29,6 +29,7 @@ const COMPARE_SUGGESTIONS = [
 const START_SUGGESTIONS = [...SUGGESTIONS.slice(0, 2), "What is a patent claim?", "Latest patents on battery immersion cooling"];
 const PENDING_STAGES = ["Searching your library and the web", "Ranking passages", "Writing the answer", "Checking every sentence"];
 const LIVE_STAGES = ["Searching the patent offices and the web", "Reading abstracts and pages", "Writing the answer", "Checking every sentence"];
+const TEST_STAGES = ["Searching the sources again", "Writing a first draft", "Planting a false sentence", "Checking every sentence (not told which)"];
 const ACCEPT = ".pdf,.docx,.txt";
 const CHIP = "border border-line bg-surface px-3.5 py-2 text-[0.9rem] text-text transition-colors hover:border-text";
 
@@ -42,10 +43,15 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   const { mutate: mutateGlobal } = useSWRConfig();
   const { user } = useAuth();
   const key = conversationId ? `/conversations/${conversationId}` : null;
-  const conversation = useSWR<ConversationDetail>(key, fetcher);
+  // An answer still being written shows as "running" (e.g. after the page moved from
+  // /chat to /chat/<id> mid-question, or after a reload): check again until it is done.
+  const conversation = useSWR<ConversationDetail>(key, fetcher, {
+    refreshInterval: (data) => (data?.messages.some((m) => m.response.status === "running") ? 3000 : 0),
+  });
 
   const [draft, setDraft] = useState("");
   const [pending, setPending] = useState<string | null>(null); // message being answered
+  const [testing, setTesting] = useState(false); // the pending message is a checker test
   const [uploading, setUploading] = useState<string[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [dragging, setDragging] = useState(false);
@@ -56,6 +62,14 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
 
   const messages = conversation.data?.messages ?? [];
   const documents = conversation.data?.documents ?? [];
+  const running = messages.some((m) => m.response.status === "running");
+
+  // When a running answer finishes, the sidebar title (set with the answer) changes too
+  const wasRunning = useRef(false);
+  useEffect(() => {
+    if (wasRunning.current && !running) mutateGlobal("/conversations");
+    wasRunning.current = running;
+  }, [running, mutateGlobal]);
 
   useEffect(() => {
     if (messages.length || pending) bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -70,16 +84,17 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
     return created.id;
   }
 
-  async function send(text = draft) {
+  async function send(text = draft, { test = false } = {}) {
     const message = text.trim();
-    if (!message || pending) return;
+    if (!message || pending || running) return;
     setError(null);
-    setDraft("");
+    if (!test) setDraft("");
     setPending(message);
+    setTesting(test);
     let id: string | null = null;
     try {
       id = await ensureConversation();
-      await chat.send(id, message, liveSearch);
+      await chat.send(id, message, liveSearch, test);
       await Promise.all([mutateGlobal(`/conversations/${id}`), mutateGlobal("/conversations")]);
     } catch (e) {
       // A slow answer can outlast the connection although the server finished it:
@@ -89,7 +104,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
         mutateGlobal("/conversations");
       } else {
         setError(e);
-        setDraft(message); // keep what the user typed
+        if (!test) setDraft(message); // keep what the user typed
       }
     } finally {
       setPending(null);
@@ -148,7 +163,7 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
       onAttach={() => fileInput.current?.click()}
       liveSearch={liveSearch}
       toggleLive={() => setLiveSearch((v) => !v)}
-      pending={!!pending}
+      pending={!!pending || running}
       hasDocuments={documents.length > 0}
       textarea={textarea}
     />
@@ -212,6 +227,9 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
               <Link href="/invention" className="flex items-center gap-1.5 text-muted hover:text-text">
                 <icons.bulb width={15} height={15} /> Check an idea
               </Link>
+              <Link href="/landscape" className="flex items-center gap-1.5 text-muted hover:text-text">
+                <icons.map width={15} height={15} /> Map a field
+              </Link>
               <Link href="/watches" className="flex items-center gap-1.5 text-muted hover:text-text">
                 <icons.bell width={15} height={15} /> Follow a topic
               </Link>
@@ -239,14 +257,24 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
               {conversation.isLoading && <Spinner label="Loading conversation…" />}
               {conversation.error && <ErrorNotice error={conversation.error} title="Could not load this conversation" />}
               {messages.map((m, i) => (
-                <ChatMessageView key={m.run_id} message={m} index={i} userName={user?.name} />
+                <ChatMessageView
+                  key={m.run_id}
+                  message={m}
+                  index={i}
+                  userName={user?.name}
+                  busy={!!pending || running}
+                  onTestChecker={(question) => send(question, { test: true })}
+                />
               ))}
               {pending && (
                 <div className="space-y-4">
                   <UserBubble text={pending} name={user?.name} />
                   <div className="flex gap-3">
                     <AssistantAvatar />
-                    <ScanStatus height={84} stages={liveSearch ? LIVE_STAGES : PENDING_STAGES} className="pi-in min-w-0 flex-1 text-sm" />
+                    <LiveTrace
+                      conversationId={conversationId ?? null}
+                      stages={testing ? TEST_STAGES : liveSearch ? LIVE_STAGES : PENDING_STAGES}
+                    />
                   </div>
                 </div>
               )}

@@ -17,6 +17,7 @@ from app.schemas.chat import (
     ConversationRename,
     ConversationSummary,
     MessageIn,
+    ProgressOut,
 )
 from app.schemas.documents import DocumentOut, UploadResponse
 
@@ -65,12 +66,24 @@ def delete_conversation(conversation_id: uuid.UUID, service: ChatServiceDep):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.get("/{conversation_id}/progress", response_model=ProgressOut)
+def answer_progress(conversation_id: uuid.UUID, service: ChatServiceDep):
+    """What the agent is doing for the answer being written now (polled by the chat page;
+    the finished trace is also stored with the answer)."""
+    return service.progress(conversation_id)
+
+
 @router.post("/{conversation_id}/messages", response_model=ChatMessageOut)
 def send_message(conversation_id: uuid.UUID, body: MessageIn, service: ChatServiceDep):
     """Answers with the user's preferred pipeline; follow-ups are rewritten using the
     conversation (memory) and answers are scoped to the attached documents."""
     return ChatMessageOut.of(
-        service.send(conversation_id, body.message, live_search=body.live_search)
+        service.send(
+            conversation_id,
+            body.message,
+            live_search=body.live_search,
+            inject_false_fact=body.inject_false_fact,
+        )
     )
 
 

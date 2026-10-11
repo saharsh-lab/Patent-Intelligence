@@ -206,6 +206,54 @@ def test_off_topic_question_goes_to_the_web_but_not_the_patent_offices(api, web)
     assert "search_web" in tools and "search_patent_abstracts" not in tools
 
 
+class TechnologyPlanner(OffTopicPlanner):
+    """The LLM planner reads the question as an in-scope technology question."""
+
+    def complete(self, messages, *, temperature, max_tokens):
+        self.calls += 1
+        if self.calls == 1:
+            from app.llm.providers import LLMResponse
+
+            return LLMResponse(
+                '{"intent": "document_qa", "search_keywords": "battery immersion cooling"}',
+                "planner",
+                10,
+                5,
+                1,
+            )
+        return FakeLLM.complete(self, messages, temperature=temperature, max_tokens=max_tokens)
+
+
+@pytest.mark.db
+def test_technology_question_also_searches_patent_abstracts(api, web):
+    from app.patents.demo import DemoPatentSource
+
+    app = api.app
+    base = app.dependency_overrides[get_settings]()
+    app.dependency_overrides[get_settings] = lambda: base.model_copy(
+        update={"agent_planner": "llm"}
+    )
+    app.dependency_overrides[get_llm] = lambda: TechnologyPlanner()
+    app.dependency_overrides[get_patent_sources] = lambda: {"demo": DemoPatentSource()}
+    body = api.post("/ask", json={"question": "How do battery packs use immersion cooling?"})
+    tools = [s["tool_name"] for s in body.json()["steps"]]
+    assert "search_web" in tools and "search_patent_abstracts" in tools
+
+
+def test_wikipedia_articles_are_split_into_sections_without_reference_lists():
+    extract = (
+        "Inductive charging transfers energy.\n\n== History ==\nTesla.\n\n"
+        "== Foreign object detection ==\nThe charger measures power loss to find coins.\n"
+        "=== Qi ===\nQi specifies it.\n\n== References ==\nA book."
+    )
+    assert WikipediaSearch.passages(extract) == [
+        ("", "Inductive charging transfers energy."),
+        ("History", "Tesla."),
+        ("Foreign object detection", "The charger measures power loss to find coins."),
+        ("Foreign object detection — Qi", "Qi specifies it."),
+    ]
+
+
 def test_a_dropped_connection_is_retried_once(monkeypatch):
     import app.web.search as search_module
 

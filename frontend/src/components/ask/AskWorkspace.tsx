@@ -81,6 +81,7 @@ export function AskWorkspace() {
         rerank: rerank === "" ? null : rerank === "on",
         pipeline,
         live_search: false,
+        inject_false_fact: false,
       });
       await loadedRun.mutate(result, { revalidate: false });
       router.replace(`${pathname}?run=${result.run_id}`, { scroll: false });

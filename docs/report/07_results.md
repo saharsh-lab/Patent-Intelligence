@@ -411,6 +411,16 @@ comes from a different patent ("attribution guard").
 | all (150) | strict | 0.793 | 0.311 | 26/137 | 8/9 |
 | all (150) | balanced | 0.907 | 0.422 | 7/137 | 5/9 |
 
+**Number rule (11 October).** The checker test of Appendix A.2 exposed two ways a changed
+number passed: the rescue matched "below 120 degrees" because the passage contained "coolant
+pump 120" (a reference numeral), and the second-opinion LLM confirmed the same sentence while
+quoting "40 °C" in its reason. Numbers must now match together with their unit, labels such
+as "S1" or "claim 7" are not treated as quantities, and the LLM cannot confirm a statement
+whose numbers are not in its passages. Re-measured on the same split
+(`exp_i_verifier_choice/20261011-062122`): strict is unchanged; balanced has 8/137 false
+alarms instead of 7 (the extra one cites "interior region 104", a numeral its passage does
+not contain) and still catches 5/9 (development 5/69 and 1/3; test 2/68 and 4/6).
+
 **How far to trust these numbers.** The lexical rescue was designed on the development half
 only. The second-opinion prompt and the attribution guard were revised after an error
 analysis that looked at all nine unsupported statements, including the test half, so the

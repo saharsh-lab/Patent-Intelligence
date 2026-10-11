@@ -4,7 +4,7 @@
 // The layer sticks to the top of the scroll area and takes no space in the flow.
 export function Background({ calm = false }: { calm?: boolean }) {
   return (
-    <div aria-hidden className="pointer-events-none sticky top-0 -z-10 -mb-[100vh] h-screen overflow-hidden">
+    <div aria-hidden className="pointer-events-none sticky top-0 -z-10 -mb-[100vh] h-screen shrink-0 overflow-hidden">
       <div className={`absolute inset-0 transition-opacity duration-1000 ${calm ? "opacity-40" : "opacity-100"}`}>
         <div className="blob" style={{ width: "48vw", height: "48vw", left: "-12vw", top: "-18vw", background: "radial-gradient(closest-side, var(--glow), transparent)" }} />
         <div

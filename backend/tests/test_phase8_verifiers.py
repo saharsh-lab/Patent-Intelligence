@@ -317,6 +317,28 @@ def test_nli_lexical_rescues_paraphrases_but_not_changed_facts(claim, verdict):
     assert verifier.judge([claim], [[PASSAGE]])[0].verdict == verdict
 
 
+@pytest.mark.parametrize(
+    ("claim", "passage", "safe"),
+    [
+        # a patent reference numeral must not stand in for a changed quantity
+        (
+            "The core temperature stays below 120 degrees Celsius.",
+            "The coolant pump 120 keeps the core temperature below 40 °C.",
+            False,
+        ),
+        ("The core stays below 40 degrees Celsius.", "The core stays below 40 °C.", True),
+        ("The thermistors are sampled at 10 Hz.", "Every thermistor is sampled at 10 Hz.", True),
+        ("Cells 102 carry thermistors.", "The cells 102 each carry a thermistor 104.", True),
+        ("It runs between 20 and 40 degrees.", "It runs between 20 and 40 °C.", True),
+        ("It is sampled at 50 Hz.", "It is sampled at 10 Hz by unit 50.", False),
+        # labels and structure references are not quantities
+        ("S1 uses a coil, while E3 uses claim 7.", "A sensing coil is used.", True),
+    ],
+)
+def test_numbers_must_match_with_their_units(claim, passage, safe):
+    assert verifiers_module.safe_to_rescue(claim, passage) is safe
+
+
 def test_nli_lexical_known_limit_one_unstated_word_can_pass():
     # Documented trade-off: 75% key-word coverage is the rescue level (chosen on the
     # development labels); "quickly" is not in the passage but 3 of 4 key words are.
@@ -361,9 +383,30 @@ def test_second_opinion_batches_and_survives_cut_off_replies():
     cut_off = '[{"id": 1, "verdict": "supported", "reason": "ok"}, {"id": 2, "verd'
     llm = ScriptedJudge([cut_off, '[{"id": 1, "verdict": "supported", "reason": "ok"}]'])
     verifier = verifiers_module.SecondOpinionVerifier(AlwaysUnsure(), LlmJudgeVerifier(llm))
-    out = verifier.judge([f"statement {i} here" for i in range(5)], [[PASSAGE]] * 5)
+    out = verifier.judge([f"statement {c} here" for c in "abcde"], [[PASSAGE]] * 5)
     assert len(llm.calls) == 2  # 4 + 1 statements
     assert [j.verdict for j in out] == [SUPPORTED, UNSUPPORTED, UNSUPPORTED, UNSUPPORTED, SUPPORTED]
+
+
+def test_second_opinion_cannot_confirm_a_number_the_passages_do_not_have():
+    # Observed (2026-10-11): Qwen3 confirmed "below 120 degrees" against "below 40 °C"
+    llm = ScriptedJudge(
+        [
+            '[{"id": 1, "verdict": "supported", "reason": "keeps it below 40 C"},'
+            ' {"id": 2, "verdict": "supported", "reason": "same rate"}]'
+        ]
+    )
+    verifier = verifiers_module.SecondOpinionVerifier(AlwaysUnsure(), LlmJudgeVerifier(llm))
+    passage = "The coolant pump 120 keeps the hottest core below 40 °C, sampled at 10 Hz."
+    out = verifier.judge(
+        [
+            "The pump keeps the hottest core below 120 degrees Celsius.",
+            "The core temperature is sampled at 10 Hz.",
+        ],
+        [[passage], [passage]],
+    )
+    assert out[0].verdict == UNSUPPORTED and "number in it is not in the passages" in out[0].reason
+    assert out[1].verdict == SUPPORTED
 
 
 def test_statement_naming_another_patent_is_unsupported():

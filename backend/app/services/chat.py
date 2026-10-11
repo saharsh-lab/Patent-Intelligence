@@ -31,6 +31,7 @@ from app.models import AgentRun, Document, Patent, Query
 from app.models.conversation import DEFAULT_TITLE, Conversation
 from app.patents.base import PatentSource
 from app.rag.embeddings import EmbeddingProvider
+from app.services import progress
 from app.services.agent import AgentService
 from app.services.answering import AnswerService
 from app.services.documents import DocumentService
@@ -195,7 +196,13 @@ class ChatService:
             )
         )
 
-    def send(self, conversation_id: uuid.UUID, message: str, live_search: bool = False) -> AgentRun:
+    def send(
+        self,
+        conversation_id: uuid.UUID,
+        message: str,
+        live_search: bool = False,
+        inject_false_fact: bool = False,
+    ) -> AgentRun:
         conversation = self.get(conversation_id)
         message = message.strip()
         if not message:
@@ -206,15 +213,29 @@ class ChatService:
         patents = [p.id for p in self.patents(conversation)]
 
         service = self._service()
-        extra = {"live_search": live_search} if isinstance(service, AgentService) else {}
+        if isinstance(service, AgentService):
+            key = str(conversation.id)
+            extra = {
+                "live_search": live_search,
+                "inject_false_fact": inject_false_fact,
+                # the chat page polls this while the answer is written (Phase 15)
+                "progress": lambda rows: progress.publish(key, rows),
+            }
+        elif inject_false_fact:
+            raise ValidationFailedError("The checker test needs the agent pipeline.")
+        else:
+            extra = {}
         # The owner is applied by the request's owner scope (app/core/ownership.py)
-        run = service.ask(
-            standalone,
-            document_ids=documents or None,
-            patent_ids=patents or None,
-            conversation_id=conversation.id,
-            **extra,
-        )
+        try:
+            run = service.ask(
+                standalone,
+                document_ids=documents or None,
+                patent_ids=patents or None,
+                conversation_id=conversation.id,
+                **extra,
+            )
+        finally:
+            progress.finish(str(conversation.id))
         run = self.session.get(AgentRun, run.id)
         run.query.meta = {
             **(run.query.meta or {}),
@@ -227,6 +248,11 @@ class ChatService:
         conversation.updated_at = datetime.now(UTC)
         self.session.commit()
         return run
+
+    def progress(self, conversation_id: uuid.UUID) -> dict:
+        """The live trace of the answer being written in this conversation, if any."""
+        conversation = self.get(conversation_id)  # ownership check
+        return progress.get(str(conversation.id))
 
     def rewrite(self, message: str, history: list[AgentRun]) -> str:
         """Standalone version of a follow-up question (unchanged if there is no history,

@@ -95,6 +95,10 @@ def test_hallucination_is_detected_and_regenerated_away(db_session, tmp_path):
     assert attempts[1]["kept"] is True and attempts[1]["grounding_score"] == 1.0
     assert HALLUCINATION not in body["answer"]
     assert body["grounding_score"] == 1.0
+    # the draft keeps its sentence verdicts: the X-ray view shows what was caught
+    caught = [c for c in attempts[0]["claims"] if c["verdict"] == "unsupported"]
+    assert any(HALLUCINATION in c["text"] for c in caught)
+    assert all(c["verdict"] == "supported" for c in attempts[1]["claims"])
     # the regeneration prompt named the unsupported statement
     assert "NOT supported" in llm.calls[1] and HALLUCINATION in llm.calls[1]
     assert any(k.startswith("regenerate") for k in body["metrics"]["timings_ms"])

@@ -161,7 +161,7 @@ def rate_rules(settings: Settings) -> list[RateRule]:
         RateRule(
             "ingest",
             ("POST",),
-            ("/documents", "/patents/import", "/patents/search", "/watches"),
+            ("/documents", "/patents/import", "/patents/search", "/watches", "/landscape"),
             settings.rate_limit_ingest_per_minute,
         ),
         RateRule(
@@ -273,6 +273,8 @@ def check_production_settings(settings: Settings) -> list[str]:
         errors.append("PATENT_DEMO_SOURCE must be false (synthetic patents)")
     if not settings.rate_limit_enabled:
         errors.append("RATE_LIMIT_ENABLED must be true")
+    if settings.demo_injection_enabled:
+        errors.append("DEMO_INJECTION_ENABLED must be false (plants false sentences)")
     if errors:
         raise ConfigurationError("Unsafe production settings: " + "; ".join(errors))
     warnings = []

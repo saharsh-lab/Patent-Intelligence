@@ -29,6 +29,7 @@ CHAPTERS = [
     "08_discussion.md",
     "09_conclusion.md",
     "references.md",
+    "appendix_a_extensions.md",
 ]
 TITLE = (
     "Agentic RAG-Based Patent Intelligence System with Live Data Retrieval "

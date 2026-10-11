@@ -19,6 +19,7 @@ from app.api.routes import (
     evaluation,
     health,
     invention,
+    landscape,
     patents,
     search,
     system,
@@ -49,6 +50,9 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        from app.core.warmup import start_warm_up
+
+        start_warm_up(settings)
         scheduler = None
         if settings.watch_check_interval_hours > 0:
             from app.services.watch_scheduler import WatchScheduler
@@ -110,6 +114,7 @@ def create_app() -> FastAPI:
         evaluation,
         invention,
         watches,
+        landscape,
     ):
         app.include_router(module.router, dependencies=protected)
     return app

@@ -7,16 +7,20 @@ recovery attempts.
 """
 
 import logging
+import re
 import time
 import uuid
+from collections.abc import Callable
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from app.agents.demo_injection import find_planted
 from app.agents.graph import AgentGraph
 from app.agents.tools import ToolContext
+from app.agents.trace import TraceRecorder
 from app.core.config import Settings
-from app.core.errors import AppError
+from app.core.errors import AppError, ValidationFailedError
 from app.llm.providers import LLMProvider, LLMResponse, estimate_cost_usd
 from app.models import AgentRun, ToolCall
 from app.patents.base import PatentSource
@@ -85,9 +89,16 @@ class AgentService(AnswerService):
         retrieval_mode: str | None = None,
         rerank: bool | None = None,
         live_search: bool = False,
+        inject_false_fact: bool = False,
+        progress: Callable[[list[dict]], None] | None = None,
     ) -> AgentRun:
         """`live_search`: also search the patent databases for this question and import
-        the most relevant patents (the chat's "Search patent databases" switch)."""
+        the most relevant patents (the chat's "Search patent databases" switch).
+        `inject_false_fact`: demo mode, plant a false sentence in the first draft to show
+        the checker catching it (Phase 14; app/agents/demo_injection.py).
+        `progress`: receives the live trace rows while the agent works (Phase 15)."""
+        if inject_false_fact and not self.settings.demo_injection_enabled:
+            raise ValidationFailedError("The checker test is turned off on this server.")
         started = time.perf_counter()
         config, reranker = self._retrieval_setup(top_k, retrieval_mode, rerank)
         planner = self.planner()
@@ -100,6 +111,7 @@ class AgentService(AnswerService):
                 "patent_sources": sorted(self.patent_sources),
                 "live_fallback": self.settings.agent_live_fallback,
                 "live_search": live_search,
+                "inject_false_fact": inject_false_fact,
                 "web_search": self.settings.web_search_provider
                 if self.settings.agent_web_search
                 else "off",
@@ -135,11 +147,17 @@ class AgentService(AnswerService):
             live_fallback=self.settings.agent_live_fallback,
             web_search=self.settings.agent_web_search,
             live_import_limit=self.settings.agent_live_import_limit,
+            trace=TraceRecorder(progress),
         )
         try:
             state = agent.run(
-                question, list(document_ids or []), list(patent_ids or []), live_search=live_search
+                question,
+                list(document_ids or []),
+                list(patent_ids or []),
+                live_search=live_search,
+                inject_false_fact=inject_false_fact,
             )
+            state["trace_rows"] = agent.trace.rows
             self._store(run, state, tracked, started)
         except AppError as exc:
             self._fail(run, exc.message, started)
@@ -208,10 +226,16 @@ class AgentService(AnswerService):
                     "counts": a["report"].counts(),
                     "answer_text": a["parsed"].text,
                     "kept": a["report"] is kept,
+                    # sentence verdicts, so the UI can show what the checker caught in the draft
+                    "claims": a["report"].to_json()["claims"],
                 }
                 for i, a in enumerate(attempts)
             ]
             extra["regeneration_added_passages"] = state.get("regeneration_added_passages", 0)
+        if state.get("injection") is not None:
+            extra["demo_injection"] = self._injection_outcome(state)
+        if state.get("trace_rows"):
+            extra["trace"] = state["trace_rows"]
         self._finish(
             run,
             state["parsed"],
@@ -224,6 +248,22 @@ class AgentService(AnswerService):
             extra_answer=extra or None,
             verification=state.get("verification"),
         )
+
+    @staticmethod
+    def _injection_outcome(state: dict) -> dict:
+        """What the checker made of the planted sentence, as it happened (a miss included)."""
+        injection = state["injection"]
+        attempts = state.get("verify_attempts") or []
+        judged = find_planted(attempts[0]["report"].claims, injection) if attempts else None
+        final_text = re.sub(r"\s*\[(?:E\d+|\?)\]", "", state["parsed"].text)
+        planted_text = re.sub(r"\s*\[(?:E\d+|\?)\]", "", injection.planted).rstrip(".")
+        return injection.to_json() | {
+            "checked": judged is not None,
+            "verdict": judged.verdict if judged else None,
+            "reason": judged.reason if judged else None,
+            "caught": judged is not None and judged.verdict != "supported",
+            "in_final_answer": planted_text in final_text,
+        }
 
     @staticmethod
     def _sources_used(state: dict) -> list[str]:
