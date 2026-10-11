@@ -2,9 +2,6 @@
 
 **With live multi-source patent retrieval and claim-level hallucination detection.**
 
-B.Tech IV Year Major Project (CSE), Batch B5. Guide: Dr. T. Swathi.
-Team: Kaidhapuram Saharsh Reddy, Yella Sriram Reddy, C. Manojeeth.
-
 > Research and technical-analysis tool only. It reports *technical/semantic
 > similarity* and *evidence-grounded analysis*. It is **not** legal advice and does not
 > determine patent validity or infringement.
