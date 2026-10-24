@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Wikimedia's policy requires a descriptive agent with contact details (403 otherwise)
 USER_AGENT = (
     "PatentIntelligence/1.0 "
-    "(https://github.com/saharsh-lab/Agentic-RAG-System-for-Patent-analysis; student project) "
+    "(https://github.com/saharsh-lab/Patent-Intelligence; student project) "
     "httpx"
 )
 
