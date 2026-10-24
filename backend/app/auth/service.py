@@ -23,6 +23,8 @@ ALLOWED_PREFERENCES = {
     "default_pipeline": {"agentic", "baseline"},
     # balanced: LLM second opinion on flagged statements; strict: flags more, misses fewer
     "verification": {"balanced", "strict"},
+    # the chat's language model: the local one, or the optional fast cloud one
+    "model": {"local", "cloud"},
 }
 # Burns the same time as a real check when the email is unknown (no timing oracle)
 _DUMMY_HASH = hash_password("dummy-password-for-timing")

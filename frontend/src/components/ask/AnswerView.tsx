@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { Badge, StatusBadge } from "@/components/ui";
+import { AnswerBlocks } from "@/components/chat/AnswerBlocks";
 import { type Inline, parseAnswer, parseInline, stripInterpretation } from "@/lib/citations";
 import {
   type ClaimResult,
@@ -46,6 +47,14 @@ export function renderInlines(inlines: Inline[], onCite: (label: string) => void
         );
       case "bold":
         return <strong key={i}>{part.text}</strong>;
+      case "italic":
+        return <em key={i}>{part.text}</em>;
+      case "code":
+        return (
+          <code key={i} className="rounded-sm bg-surface-2 px-1 py-px font-mono text-[0.85em]">
+            {part.text}
+          </code>
+        );
       default:
         return <span key={i}>{part.text}</span>;
     }
@@ -64,7 +73,7 @@ function Metric({ label, value, hint }: { label: string; value: ReactNode; hint?
 export function RunSummary({ run }: { run: AskResponse }) {
   const m = run.metrics;
   return (
-    <div className="rounded border border-line bg-surface-2 px-4 py-3">
+    <div className="rounded-xl border border-line bg-surface-2 px-4 py-3">
       <p className="text-sm">
         <span className="text-muted">Sources searched:</span> {run.summary.sources_searched.join(" + ")}
         <span className="mx-2 text-line-strong">|</span>
@@ -78,7 +87,8 @@ export function RunSummary({ run }: { run: AskResponse }) {
           </>
         )}
       </p>
-      <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4 lg:grid-cols-7">
+      {/* As many columns as fit the space (narrow beside the chat's left column) */}
+      <dl className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-6 gap-y-3">
         <Metric label="Latency" value={formatMs(m.latency_ms)} hint={Object.entries(m.timings_ms).map(([k, v]) => `${k}: ${v} ms`).join("\n")} />
         <Metric
           label={run.pipeline === "agentic" ? "Tools" : "Retrieval"}
@@ -141,7 +151,7 @@ export function AnswerView({ run, onCite }: { run: AskResponse; onCite: (label: 
   const claims = (verification?.claims ?? []).filter((c) => c.location === "answer");
 
   return (
-    <article className="rounded border border-line bg-surface">
+    <article className="glass overflow-hidden rounded-3xl">
       <header className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-2.5">
         <StatusBadge status={run.status} />
         <Badge>{run.pipeline === "baseline_rag" ? "Baseline RAG" : "Agent"}</Badge>
@@ -152,7 +162,7 @@ export function AnswerView({ run, onCite }: { run: AskResponse; onCite: (label: 
       <div className="px-4 py-4">
         <p className="mb-3 text-sm text-muted">{run.question}</p>
         {run.legal_question && (
-          <p className="mb-3 rounded border border-warn/40 bg-warn-soft px-3 py-2 text-sm">
+          <p className="mb-3 rounded-xl border border-warn/40 bg-warn-soft px-3 py-2 text-sm">
             This question asks for a legal opinion (e.g. validity or infringement). The system cannot
             provide one; it reports technical information from the evidence only.
           </p>
@@ -164,21 +174,7 @@ export function AnswerView({ run, onCite }: { run: AskResponse; onCite: (label: 
               Answer from evidence
             </p>
             <div className="space-y-3 leading-relaxed">
-              {blocks.map((block, i) =>
-                block.kind === "list" ? (
-                  <ul key={i} className="list-disc space-y-1 pl-5">
-                    {block.raws.map((raw, j) => (
-                      <li key={j}>
-                        <Highlighted raw={raw} claims={claims} onCite={onCite} />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p key={i}>
-                    <Highlighted raw={block.raw} claims={claims} onCite={onCite} />
-                  </p>
-                ),
-              )}
+              <AnswerBlocks blocks={blocks} line={(raw) => <Highlighted raw={raw} claims={claims} onCite={onCite} />} />
               {claims.some((c) => c.verdict !== "supported") && (
                 <p className="flex flex-wrap gap-3 pt-1 text-xs text-muted">
                   <span className={`rounded-sm px-1 ${VERDICT_STYLE.partially_supported}`}>partly supported</span>

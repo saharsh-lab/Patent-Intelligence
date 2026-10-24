@@ -689,3 +689,223 @@ nothing imported.
   neighbourhoods, not every distance, which the caption states.
 - Fixed in the browser check: on a phone the map rendered at full drawing size (a grid
   column without a minimum width grew to 1,121 px); cluster names were cut off.
+
+### 2026-10-22 — Live chat: the answer as it happens, faster searches, accuracy fixes
+
+- User report: the chat was "not good", it should be "more interactive, fast, efficient
+  and accurate", "more immersive". Measured on the stored answers first: a normal answer
+  took 47–60 s and nothing was shown until all of it was ready (understanding 3–7 s,
+  searches 3–10 s each one after another, writing about 18 s, checking about 12 s, a rewrite
+  another 15–30 s). "Can I talk anything?" took 79 s and ended in "insufficient evidence":
+  it went through the full search, an answer, a failed check and a rewrite.
+- What the chat now shows while it works (app/agents/live.py, components/chat/LiveAnswer.tsx):
+  the stage (Understand → Search → Write → Check), the sources as each tool finds them, the
+  draft word by word as the model writes it (the reply is streamed; with temperature 0 it is
+  the same text as without streaming, checked against Ollama), then a scan while every
+  sentence is checked and each sentence's verdict colour arriving in turn. When sentences
+  fail, they are listed struck through ("rewriting with more evidence") and the new draft
+  is typed out. The page polls twice a second as before (Phase 15); the agent behaves the
+  same with or without the view, and the /ask API and experiments get no live view.
+- The library, web and patent-abstract searches that the planner chooses together now run
+  at the same time, each with its own database connection; results are used in plan order,
+  so the answer is the same as before. The gain is small: an A/B test on three questions
+  (same server, parallel on, then off) gave a search stage of 12.2 / 8.2 / 6.2 s against
+  11.7 / 9.5 / 8.7 s one after another, and the same total times (25–39 s against 26–31 s).
+  The searches share the embedding model, which runs one job at a time, so only the waits
+  for the web and the patent office overlap. (A first comparison against stored answers
+  from 11 October suggested 13–14 s → 6.5–8.5 s; conditions differed, and the A/B test
+  replaces it.) Wikipedia's three articles are fetched at the same time too.
+- Questions about the assistant itself ("Can I talk anything?", "What should I ask?", "How
+  do you work?") are answered at once with what the system can do and example questions
+  (49 ms on the server). The pattern is anchored to the whole message, so "How does it
+  work?" about an attached patent stays a question; none of the 157 experiment questions
+  matches it.
+- After an answer: three follow-up questions written by the model once the answer is shown
+  (about 2.5 s, kept with the answer, legal questions dropped) and "Make it: simpler ·
+  shorter · more detailed". A suggestion is only a question: its answer goes through the
+  normal search and check.
+- Browser check (local Qwen3-8B, throwaway database): "How do solid-state batteries work?"
+  showed its first words after 5.7 s and was complete and checked after 27.8 s; "How do
+  wireless chargers detect metal objects?" 11 s and 26 s (its patent search partly
+  cached). Answers today took 25–40 s in total, against 47–60 s stored on 10–11 October;
+  that difference is not attributed to these changes (writing took 9–11 s today against
+  about 18 s then, with no change to the writing step). What changed for the user is that
+  the answer is visible within seconds instead of after all of it is done. Fixed during the check: the live view briefly showed the previous answer's last
+  state from the browser cache; a list in the assistant's reply ran into one paragraph;
+  screen readers would have read every streamed word (only the status line is announced).
+- Accuracy problems found by the same tests:
+  - "How do solid-state batteries work?" was answered from Wikipedia passages about
+    solid-state *drives* (the answer said so honestly). The planner had called the question
+    out of scope, so the patent offices were not searched. When the planner says out of
+    scope and a live search is planned, a one-word check ("is this about science or
+    technology?", about 0.5 s; 11 of 11 right on a test list of technology and off-topic
+    questions) now decides; and Wikipedia, which matches words rather than questions, is
+    searched with the planner's key words. Afterwards the question was answered from patent
+    abstracts on solid-state batteries (mostly one filing's battery structure: specific
+    rather than a general explanation, as Wikipedia was unreachable at the time).
+  - Wikipedia could not be reached from this network on 22 October (connections timed out;
+    other sites worked). Every answer waited 31 s for it (15 s timeout, then a retry). A
+    site that does not accept a connection within 5 s is now given up at once, so the other
+    sources answer without the wait. (On this network the failure arrives as a ConnectError
+    after the timeout rather than a ConnectTimeout; the first fix still retried it, 11 s.)
+  - A checker test reversed "increase the contact" to "decrease the contact". The NLI model
+    flagged it (p = 0.08), but the LLM second opinion confirmed it while its own reason said
+    the passages state "increase". Like a changed number (11 October), a reversed direction
+    word can no longer be confirmed by the LLM. The next checker test changed "immersion
+    cooling systems" to "immersion heating systems"; the NLI model flagged it (p = 0.16) but
+    the key-word rescue passed it, because "heat" occurs in the passage ("heat
+    dissipation"). Direction words are now also compared within their phrase: a reversal
+    counts when the word's neighbour stands next to the opposite in the passage and never
+    next to the word ("immersion heating" against "immersion cooling", in either word order:
+    another source said "liquid cooling" where the planted sentence said "heating liquid").
+    Four further checker tests caught one of four: the NLI model itself entailed "the
+    resistance of the coil decreases" (p = 0.79) from "the resistance of the coil increases
+    and the inductance decreases", and no guard looked at statements NLI supports. A
+    statement whose direction is reversed relative to its supporting passage is now
+    unsupported whoever judged it. A first version of that guard also used the whole-text
+    rule (opposite anywhere, word nowhere) and added one false alarm in Experiment I (9/137:
+    it flagged "one or more coils" against "less than the threshold", "the second design"
+    against "a first embodiment" and similar); the guards for model-supported statements
+    now use only the phrase rule, which flags none of the 150 labelled statements. Final
+    Experiment I run (`exp_i_verifier_choice/20261022-171312`): every number identical to
+    11 October (balanced: 8/137 false alarms, 5/9 unsupported caught), so the rules'
+    benefit rests on checker tests, not on these labels. Caveat: the demo planter reverses
+    words from a list that overlaps the guard's, so reversed-relation checker tests now
+    mostly test this rule rather than the NLI model or the LLM.
+  - Eight checker tests afterwards (eight technology questions, local models): 6 caught, all
+    four invented details and two of four reversals. Missed: "liquid heating loops" where
+    the source mentions neither heating nor cooling loops (the original sentence was not
+    in the source either, so there was nothing to compare), and "the heating effect" of a
+    thermoelectric cooler, which is arguably true (such devices heat one side). One
+    reversal was caught only as "supported by a passage it did not cite" (partly
+    supported), so it stayed in the answer, flagged. An illustration, not a measurement.
+    In the browser the whole loop is visible: draft, check, "some sentences were not
+    supported: rewriting", the new draft, "7 of 7 sentences supported".
+  - The planter also produced "both cooling and cooling modes" from "both heating and
+    cooling modes" (nearly true, not a useful test); it no longer flips a word whose
+    opposite is already in the sentence.
+
+### 2026-10-22 — Chat, next step: everyday questions, general knowledge, ChatGPT-like use
+
+- User report: the chat was "not properly optimized", asked for "next level" and "more GPT
+  feel": speed, everyday questions, answer quality, look and feel. Chosen with the user: an
+  optional cloud model (local stays the default), and answers from general knowledge when no
+  source has one, clearly labelled. Found in the stored chats: "What day is it?" took 18 s
+  of searching and ended "I couldn't find this".
+- Everyday questions (app/agents/everyday.py): date and time from the clock in the user's
+  time zone (sent by the browser), arithmetic and percentages from a small calculator that
+  evaluates numbers and + − × ÷ ^ % only (no names or calls can run). Both decided by rules,
+  answered in 0.6 s in the browser, labelled "From the clock" / "Calculated exactly". None of
+  the 157 experiment questions matches.
+- General knowledge (chat only): when a general question (no document attached or named, not
+  a patent search or comparison) finds nothing in the library, the patent offices or the
+  web, or the model finds no answer in what was found, the model answers from what it
+  learned, labelled "General knowledge · not from sources, not checked". Writing tasks
+  ("write a poem about batteries") go there directly, without the planner's call (5.2 s).
+  The label matters: the browser check's answer to "Who won the FIFA World Cup in 2018?" was
+  right about the result but also said France "became the first team to win the World Cup
+  after losing their opening match", which is false. The checker cannot check such answers
+  (it needs passages), which is why they are labelled and never mixed with checked ones.
+  Wikipedia was unreachable from this network that evening, so the question fell through to
+  general knowledge.
+- Answer style (chat only): a direct answer first, short paragraphs, lists with the key term
+  in bold, no headings, and no passage labels in the prose (drafts had said "In E2, …"). A
+  Profile setting "Answer length: concise / detailed" (the preference existed but was not
+  used). Rendering now covers numbered lists, headings, italics, inline code, a list that
+  follows a line without a blank line, and single line breaks (a poem's lines had run
+  together).
+- ChatGPT-like controls: Stop (the answer stops at its next step or mid-sentence; what was
+  written is kept as a "stopped" message, not checked; migration 0004 allows that status),
+  Copy (the answer with a numbered source list), Try again, Edit a question, a "jump to the
+  latest message" button, and numbered source chips under each answer.
+- Speed: the local model is kept loaded (a one-token request every 4 minutes and one at
+  start-up; Ollama unloads a model after 5 idle minutes); web passages are pre-filtered by
+  key words to 24 before embedding (Wikipedia returns up to 60); an optional cloud model per
+  user (Profile → Chat model; any OpenAI-compatible service, Groq by default, enabled by
+  CLOUD_LLM_API_KEY in .env; the page says that questions and passages then leave the
+  computer). Not tested against a real cloud service here (no key); the wiring is tested
+  with stand-ins. With the local model a researched answer still took 25–50 s in the browser
+  check (writing 10–16 s, checking 5–22 s), which is the limit of an 8B model on this laptop.
+- Found while testing: chat tests with general questions were calling the real Wikipedia;
+  tests now run with web search off unless they substitute a fake one.
+
+### 2026-10-23 — Frontend redesigned after a reference site
+
+- User request: match the frontend to https://ragmedscan.vercel.app. Studied in the browser
+  (desktop, phone, both themes; colours and sizes read from the page): near-black navy page
+  with a faint grid, Inter, bold tightly tracked headings, a floating pill navigation bar,
+  translucent rounded cards with thin borders, white pill buttons, blue for active states.
+- Changed: design tokens (dark by default, its light theme and "system" selectable), Inter
+  everywhere, softer corners, soft shadows; the left sidebar became the floating top bar
+  (theme menu, account menu with the research tools); the chat follows the reference's
+  analysis page (action cards, quick tools and recent chats on the left; one rounded panel
+  with an "Active context" bar for attached documents and the patent-database switch, a
+  greeting with suggested questions, answers in rounded bubbles, a pill question box);
+  sign-in and register follow its sign-in page; a public landing page at "/" (hero, a tilted
+  real screenshot of a checked answer, the agent's six stages as gradient cards, a bento
+  grid of features, a call to action). The app itself starts at /chat.
+- Found while checking: the new bar loaded watch counts before knowing whether anyone was
+  signed in, and the resulting 401 sent the register page to login (now only when signed
+  in; public pages never redirect); on phones the bar overflowed, the context bar squeezed
+  its title, and the chats sheet opened under the bar (a stacking context) with no close
+  button. All checked again at 390 px.
+- The user asked to keep the original logo: the square sheet with the P drawn as one stroke,
+  drawing itself in on load. Restored as it was (the temporary white tile was dropped) in the
+  navigation bar, as the assistant's avatar, above the sign-in and landing headlines, and on
+  the new-chat greeting.
+- Chat sidebar can be hidden: a button at the top left of the chat panel (or Ctrl/⌘ B)
+  slides the left column away and the chat widens to the centre; clicking again brings it
+  back. The choice is remembered across reloads and applied before the first paint, so the
+  page never jumps.
+- Full UI pass, every page at 1440 / 1024 / 768 / 390 px in dark and light, with an
+  automatic check for sideways scrolling, text spilling out of its box, controls poking
+  out of their card, and console errors. Fixed: the "jump to latest" button showing on an
+  empty chat; square evidence cards and "Fig." labels left from the old style; Copy / Try
+  again wrapping; square input fields and chips; native date and select controls staying
+  light in the dark theme; the document details panel stretching to the page height; the
+  landscape page scrolling sideways on phones (cluster cards); the landing feature grid
+  overflowing at tablet width; the answer summary labels overflowing at 1024 px; the patent
+  search titles squeezed on phones; the library table cutting off its Chat button on
+  phones; a dangling "·" under answers on phones; the landscape document picker poking out
+  of its card. Final pass: no issues at any width or theme.
+
+### 2026-10-23 — Checker upgrade: wrong words, contradicted vs not found, false premises, fixes, Fact Checker page
+
+Qualitative observations from building and trying the feature (not results; the labelled
+Experiment I numbers are unchanged because no verdict logic changed).
+
+- What changed: every flagged statement now carries the exact words that are wrong and why
+  (a number the passage does not have, with the number it does have; a reversed direction;
+  an added "not"; words the passage never uses). Red now means "contradicts its source"
+  (a different number with the same unit, or a reversed direction, found in the passage)
+  and violet means "no source says this". The NLI model's own contradiction score is not
+  used for red: it gave p=0.99 "contradicted" to a sentence about a neural network that the
+  passage simply does not mention.
+- Real-model test (Qwen3-8B, NLI + LLM second opinion, synthetic battery patent), a pasted
+  text of six sentences: "samples every thermistor at 50 Hz" was red with "the passage says
+  10 Hz"; "the controller decreases the coolant flow rate" was red with "the passage says
+  increases"; "controlled by a neural network trained on fleet data" was violet with
+  "neural network trained" and "fleet data" underlined; the three true sentences passed.
+  Checking took 11–13 s.
+- Found while testing: for a statement nothing supports, the "closest passage" was the
+  NLI model's best passage, which is arbitrary when every score is near zero (all three
+  flagged sentences pointed at the same first passage, and the reversed direction was
+  missed). The closest passage is now the one sharing most words; the direction was then
+  found.
+- "Rewrite from the source" on those three sentences (about 3 s each) gave "10 Hz [E1]",
+  the summary's "increases the coolant flow rate ... adjacent to that cell [E5]" and "a
+  controller that adjusts its speed based on estimated core temperatures [E2]"; each was
+  checked again and supported. Grounding of the text went from 50% to 100%. A rewrite the
+  sources do not back is refused, and the original answer can always be restored.
+- False premises: with the battery document attached, "Which neural network does the
+  battery controller train?" and "Why does the patent use LiDAR sensors to measure the
+  cells?" were both answered "The sources do not mention ..." followed by cited facts; the
+  absence sentence is not checked as a claim. Unscoped, the first question found patents on
+  the patent offices that do discuss neural networks, so (correctly) no note appeared.
+  Three ordinary questions ("operating temperature", "how is the pump controlled", "what
+  happens when a cell overheats") raised no note. The check is word-based, so a synonym
+  can trigger it; the note is shown only when the answer itself says the term is not
+  mentioned. It is off in experiment reruns (`agent_premise_check`).
+- Seen in the X-ray of an ordinary answer: "samples the thermistors every 0.1 seconds" was
+  flagged (violet, "0.1 seconds" underlined); the source says 10 Hz. Correct arithmetic, but
+  not stated, which is the checker's definition of unsupported.

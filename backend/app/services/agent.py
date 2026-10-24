@@ -11,16 +11,19 @@ import re
 import time
 import uuid
 from collections.abc import Callable
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from app.agents import premise
 from app.agents.demo_injection import find_planted
 from app.agents.graph import AgentGraph
+from app.agents.live import LiveAnswer
 from app.agents.tools import ToolContext
 from app.agents.trace import TraceRecorder
 from app.core.config import Settings
-from app.core.errors import AppError, ValidationFailedError
+from app.core.errors import AnswerStopped, AppError, ValidationFailedError
 from app.llm.providers import LLMProvider, LLMResponse, estimate_cost_usd
 from app.models import AgentRun, ToolCall
 from app.patents.base import PatentSource
@@ -51,7 +54,18 @@ class UsageTrackingLLM(LLMProvider):
         self.estimated = False
 
     def complete(self, messages, *, temperature, max_tokens) -> LLMResponse:
-        response = self.inner.complete(messages, temperature=temperature, max_tokens=max_tokens)
+        return self._count(
+            self.inner.complete(messages, temperature=temperature, max_tokens=max_tokens)
+        )
+
+    def stream(self, messages, *, temperature, max_tokens, on_text) -> LLMResponse:
+        return self._count(
+            self.inner.stream(
+                messages, temperature=temperature, max_tokens=max_tokens, on_text=on_text
+            )
+        )
+
+    def _count(self, response: LLMResponse) -> LLMResponse:
         self.calls += 1
         self.prompt_tokens += response.prompt_tokens
         self.completion_tokens += response.completion_tokens
@@ -91,12 +105,20 @@ class AgentService(AnswerService):
         live_search: bool = False,
         inject_false_fact: bool = False,
         progress: Callable[[list[dict]], None] | None = None,
+        live: Callable[[dict], None] | None = None,
+        general_fallback: bool = False,
+        timezone: str | None = None,
+        chat_style: str | None = None,
     ) -> AgentRun:
         """`live_search`: also search the patent databases for this question and import
         the most relevant patents (the chat's "Search patent databases" switch).
         `inject_false_fact`: demo mode, plant a false sentence in the first draft to show
         the checker catching it (Phase 14; app/agents/demo_injection.py).
-        `progress`: receives the live trace rows while the agent works (Phase 15)."""
+        `progress`: receives the live trace rows while the agent works (Phase 15).
+        `live`: receives the answer as it happens: sources found, the draft as it is
+        written, the checker's verdicts (app/agents/live.py).
+        `general_fallback`: the chat's labelled general-knowledge answer when no source has
+        one; `timezone`: the user's, for date and time (app/agents/everyday.py)."""
         if inject_false_fact and not self.settings.demo_injection_enabled:
             raise ValidationFailedError("The checker test is turned off on this server.")
         started = time.perf_counter()
@@ -148,7 +170,13 @@ class AgentService(AnswerService):
             web_search=self.settings.agent_web_search,
             live_import_limit=self.settings.agent_live_import_limit,
             trace=TraceRecorder(progress),
+            live=LiveAnswer(live) if live is not None else None,
+            parallel_searches=self.settings.agent_parallel_searches,
+            general_fallback=general_fallback,
+            timezone=timezone,
+            chat_style=chat_style,
         )
+        live_view = agent.live
         try:
             state = agent.run(
                 question,
@@ -159,6 +187,9 @@ class AgentService(AnswerService):
             )
             state["trace_rows"] = agent.trace.rows
             self._store(run, state, tracked, started)
+        except AnswerStopped:
+            partial = live_view.state["draft"] if live_view is not None else ""
+            self._stopped(run, partial, agent.trace.rows, started)
         except AppError as exc:
             self._fail(run, exc.message, started)
             raise
@@ -169,6 +200,21 @@ class AgentService(AnswerService):
                 "The question could not be answered.", code="answer_failed", status_code=500
             ) from exc
         return run
+
+    def _stopped(self, run: AgentRun, partial: str, trace: list[dict], started: float) -> None:
+        """Stopped by the user: keep what was written so far, marked as not checked."""
+        self.session.rollback()
+        run = self.session.get(AgentRun, run.id)
+        run.status = "stopped"
+        run.answer_text = partial or None
+        run.latency_ms = round((time.perf_counter() - started) * 1000)
+        run.completed_at = datetime.now(UTC)
+        run.answer = {"text": partial, "sentences": [], "evidence": [], "stopped": True}
+        if trace:
+            run.answer["trace"] = [
+                row | {"status": "stopped"} if row["status"] == "running" else row for row in trace
+            ]
+        self.session.commit()
 
     def _store(self, run: AgentRun, state: dict, tracked: UsageTrackingLLM, started: float) -> None:
         run = self.session.get(AgentRun, run.id)  # tools may have committed/rolled back
@@ -236,6 +282,17 @@ class AgentService(AnswerService):
             extra["demo_injection"] = self._injection_outcome(state)
         if state.get("trace_rows"):
             extra["trace"] = state["trace_rows"]
+        if state.get("everyday"):
+            extra["everyday"] = state["everyday"]
+        if state.get("general"):
+            extra["general"] = state["general"]
+        terms = state.get("premise_terms")
+        if terms and state["parsed"].status == "answered":
+            extra["premise"] = {
+                "terms": terms,
+                # shown only when the answer itself says the sources do not mention them
+                "acknowledged": premise.acknowledged(state["parsed"].text, terms),
+            }
         self._finish(
             run,
             state["parsed"],

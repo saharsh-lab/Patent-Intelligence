@@ -80,7 +80,7 @@ export function WatchesWorkspace() {
   return (
     <div className="space-y-6">
       {live.length === 0 && sources.data && (
-        <p className="rounded border border-warn/30 bg-warn-soft px-4 py-2 text-sm text-warn">
+        <p className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-2 text-sm text-warn">
           No patent database is configured, so checks cannot find anything. Add EPO_OPS_KEY and EPO_OPS_SECRET to .env
           (free at developers.epo.org) and restart the API.
         </p>
@@ -91,22 +91,22 @@ export function WatchesWorkspace() {
           <label className="text-xs text-muted">
             Name
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Battery immersion cooling"
-              className="mt-1 w-full rounded border border-line-strong bg-surface px-2 py-1.5 text-sm text-text" />
+              className="mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-text" />
           </label>
           <label className="text-xs text-muted">
             Keywords
             <input value={keywords} onChange={(e) => setKeywords(e.target.value)} placeholder="battery dielectric immersion cooling"
-              className="mt-1 w-full rounded border border-line-strong bg-surface px-2 py-1.5 text-sm text-text" />
+              className="mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-text" />
           </label>
           <label className="text-xs text-muted">
             CPC (optional)
             <input value={cpc} onChange={(e) => setCpc(e.target.value)} placeholder="H01M10/613"
-              className="mt-1 w-full rounded border border-line-strong bg-surface px-2 py-1.5 text-sm text-text" />
+              className="mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-text" />
           </label>
           <label className="text-xs text-muted">
             Rank against
             <select value={reference} onChange={(e) => setReference(e.target.value)}
-              className="mt-1 w-full rounded border border-line-strong bg-surface px-2 py-1.5 text-sm text-text">
+              className="mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-text">
               <option value="">— no document —</option>
               {(documents.data ?? []).filter((d) => d.status === "ready").map((d) => (
                 <option key={d.id} value={d.id}>{d.title || d.filename}</option>
@@ -132,7 +132,7 @@ export function WatchesWorkspace() {
             {(watches.data ?? []).map((w) => (
               <li key={w.id}>
                 <div
-                  className={`rounded border px-3 py-2 text-sm ${w.id === active ? "border-accent bg-accent-soft" : "border-line bg-surface"}`}
+                  className={`rounded-xl border px-3 py-2 text-sm ${w.id === active ? "border-accent bg-accent-soft" : "border-line bg-surface"}`}
                 >
                   <button type="button" className="w-full text-left" onClick={() => setSelected(w.id)}>
                     <span className="flex items-center gap-2 font-medium">

@@ -409,6 +409,29 @@ def test_second_opinion_cannot_confirm_a_number_the_passages_do_not_have():
     assert out[1].verdict == SUPPORTED
 
 
+def test_second_opinion_cannot_confirm_a_reversed_direction():
+    # Observed (2026-10-22, checker test): Qwen3 confirmed "decrease the contact" against
+    # a passage saying "increase the contact", its own reason quoting "increase"
+    llm = ScriptedJudge(
+        [
+            '[{"id": 1, "verdict": "supported", "reason": "passages say increase contact"},'
+            ' {"id": 2, "verdict": "supported", "reason": "same"}]'
+        ]
+    )
+    verifier = verifiers_module.SecondOpinionVerifier(AlwaysUnsure(), LlmJudgeVerifier(llm))
+    passage = "The graphene layer and nanotubes increase the contact with the solid electrolyte."
+    out = verifier.judge(
+        [
+            "The graphene layer and nanotubes decrease the contact with the electrolyte.",
+            "The graphene layer and nanotubes increase contact with the electrolyte.",
+        ],
+        [[passage], [passage]],
+    )
+    assert out[0].verdict == UNSUPPORTED
+    assert 'says "decrease" where the passages say "increase"' in out[0].reason
+    assert out[1].verdict == SUPPORTED
+
+
 def test_statement_naming_another_patent_is_unsupported():
     guard = verifiers_module.AttributionGuard(LexicalVerifier())
     passage = "Source: US12563707B2.txt, abstract.\nStagnant fluid reduces the cooling capacity."
@@ -428,3 +451,46 @@ def test_auto_uses_the_second_opinion_only_with_a_real_llm(monkeypatch):
     verifiers_module._shared_nli.cache_clear()
     assert build_verifier("auto", nli_model="x", llm=FakeLLM()).name == "nli_lexical"
     assert build_verifier("auto", nli_model="x", llm=ScriptedJudge([])).name == "nli_llm"
+
+
+@pytest.mark.parametrize(
+    ("claim", "flipped"),
+    [
+        # 2026-10-22 checker test: "heat" also occurs in the passage ("heat dissipation")
+        ("Immersion heating systems use sealed cavities with oil for heat dissipation.", True),
+        ("Immersion cooling systems use sealed cavities for efficient heat dissipation.", False),
+        ("The heating element is placed above the cooling plate.", False),
+    ],
+)
+def test_a_direction_reversed_within_its_phrase_is_not_rescued(claim, flipped):
+    passage = (
+        "Immersion cooling systems use sealed cavities with cooling oil for efficient heat "
+        "dissipation. A heating element sits above the cooling plate."
+    )
+    assert verifiers_module.safe_to_rescue(claim, passage) is not flipped
+
+
+class AlwaysEntails(verifiers_module.Verifier):
+    """An NLI stand-in that supports everything (as it did a reversed relation, p=0.79)."""
+
+    name = "entails"
+
+    def judge(self, claims, passages_per_claim):
+        return [verifiers_module.Judgement(SUPPORTED, 0.79, 0, "entailed (p=0.79)") for _ in claims]
+
+
+def test_a_reversed_direction_the_nli_model_entailed_is_not_supported():
+    llm = ScriptedJudge(['[{"id": 1, "verdict": "supported", "reason": "fine"}]'])
+    verifier = verifiers_module.SecondOpinionVerifier(AlwaysEntails(), LlmJudgeVerifier(llm))
+    passage = "Near metal, the resistance of the coil increases and the inductance decreases."
+    out = verifier.judge(
+        [
+            "The resistance of the coil decreases, and the inductance decreases.",
+            "The resistance of the coil increases, and the inductance decreases.",
+        ],
+        [[passage], [passage]],
+    )
+    assert out[0].verdict == UNSUPPORTED
+    assert 'says "decrease" where its passage says' in out[0].reason
+    assert out[1].verdict == SUPPORTED
+    assert llm.calls == []  # a reversed direction is not sent for a second opinion

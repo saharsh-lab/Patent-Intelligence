@@ -55,8 +55,10 @@ export const chat = {
   send: (id: string, message: string, liveSearch = false, injectFalseFact = false) =>
     call<ChatMessage>(`/conversations/${id}/messages`, {
       method: "POST",
-      ...json({ message, live_search: liveSearch, inject_false_fact: injectFalseFact }),
+      ...json({ message, live_search: liveSearch, inject_false_fact: injectFalseFact, timezone: timeZone() }),
     }),
+  /** The Stop button: the answer stops, keeping what was written so far */
+  stop: (id: string) => call<void>(`/conversations/${id}/stop`, { method: "POST" }),
   attach: (id: string, file: File) => {
     const form = new FormData();
     form.append("file", file);
@@ -65,7 +67,39 @@ export const chat = {
   attachSource: (id: string, source: { document_id?: string; patent_id?: string }) =>
     call<ConversationSummary>(`/conversations/${id}/sources`, { method: "POST", ...json(source) }),
   detach: (id: string, documentId: string) => call<void>(`/conversations/${id}/documents/${documentId}`, { method: "DELETE" }),
+  /** Follow-up questions for an answer (written once on the server, then kept) */
+  suggestions: (id: string, runId: string) =>
+    call<{ suggestions: string[] }>(`/conversations/${id}/messages/${runId}/suggestions`, { method: "POST" }),
 };
+
+/** The browser's time zone (e.g. "Asia/Kolkata"), for "what day is it?" */
+export function timeZone(): string | null {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** An answer as plain text for the clipboard: [E2] becomes [2], and the cited sources are
+ *  listed underneath. */
+export function copyText(answer: string, evidence: { label: string | null; source_title?: string | null; source_label: string; source_url?: string | null; cited: boolean }[]): string {
+  const text = answer.replace(/\[E(\d+)\]/g, "[$1]").replace(/\*\*([^*]+)\*\*/g, "$1").trim();
+  const cited = evidence.filter((e) => e.cited && e.label);
+  if (!cited.length) return text;
+  const lines = cited.map((e) => {
+    const name = e.source_title && e.source_title !== e.source_label ? `${e.source_label}: ${e.source_title}` : e.source_label;
+    return `[${(e.label as string).replace(/^E/, "")}] ${name}${e.source_url ? ` (${e.source_url})` : ""}`;
+  });
+  return `${text}\n\nSources:\n${lines.join("\n")}`;
+}
+
+/** One-click ways to continue from an answer (sent as ordinary follow-up messages). */
+export const QUICK_ACTIONS = [
+  { label: "Simpler", message: "Explain that in simpler terms" },
+  { label: "Shorter", message: "Summarise that in two sentences" },
+  { label: "More detailed", message: "Go deeper into the technical details of that" },
+] as const;
 
 /** Group conversations for the sidebar: Today, Yesterday, Previous 7 days, Older. */
 export function groupByRecency(items: ConversationSummary[], now = new Date()): [string, ConversationSummary[]][] {

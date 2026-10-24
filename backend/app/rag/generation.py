@@ -105,23 +105,25 @@ def build_evidence(passages: list[RetrievedPassage], max_tokens: int) -> list[Ev
         if items and used + cost > max_tokens:
             break
         used += cost
-        label = f"E{len(items) + 1}"
-        chunk = passage.chunk
-        location = [source_label(passage)]
-        if chunk.section:
-            claim = (chunk.meta or {}).get("claim_number")
-            location.append(f"claim {claim}" if claim else chunk.section)
-        if chunk.page_number:
-            location.append(f"page {chunk.page_number}")
-        items.append(
-            EvidenceItem(
-                label=label,
-                passage=passage,
-                source_label=location[0],
-                header=f"[{label}] " + " · ".join(location),
-            )
-        )
+        items.append(evidence_item(f"E{len(items) + 1}", passage))
     return items
+
+
+def evidence_item(label: str, passage: RetrievedPassage) -> EvidenceItem:
+    """A passage under its label, with where it is from ("[E1] battery.txt · claim 3")."""
+    chunk = passage.chunk
+    location = [source_label(passage)]
+    if chunk.section:
+        claim = (chunk.meta or {}).get("claim_number")
+        location.append(f"claim {claim}" if claim else chunk.section)
+    if chunk.page_number:
+        location.append(f"page {chunk.page_number}")
+    return EvidenceItem(
+        label=label,
+        passage=passage,
+        source_label=location[0],
+        header=f"[{label}] " + " · ".join(location),
+    )
 
 
 def format_evidence(evidence: list[EvidenceItem]) -> str:

@@ -15,6 +15,8 @@ export type LandscapeOut = Schemas["LandscapeOut"];
 export type LandscapePoint = Schemas["LandscapePointOut"];
 export type EvidenceOut = Schemas["EvidenceOut"];
 export type RunListItem = Schemas["RunListItem"];
+export type CheckRequest = Schemas["CheckRequest"];
+export type CheckHistoryItem = Schemas["CheckHistoryItem"];
 export type PatentSearchRequest = Schemas["PatentSearchRequest"];
 export type PatentSearchResponse = Schemas["PatentSearchResponse"];
 export type PatentResultOut = Schemas["PatentResultOut"];
@@ -41,6 +43,8 @@ export interface SystemInfo {
     reasoning_effort: string | null;
     prompt_version: string;
   };
+  /** The optional fast model for the chat (a user preference) */
+  cloud_llm?: { available: boolean; model: string };
   embeddings: { provider: string; model: string; dimensions: number };
   retrieval: {
     mode: RetrievalMode;

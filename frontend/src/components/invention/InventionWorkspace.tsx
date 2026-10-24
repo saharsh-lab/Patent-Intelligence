@@ -87,7 +87,7 @@ export function InventionWorkspace() {
             rows={6}
             maxLength={8000}
             placeholder="Describe what it is, its parts, and how they work together. Pasting a claim (… comprising: a; b; and c) gives the most precise features."
-            className="w-full rounded border border-line-strong bg-surface px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-line-strong bg-surface px-3 py-2 text-sm"
           />
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <button type="button" className="text-xs text-accent hover:underline" onClick={() => setDescription(EXAMPLE)}>
@@ -98,7 +98,7 @@ export function InventionWorkspace() {
               <select
                 value={documentId}
                 onChange={(e) => setDocumentId(e.target.value)}
-                className="max-w-56 rounded border border-line-strong bg-surface px-2 py-1 text-xs"
+                className="max-w-56 rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-xs"
               >
                 <option value="">— none —</option>
                 {ready.map((d) => (
@@ -124,7 +124,7 @@ export function InventionWorkspace() {
               <select
                 value={maxCandidates}
                 onChange={(e) => setMaxCandidates(Number(e.target.value))}
-                className="rounded border border-line-strong bg-surface px-2 py-1 text-xs"
+                className="rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-xs"
               >
                 {[3, 5, 8].map((n) => (
                   <option key={n}>{n}</option>
@@ -160,7 +160,7 @@ export function InventionWorkspace() {
                   <button
                     type="button"
                     onClick={() => router.replace(`${pathname}?run=${h.run_id}`, { scroll: false })}
-                    className={`w-full rounded px-2 py-1.5 text-left text-xs hover:bg-surface-2 ${h.run_id === runId ? "bg-accent-soft" : ""}`}
+                    className={`w-full rounded-xl px-2 py-1.5 text-left text-xs hover:bg-surface-2 ${h.run_id === runId ? "bg-accent-soft" : ""}`}
                   >
                     <span className="line-clamp-2">{h.description}</span>
                     <span className="mt-0.5 flex items-center gap-1.5 text-muted">

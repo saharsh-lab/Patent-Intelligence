@@ -40,7 +40,7 @@ export function ScanStatus({
 
   return (
     <div
-      className={`relative grid place-items-center overflow-hidden border border-line bg-surface text-muted ${className}`}
+      className={`relative grid place-items-center overflow-hidden rounded-2xl border border-line bg-surface text-muted ${className}`}
       style={{ height, ["--scan-distance" as string]: `${height * 0.84}px` }}
       role="status"
       aria-live="polite"
@@ -82,7 +82,7 @@ export function LoadingState({ onCancel }: { onCancel: () => void }) {
       <div>
         <ScanStatus />
         {/* Answer-shaped skeleton */}
-        <div className="mt-4 border border-line bg-surface p-6">
+        <div className="mt-4 rounded-3xl border border-line bg-surface p-6">
           <div className="skeleton mb-4 h-3.5 w-16" />
           <div className="space-y-3">
             {[100, 94, 97, 62].map((w, i) => (
@@ -92,7 +92,7 @@ export function LoadingState({ onCancel }: { onCancel: () => void }) {
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
           <span>{slow ? "Still working: answers from the local model can take a minute." : "Every sentence is checked against its source."}</span>
-          <button type="button" onClick={onCancel} className="border border-line bg-surface px-3 py-1 text-xs font-medium text-text hover:border-text">
+          <button type="button" onClick={onCancel} className="rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-text hover:border-line-strong">
             Cancel
           </button>
         </div>
@@ -107,7 +107,7 @@ export function LoadingState({ onCancel }: { onCancel: () => void }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.09 * i, type: "spring", stiffness: 220, damping: 26 }}
-            className="border border-line bg-surface px-[18px] py-4"
+            className="rounded-2xl border border-line bg-surface px-[18px] py-4"
           >
             <div className="flex justify-between">
               <div className="skeleton h-3 w-12" />

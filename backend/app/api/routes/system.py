@@ -26,6 +26,11 @@ def system_info(settings: SettingsDep, session: SessionDep) -> dict:
             "reasoning_effort": settings.llm_reasoning_effort or None,
             "prompt_version": PROMPT_VERSION,
         },
+        # the optional fast model for the chat (a user preference); never the key itself
+        "cloud_llm": {
+            "available": bool(settings.cloud_llm_api_key.get_secret_value()),
+            "model": settings.cloud_llm_model,
+        },
         "embeddings": {
             "provider": settings.embedding_provider,
             "model": settings.embedding_model

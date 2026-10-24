@@ -3,6 +3,7 @@
 import type {
   AskRequest,
   AskResponse,
+  CheckRequest,
   ChunkOut,
   DocumentOut,
   HealthReady,
@@ -50,7 +51,9 @@ export async function parseError(response: Response): Promise<ApiError> {
 
 /** Session expired or missing: go to the login page and come back afterwards. */
 export function redirectToLogin() {
-  if (typeof window === "undefined" || window.location.pathname.startsWith("/login")) return;
+  const here = typeof window === "undefined" ? "" : window.location.pathname;
+  // Public pages (landing, login, register) stay where they are
+  if (!here || here === "/" || here.startsWith("/login") || here.startsWith("/register")) return;
   const next = encodeURIComponent(window.location.pathname + window.location.search);
   // A full reload on purpose: it drops every cached response of the expired session
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
@@ -98,6 +101,20 @@ export const api = {
     }),
   listRuns: (limit = 30) => request<RunListItem[]>(`/runs?limit=${limit}`),
   getRun: (id: string) => request<AskResponse>(`/runs/${id}`),
+  /** The Checker: every sentence of a text against your sources */
+  checkText: (body: CheckRequest) =>
+    request<AskResponse>("/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  /** Remove a flagged sentence, rewrite it from its source, or restore the original */
+  fixSentence: (runId: string, action: "remove" | "rewrite" | "restore", claimIndex?: number) =>
+    request<AskResponse>(`/runs/${runId}/fix`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, claim_index: claimIndex ?? null }),
+    }),
 
   patentSources: () => request<SourceStatusOut[]>("/patents/sources"),
   searchPatents: (body: PatentSearchRequest) =>

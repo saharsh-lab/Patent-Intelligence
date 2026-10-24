@@ -92,6 +92,10 @@ def _flip(sentence: str) -> str | None:
     for a, b in _FLIPS:
         for word, opposite in ((a, b), (b, a)):
             pattern = re.compile(rf"\b{word}\b", re.IGNORECASE)
+            # "both heating and cooling modes" would become "both cooling and cooling
+            # modes" (2026-10-22): not a false statement worth testing the checker with
+            if re.search(rf"\b{opposite}\b", sentence, re.IGNORECASE):
+                continue
             if pattern.search(sentence):
                 found = pattern.search(sentence).group(0)
                 new = opposite.capitalize() if found[0].isupper() else opposite

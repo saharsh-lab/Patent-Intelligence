@@ -35,7 +35,7 @@ export default function DocumentDetailPage({ params }: PageProps<"/documents/[id
         }
       />
       <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-        <Panel title="Details">
+        <Panel title="Details" className="lg:self-start">
           <KeyValue
             items={[
               ["Status", <StatusBadge key="s" status={d.status} />],
@@ -59,7 +59,7 @@ export default function DocumentDetailPage({ params }: PageProps<"/documents/[id
               aria-label="Filter by section"
               value={section}
               onChange={(e) => setSection(e.target.value)}
-              className="rounded border border-line-strong bg-surface px-2 py-1 text-xs"
+              className="rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-xs"
             >
               <option value="">All sections</option>
               {d.sections_found.map((s) => (
@@ -72,7 +72,7 @@ export default function DocumentDetailPage({ params }: PageProps<"/documents/[id
           {chunks.data?.length === 0 && <EmptyState title="No passages in this section" />}
           <ol className="space-y-3">
             {chunks.data?.map((c) => (
-              <li key={c.id} className="rounded border border-line px-3 py-2">
+              <li key={c.id} className="rounded-xl border border-line px-3 py-2">
                 <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span className="font-mono">#{c.chunk_index}</span>
                   <Badge>{sectionLabel(c.section)}</Badge>

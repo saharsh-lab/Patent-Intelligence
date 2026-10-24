@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     rate_limit_llm_per_minute: int = Field(default=20, ge=1)  # /ask, /compare
     rate_limit_ingest_per_minute: int = Field(default=30, ge=1)  # uploads, patent API calls
     rate_limit_default_per_minute: int = Field(default=600, ge=1)
+    rate_limit_poll_per_minute: int = Field(default=1200, ge=1)  # live answer polling
     # Trust X-Forwarded-For only behind a proxy you control that overwrites it
     trust_proxy_headers: bool = False
     max_json_body_kb: int = Field(default=256, ge=16, le=10_240)
@@ -73,6 +74,12 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     llm_max_tokens: int = Field(default=1200, gt=0)
     llm_timeout_seconds: float = Field(default=120.0, gt=0)
+    # Optional fast cloud model for the chat, chosen per user in Profile ("Chat model");
+    # the local LLM above stays the default and is what the experiments use. Any
+    # OpenAI-compatible service, e.g. Groq (free tier): set CLOUD_LLM_API_KEY in .env.
+    cloud_llm_base_url: str = "https://api.groq.com/openai/v1"
+    cloud_llm_api_key: SecretStr = SecretStr("")
+    cloud_llm_model: str = "llama-3.3-70b-versatile"
     # Sent as `reasoning_effort` when set. "none" turns off the slow "thinking" phase of
     # reasoning models (e.g. Qwen3 on Ollama: ~10x faster). Empty = don't send.
     llm_reasoning_effort: str = ""
@@ -150,6 +157,15 @@ class Settings(BaseSettings):
     external_min_similarity: float = Field(default=0.55, ge=-1.0, le=1.0)
     # Unscoped questions also search the web (and patent abstracts when about patents)
     agent_web_search: bool = True
+    # Library, web and patent-abstract searches planned together run at the same time
+    # (same results as one after another; only the waiting overlaps)
+    agent_parallel_searches: bool = True
+    # Before writing, find the question's terms that no passage uses and have the answer
+    # say so when the question assumes them (app/agents/premise.py)
+    agent_premise_check: bool = True
+    # Ping a local LLM this often so it stays loaded (Ollama unloads after 5 idle minutes);
+    # 0 = off. Only for a local server (app/core/warmup.py).
+    llm_keep_warm_minutes: float = Field(default=4.0, ge=0, le=60)
 
     epo_ops_key: SecretStr = SecretStr("")
     epo_ops_secret: SecretStr = SecretStr("")

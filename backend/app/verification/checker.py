@@ -19,7 +19,8 @@ import re
 from dataclasses import asdict, dataclass, field
 
 from app.rag.generation import EvidenceItem, ParsedAnswer
-from app.verification.verifiers import PARTIAL, SUPPORTED, UNSUPPORTED, Verifier
+from app.verification.issues import closest_passage, contradicts, find_issues
+from app.verification.verifiers import _NEGATION, PARTIAL, SUPPORTED, UNSUPPORTED, Verifier
 
 _META = re.compile(
     r"^\s*(i cannot|i can't|i can not|the evidence (does not|doesn't|provides no)|there is no "
@@ -42,6 +43,10 @@ class ClaimResult:
     misattributed: bool = False  # supported only by passages it did not cite
     location: str = "answer"  # answer | cell:<aspect>:<source> | similarity | difference
     source_text: str = ""  # the sentence exactly as written in the answer (for highlighting)
+    # Display only (app/verification/issues.py), never part of the verdict:
+    contradicts: bool = False  # unsupported, and the passage says something different
+    issues: list[dict] = field(default_factory=list)  # the words to mark, and why
+    closest: str | None = None  # uncited and unsupported: the passage nearest to it
 
 
 @dataclass
@@ -86,11 +91,25 @@ class Claim:
     source_text: str = ""
 
 
-def claims_from_answer(parsed: ParsedAnswer) -> tuple[list[Claim], list[str]]:
+def states_absence(text: str, terms: list[str]) -> bool:
+    """A sentence saying the sources do not mention one of `terms` (the false-premise note,
+    app/agents/premise.py): there is no passage that could support an absence."""
+    lowered = text.lower()
+    return bool(_NEGATION.search(text)) and any(
+        word.lower() in lowered for term in terms for word in term.split() if len(word) > 3
+    )
+
+
+def claims_from_answer(
+    parsed: ParsedAnswer, premise_terms: list[str] | None = None
+) -> tuple[list[Claim], list[str]]:
     claims, skipped = [], []
     for sentence in parsed.sentences:
         text = _CITATION.sub("", sentence.text).strip().lstrip("-*• ").strip()
         if not text or _META.match(text) or len(text.split()) < 4:
+            skipped.append(text)
+            continue
+        if premise_terms and not sentence.citations and states_absence(text, premise_terms):
             skipped.append(text)
             continue
         claims.append(Claim(text, list(sentence.citations), source_text=sentence.text))
@@ -132,6 +151,26 @@ def premise_for(item: EvidenceItem) -> str:
     return f"Source: {location}.{titled}\n{item.passage.chunk.text}"
 
 
+def stored_premise(evidence: dict) -> str:
+    """`premise_for` for a passage stored with an answer (AnswerService._evidence_json)."""
+    claim = evidence.get("claim_number")
+    location = [evidence["source_label"]]
+    if evidence.get("section"):
+        location.append(f"claim {claim}" if claim else evidence["section"])
+    if evidence.get("page_number"):
+        location.append(f"page {evidence['page_number']}")
+    title = (evidence.get("source_title") or "").strip()
+    titled = f' The title of this document is "{title}".' if title else ""
+    return f"Source: {', '.join(location)}.{titled}\n{evidence['text']}"
+
+
+def report_from_json(data: dict) -> VerificationReport:
+    """A stored report (to_json) back as an object, e.g. to recount after an edit."""
+    known = set(ClaimResult.__dataclass_fields__)
+    claims = [ClaimResult(**{k: v for k, v in c.items() if k in known}) for c in data["claims"]]
+    return VerificationReport(data["method"], claims, list(data.get("skipped", [])))
+
+
 def verify_claims(
     verifier: Verifier,
     claims: list[Claim],
@@ -144,6 +183,19 @@ def verify_claims(
     often cite once at the end of a paragraph; the support is real either way, and
     citation coverage is measured separately."""
     premise = {item.label: premise_for(item) for item in evidence}
+    results = verify_against(verifier, claims, premise, uncited_supported=uncited_supported)
+    return explain(results, premise)
+
+
+def verify_against(
+    verifier: Verifier,
+    claims: list[Claim],
+    premise: dict[str, str],
+    *,
+    uncited_supported: bool = False,
+) -> list[ClaimResult]:
+    """`verify_claims` on passage texts by label (also used for stored answers, whose
+    passages are no longer EvidenceItems)."""
     labels = list(premise)
 
     # Pass 1: each claim against the passages it cites — one by one, and (when it cites
@@ -216,6 +268,24 @@ def verify_claims(
     return results
 
 
+def explain(results: list[ClaimResult], premise: dict[str, str]) -> list[ClaimResult]:
+    """Mark what is wrong in each statement that is not supported: against the passage
+    that partly supports it, else the ones it cited, else the closest one."""
+    for result in results:
+        if result.verdict == SUPPORTED:
+            continue
+        labels = [lbl for lbl in result.supporting or result.cited if lbl in premise]
+        if not labels:
+            result.closest = result.closest or closest_passage(result.text, premise)
+            labels = [result.closest] if result.closest else []
+        if not labels:
+            continue
+        issues = find_issues(result.text, "\n".join(premise[lbl] for lbl in labels))
+        result.issues = [asdict(issue) for issue in issues]
+        result.contradicts = result.verdict == UNSUPPORTED and contradicts(issues)
+    return results
+
+
 def verify_answer(
     verifier: Verifier,
     parsed: ParsedAnswer,
@@ -223,12 +293,15 @@ def verify_answer(
     comparison: dict | None = None,
     *,
     uncited_supported: bool = False,
+    premise_terms: list[str] | None = None,
 ) -> VerificationReport:
-    """Verify an answer (or a comparison table) against the evidence it was built from."""
+    """Verify an answer (or a comparison table) against the evidence it was built from.
+    `premise_terms`: words the question used that no passage has; a sentence saying the
+    sources do not mention them is not a checkable claim (app/agents/premise.py)."""
     if comparison is not None:
         claims, skipped = claims_from_comparison(comparison), []
     else:
-        claims, skipped = claims_from_answer(parsed)
+        claims, skipped = claims_from_answer(parsed, premise_terms)
     results = (
         verify_claims(verifier, claims, evidence, uncited_supported=uncited_supported)
         if claims

@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
 
 import type { ClaimResult, VerificationAttempt } from "./verification";
-import { checkedAgainst, countTones, type DemoInjection, draftHistory, highlightShared, injectionOutcome, overlap, plantedClaim, stem, toneOf } from "./xray";
+import {
+  checkedAgainst,
+  countTones,
+  type DemoInjection,
+  draftHistory,
+  highlightShared,
+  injectionOutcome,
+  issueNote,
+  markIssues,
+  overlap,
+  plantedClaim,
+  stem,
+  toneOf,
+} from "./xray";
 
 const claim = (text: string, verdict: ClaimResult["verdict"], extra: Partial<ClaimResult> = {}): ClaimResult => ({
   index: 0, text, cited: ["E1"], verdict, score: 0.9, reason: "", supporting: [],
@@ -13,8 +26,37 @@ describe("toneOf", () => {
     expect(toneOf(claim("a", "supported"))).toBe("ok");
     expect(toneOf(claim("a", "partially_supported"))).toBe("warn");
     expect(toneOf(claim("a", "supported", { misattributed: true }))).toBe("warn");
-    expect(toneOf(claim("a", "unsupported"))).toBe("bad");
-    expect(countTones([claim("a", "supported"), claim("b", "unsupported")])).toEqual({ ok: 1, warn: 0, bad: 1 });
+    expect(toneOf(claim("a", "unsupported"))).toBe("miss");
+    expect(toneOf(claim("a", "unsupported", { contradicts: true }))).toBe("bad");
+    expect(countTones([claim("a", "supported"), claim("b", "unsupported")])).toEqual({ ok: 1, warn: 0, miss: 1, bad: 0 });
+  });
+
+  it("reads a contradiction from the reason on answers stored before the flag existed", () => {
+    const old = claim("a", "unsupported", { reason: 'entailed (p=0.79), but it says "decrease" where its passage says "increase"' });
+    expect(toneOf(old)).toBe("bad");
+    expect(toneOf(claim("a", "unsupported", { reason: "not stated in the passage (p=0.02)" }))).toBe("miss");
+  });
+});
+
+describe("markIssues", () => {
+  const issue = (text: string, extra = {}) => ({ kind: "unstated" as const, text, passage_says: null, conflict: false, ...extra });
+
+  it("splits a sentence around the words the checker found wrong, keeping the text intact", () => {
+    const text = "A PID controller keeps cells below 120 degrees [E1].";
+    const pieces = markIssues(text, [issue("120 degrees", { kind: "number" }), issue("PID")]);
+    expect(pieces.map((p) => p.text).join("")).toBe(text);
+    expect(pieces.filter((p) => p.issue).map((p) => p.text)).toEqual(["PID", "120 degrees"]);
+  });
+
+  it("ignores words it cannot find and overlapping marks", () => {
+    expect(markIssues("Plain text.", [issue("absent")])).toEqual([{ text: "Plain text." }]);
+    expect(markIssues("neural network", [issue("neural network"), issue("network")]).filter((p) => p.issue)).toHaveLength(1);
+  });
+
+  it("says what the passage has instead", () => {
+    expect(issueNote(issue("120 degrees", { kind: "number", passage_says: "40 °C", conflict: true }))).toBe("“120 degrees”: the passage says “40 °C”");
+    expect(issueNote(issue("PID"))).toBe("“PID” is not in the passage");
+    expect(issueNote(issue("not", { kind: "negation" }))).toBe("“not”: the passage does not say this");
   });
 });
 
@@ -23,6 +65,7 @@ describe("checkedAgainst", () => {
     expect(checkedAgainst(claim("a", "partially_supported", { cited: ["E1"], supporting: ["E3"] }))).toEqual(["E3"]);
     expect(checkedAgainst(claim("a", "unsupported", { cited: ["E2", "?"] }))).toEqual(["E2"]);
     expect(checkedAgainst(claim("a", "unsupported", { cited: [] }))).toEqual([]);
+    expect(checkedAgainst(claim("a", "unsupported", { cited: [], closest: "E4" }))).toEqual(["E4"]);
   });
 });
 

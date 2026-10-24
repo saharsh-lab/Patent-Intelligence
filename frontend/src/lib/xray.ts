@@ -1,13 +1,25 @@
 // Hallucination X-ray: what the UI shows about each checked sentence.
 // Pure helpers; the data comes from the backend's claim-level verification.
 
-import type { ClaimResult, Verification, VerificationAttempt } from "@/lib/verification";
+import type { ClaimResult, Issue, Verification, VerificationAttempt } from "@/lib/verification";
 
-export type Tone = "ok" | "warn" | "bad";
+export type Tone = "ok" | "warn" | "miss" | "bad";
 
-/** Green: supported. Amber: partly supported or cited the wrong passage. Red: unsupported. */
+export const TONES: Tone[] = ["ok", "warn", "bad", "miss"];
+
+/** Answers stored before 23 Oct have no `contradicts`: their direction and number guards
+ *  said so in the reason ("... where its passage says ...") */
+const OLD_CONFLICT = /where (?:its|the) passages? says?/;
+
+/** Unsupported, and the passage says something different (a number, a direction). */
+export function contradicts(claim: ClaimResult): boolean {
+  return claim.verdict === "unsupported" && (claim.contradicts ?? OLD_CONFLICT.test(claim.reason));
+}
+
+/** Green: supported. Amber: partly supported or cited the wrong passage. Red: contradicts
+ *  its passage. Violet: no passage says it. */
 export function toneOf(claim: ClaimResult): Tone {
-  if (claim.verdict === "unsupported") return "bad";
+  if (claim.verdict === "unsupported") return contradicts(claim) ? "bad" : "miss";
   if (claim.verdict === "partially_supported" || claim.misattributed) return "warn";
   return "ok";
 }
@@ -15,19 +27,54 @@ export function toneOf(claim: ClaimResult): Tone {
 export const TONE_LABEL: Record<Tone, string> = {
   ok: "Supported by its source",
   warn: "Partly supported",
-  bad: "Not found in the sources",
+  bad: "Contradicts its source",
+  miss: "Not found in the sources",
 };
 
-/** The passages a sentence was judged against: the one that supported it, or else the
- *  ones it cited (an unsupported sentence has no supporting passage). */
+/** The passages a sentence was judged against: the one that supported it, else the ones
+ *  it cited, else (no citation, no support) the closest one. */
 export function checkedAgainst(claim: ClaimResult): string[] {
-  return claim.supporting.length ? claim.supporting : claim.cited.filter((l) => /^E\d+$/.test(l));
+  if (claim.supporting.length) return claim.supporting;
+  const cited = claim.cited.filter((l) => /^E\d+$/.test(l));
+  return cited.length ? cited : claim.closest ? [claim.closest] : [];
 }
 
 export function countTones(claims: ClaimResult[]): Record<Tone, number> {
-  const out: Record<Tone, number> = { ok: 0, warn: 0, bad: 0 };
+  const out: Record<Tone, number> = { ok: 0, warn: 0, miss: 0, bad: 0 };
   for (const claim of claims) out[toneOf(claim)] += 1;
   return out;
+}
+
+export type Marked = { text: string; issue?: Issue };
+
+/** Split a sentence so the words the checker found wrong can be marked. */
+export function markIssues(text: string, issues: Issue[] | undefined): Marked[] {
+  const found: { start: number; end: number; issue: Issue }[] = [];
+  for (const issue of issues ?? []) {
+    if (!issue.text) continue;
+    let start = text.indexOf(issue.text);
+    if (start < 0) start = text.toLowerCase().indexOf(issue.text.toLowerCase());
+    const end = start + issue.text.length;
+    if (start >= 0 && !found.some((f) => start < f.end && end > f.start)) found.push({ start, end, issue });
+  }
+  found.sort((a, b) => a.start - b.start);
+  const out: Marked[] = [];
+  let cursor = 0;
+  for (const f of found) {
+    if (f.start > cursor) out.push({ text: text.slice(cursor, f.start) });
+    out.push({ text: text.slice(f.start, f.end), issue: f.issue });
+    cursor = f.end;
+  }
+  if (cursor < text.length) out.push({ text: text.slice(cursor) });
+  return out;
+}
+
+/** One line on a marked word, for the inspector. */
+export function issueNote(issue: Issue): string {
+  const said = `“${issue.text}”`;
+  if (issue.kind === "negation") return `${said}: the passage does not say this`;
+  if (issue.passage_says) return `${said}: the passage says “${issue.passage_says}”`;
+  return `${said} is not in the passage`;
 }
 
 // Words too common to say anything about whether a passage backs a sentence

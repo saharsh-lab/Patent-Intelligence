@@ -24,8 +24,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.agents.analysis import is_small_talk
+from app.agents.everyday import is_everyday
 from app.core.config import Settings
-from app.core.errors import NotFoundError, ValidationFailedError
+from app.core.errors import AnswerStopped, NotFoundError, ValidationFailedError
 from app.llm.providers import ChatMessage, LLMProvider
 from app.models import AgentRun, Document, Patent, Query
 from app.models.conversation import DEFAULT_TITLE, Conversation
@@ -40,6 +41,12 @@ logger = logging.getLogger(__name__)
 
 HISTORY_TURNS = 4  # previous question/answer pairs given to the rewriter
 ANSWER_CHARS = 500  # each previous answer is shortened to this for the rewriter
+
+_SUGGEST_PROMPT = """\
+Suggest 3 short follow-up questions the user might ask next about this topic, each
+answerable from patents, technical documents or the web. Each at most 12 words, each on
+its own line, ending with a question mark. No numbering, no answers, no legal questions."""
+SUGGESTIONS = 3
 
 _REWRITE_PROMPT = """\
 You turn the user's latest message into a standalone question for a patent search
@@ -60,6 +67,7 @@ class ChatService:
         *,
         owner_id: uuid.UUID | None,
         pipeline: str = "agentic",
+        answer_detail: str = "concise",
     ):
         self.session = session
         self.settings = settings
@@ -68,6 +76,7 @@ class ChatService:
         self.sources = patent_sources
         self.owner_id = owner_id
         self.pipeline = pipeline
+        self.answer_detail = answer_detail
 
     # ------------------------------------------------------------------ conversations
 
@@ -202,6 +211,7 @@ class ChatService:
         message: str,
         live_search: bool = False,
         inject_false_fact: bool = False,
+        timezone: str | None = None,
     ) -> AgentRun:
         conversation = self.get(conversation_id)
         message = message.strip()
@@ -218,8 +228,14 @@ class ChatService:
             extra = {
                 "live_search": live_search,
                 "inject_false_fact": inject_false_fact,
-                # the chat page polls this while the answer is written (Phase 15)
-                "progress": lambda rows: progress.publish(key, rows),
+                # the chat page polls this while the answer is written (Phase 15); both
+                # sinks also carry the Stop button back to the agent
+                "progress": lambda rows: _unless_stopped(key) or progress.publish(key, rows),
+                "live": lambda state: _unless_stopped(key) or progress.publish_live(key, state),
+                # a question no source can answer gets a labelled general-knowledge answer
+                "general_fallback": not inject_false_fact,
+                "timezone": timezone,
+                "chat_style": self.answer_detail,
             }
         elif inject_false_fact:
             raise ValidationFailedError("The checker test needs the agent pipeline.")
@@ -249,15 +265,58 @@ class ChatService:
         self.session.commit()
         return run
 
+    def stop(self, conversation_id: uuid.UUID) -> bool:
+        """Stop the answer being written in this conversation (the Stop button)."""
+        conversation = self.get(conversation_id)  # ownership check
+        return progress.request_stop(str(conversation.id))
+
     def progress(self, conversation_id: uuid.UUID) -> dict:
         """The live trace of the answer being written in this conversation, if any."""
         conversation = self.get(conversation_id)  # ownership check
         return progress.get(str(conversation.id))
 
+    def suggestions(self, conversation_id: uuid.UUID, run_id: uuid.UUID) -> list[str]:
+        """Follow-up questions for an answer, written once and kept with it. Asked for by
+        the page after the answer is shown, so they never delay the answer."""
+        conversation = self.get(conversation_id)  # ownership check
+        run = self.session.get(AgentRun, run_id)
+        if run is None or run.query.conversation_id != conversation.id:
+            raise NotFoundError("Message not found.")
+        answer = run.answer or {}
+        if "follow_ups" in answer:
+            return answer["follow_ups"]
+        if (
+            run.status != "succeeded"
+            or (run.plan or {}).get("intent") in ("small_talk", "everyday")
+            or self.settings.llm_provider == "fake"
+            or not run.answer_text
+        ):
+            return []
+        question = (run.query.meta or {}).get("user_message") or run.query.query_text
+        prompt = f"Question: {question}\n\nAnswer: {run.answer_text[:1500]}"
+        try:
+            response = self.llm.complete(
+                [ChatMessage("system", _SUGGEST_PROMPT), ChatMessage("user", prompt)],
+                temperature=0.3,
+                max_tokens=120,
+            )
+        except Exception as exc:  # noqa: BLE001 - suggestions are a convenience
+            logger.info("Follow-up suggestions failed (%s)", type(exc).__name__)
+            return []
+        follow_ups = parse_suggestions(response.text, exclude=question)
+        run.answer = {**answer, "follow_ups": follow_ups}
+        self.session.commit()
+        return follow_ups
+
     def rewrite(self, message: str, history: list[AgentRun]) -> str:
         """Standalone version of a follow-up question (unchanged if there is no history,
         no real LLM, or the rewrite looks wrong)."""
-        if not history or self.settings.llm_provider == "fake" or is_small_talk(message):
+        if (
+            not history
+            or self.settings.llm_provider == "fake"
+            or is_small_talk(message)
+            or is_everyday(message)
+        ):
             return message  # "thanks" must not become a question about the last answer
         turns = []
         for run in history:
@@ -295,6 +354,30 @@ def _accept_rewrite(original: str, text: str) -> str:
     if not text or len(text) > max(300, 3 * len(original)) or "\n\n" in text:
         return original
     return text
+
+
+def _unless_stopped(key: str) -> None:
+    if progress.stop_requested(key):
+        raise AnswerStopped
+
+
+def parse_suggestions(text: str, exclude: str = "") -> list[str]:
+    """Questions from the model's reply: one per line, numbering, bullets and quotes removed;
+    no repeats of the user's question, nothing long or legal."""
+    text = re.sub(r"<think>.*?</think>", "", text or "", flags=re.DOTALL)
+    seen = {exclude.strip().lower().rstrip("?")}
+    out: list[str] = []
+    for line in text.splitlines():
+        line = re.sub(r"^\s*(?:[-*•]|\d+[.)])\s*", "", line).strip().strip('"').strip()
+        if not line.endswith("?") or not 3 <= len(line.split()) <= 16:
+            continue
+        if re.search(r"\b(infring|valid|legal|lawsuit|sue)\w*", line, re.IGNORECASE):
+            continue
+        key = line.lower().rstrip("?")
+        if key not in seen:
+            seen.add(key)
+            out.append(line)
+    return out[:SUGGESTIONS]
 
 
 def _title_from(message: str) -> str:

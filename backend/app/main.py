@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import (
     ask,
+    checker,
     compare,
     conversations,
     documents,
@@ -50,9 +51,10 @@ def create_app() -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        from app.core.warmup import start_warm_up
+        from app.core.warmup import start_keep_warm, start_warm_up
 
         start_warm_up(settings)
+        keep_warm = start_keep_warm(settings)
         scheduler = None
         if settings.watch_check_interval_hours > 0:
             from app.services.watch_scheduler import WatchScheduler
@@ -60,6 +62,8 @@ def create_app() -> FastAPI:
             scheduler = WatchScheduler(settings)
             scheduler.start()
         yield
+        if keep_warm is not None:
+            keep_warm.set()
         if scheduler:
             scheduler.stop()
 
@@ -115,6 +119,7 @@ def create_app() -> FastAPI:
         invention,
         watches,
         landscape,
+        checker,
     ):
         app.include_router(module.router, dependencies=protected)
     return app

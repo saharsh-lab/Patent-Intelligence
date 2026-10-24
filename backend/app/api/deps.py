@@ -10,7 +10,7 @@ from app.core.config import Settings, get_settings
 from app.core.ownership import current_owner
 from app.database.session import get_db
 from app.invention.analysis import InventionAnalyzer
-from app.llm.providers import LLMProvider, get_llm
+from app.llm.providers import LLMProvider, cloud_llm, get_llm
 from app.patents.base import PatentSource
 from app.patents.registry import get_patent_sources_for
 from app.rag.embeddings import EmbeddingProvider, get_embedder
@@ -19,6 +19,8 @@ from app.services.answering import AnswerService
 from app.services.chat import ChatService
 from app.services.comparison import ComparisonService
 from app.services.documents import DocumentService
+from app.services.fact_check import FactChecker
+from app.services.fixes import SentenceFixer
 from app.services.patents import PatentService
 from app.services.watches import WatchService
 
@@ -46,6 +48,22 @@ def get_answer_service(
 
 
 AnswerServiceDep = Annotated[AnswerService, Depends(get_answer_service)]
+
+
+def get_fact_checker(
+    session: SessionDep, settings: SettingsDep, embedder: EmbedderDep, llm: LLMDep
+) -> FactChecker:
+    return FactChecker(session, settings, embedder, llm)
+
+
+FactCheckerDep = Annotated[FactChecker, Depends(get_fact_checker)]
+
+
+def get_sentence_fixer(session: SessionDep, settings: SettingsDep, llm: LLMDep) -> SentenceFixer:
+    return SentenceFixer(session, settings, llm)
+
+
+SentenceFixerDep = Annotated[SentenceFixer, Depends(get_sentence_fixer)]
 
 
 def get_patent_sources(settings: SettingsDep) -> dict[str, PatentSource]:
@@ -125,11 +143,20 @@ def get_chat_service(
 ) -> ChatService:
     preferences = (user.preferences or {}) if user else {}
     pipeline = preferences.get("default_pipeline") or "agentic"
+    if preferences.get("model") == "cloud":
+        llm = cloud_llm(settings) or llm  # without a configured key, the local model
     checks = {"strict": "nli_lexical", "balanced": "nli_llm"}.get(preferences.get("verification"))
     if checks and settings.verifier_method in ("auto", "nli_llm", "nli_lexical"):
         settings = settings.model_copy(update={"verifier_method": checks})
     return ChatService(
-        session, settings, embedder, llm, sources, owner_id=current_owner(), pipeline=pipeline
+        session,
+        settings,
+        embedder,
+        llm,
+        sources,
+        owner_id=current_owner(),
+        pipeline=pipeline,
+        answer_detail=preferences.get("answer_detail") or "concise",
     )
 
 

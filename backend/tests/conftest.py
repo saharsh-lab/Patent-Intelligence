@@ -22,6 +22,11 @@ os.environ["VERIFIER_METHOD"] = "lexical"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
 # Accounts are tested explicitly (test_auth.py); other tests act as the single local user
 os.environ["AUTH_REQUIRED"] = "false"
+# Never the real web: tests that need web search substitute a fake one (test_web_search.py).
+# Found 2026-10-22: chat tests with general questions were calling Wikipedia.
+os.environ["WEB_SEARCH_PROVIDER"] = "off"
+# No keep-warm pings to a local LLM from test apps
+os.environ["LLM_KEEP_WARM_MINUTES"] = "0"
 
 
 def _point_everything_at_test_databases() -> None:

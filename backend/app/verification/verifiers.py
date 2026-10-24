@@ -280,6 +280,51 @@ def _numbers_match(claim: str, passage: str) -> bool:
     return True
 
 
+_ARTICLE = r"(?:the\s+|a\s+|an\s+)?"
+
+
+def _neighbours(word: str, claim: str) -> list[str]:
+    """The content words right before and after each use of `word` in the claim
+    (articles skipped: "decrease the contact")."""
+    out = []
+    pattern = rf"(?:\b([a-z][\w-]*)\s+)?\b{word}\w*(?:\s+{_ARTICLE}([a-z][\w-]*))?"
+    for match in re.finditer(pattern, claim, re.IGNORECASE):
+        for neighbour in match.groups():
+            if neighbour and neighbour.lower() not in _STOP and len(neighbour) > 2:
+                out.append(neighbour)
+    return out
+
+
+def _next_to(neighbour: str, word: str, text: str) -> bool:
+    """`word` (any ending) stands right next to `neighbour`, in either order: "heating
+    liquid" and "liquid heating" are the same phrase for this purpose."""
+    n = re.escape(neighbour)
+    pattern = rf"\b{n}\s+{_ARTICLE}{word}|\b{word}\w*\s+{_ARTICLE}{n}\b"
+    return re.search(pattern, text, re.IGNORECASE) is not None
+
+
+def _flipped(claim: str, passage: str, phrase_only: bool = False) -> tuple[str, str] | None:
+    """A direction word in the claim reversed relative to the passage: the passage has its
+    opposite in the same phrase ("immersion heating" where it says "immersion cooling",
+    although "heat" occurs elsewhere, as in "heat dissipation": a 2026-10-22 checker test),
+    or, unless `phrase_only`, has the opposite anywhere but not the word ("decrease" where
+    it says "increase"). The whole-text rule suits the key-word rescue (most of the claim's
+    words are in the passage); for statements a model judged supported it raised false
+    alarms ("one or more coils" against "less than the threshold"), so it is not used there."""
+    for a, b in _OPPOSITES:
+        for word, opposite in ((a, b), (b, a)):
+            if not _has(word, claim):
+                continue
+            if not phrase_only and not _has(word, passage) and _has(opposite, passage):
+                return word, opposite
+            for neighbour in _neighbours(word, claim):
+                if _next_to(neighbour, opposite, passage) and not _next_to(
+                    neighbour, word, passage
+                ):
+                    return word, opposite
+    return None
+
+
 def safe_to_rescue(claim: str, passage: str) -> bool:
     """Word overlap is fooled by a changed number, an added negation or a swapped
     direction ("increases" for "decreases"): refuse the rescue in those cases."""
@@ -287,11 +332,7 @@ def safe_to_rescue(claim: str, passage: str) -> bool:
         return False
     if _NEGATION.search(claim) and not _NEGATION.search(passage):
         return False
-    for a, b in _OPPOSITES:
-        for word, opposite in ((a, b), (b, a)):
-            if _has(word, claim) and not _has(word, passage) and _has(opposite, passage):
-                return False
-    return True
+    return _flipped(claim, passage) is None
 
 
 class NliLexicalVerifier(Verifier):
@@ -453,8 +494,30 @@ class SecondOpinionVerifier(Verifier):
 
     def judge(self, claims, passages_per_claim):
         out = list(self.first.judge(claims, passages_per_claim))
+        reversed_ = set()
+        for i, first in enumerate(out):
+            # Observed (2026-10-22, checker test): NLI entailed "the resistance of the coil
+            # decreases" (p=0.79) from "the resistance of the coil increases and the
+            # inductance decreases". A direction reversed relative to the supporting passage
+            # is not supported, and no second opinion can change that.
+            if first.verdict == SUPPORTED and first.best_passage is not None:
+                flipped = _flipped(
+                    claims[i], passages_per_claim[i][first.best_passage], phrase_only=True
+                )
+                if flipped:
+                    reversed_.add(i)
+                    out[i] = Judgement(
+                        UNSUPPORTED,
+                        min(first.score, 0.2),
+                        first.best_passage,
+                        f'{first.reason}, but it says "{flipped[0]}" where its passage says '
+                        f'"{flipped[1]}"',
+                        contradiction=first.contradiction,
+                    )
         doubtful = [
-            i for i, j in enumerate(out) if j.verdict != SUPPORTED and passages_per_claim[i]
+            i
+            for i, j in enumerate(out)
+            if j.verdict != SUPPORTED and passages_per_claim[i] and i not in reversed_
         ]
         self.last_usage = (0, 0)
         if not doubtful:
@@ -473,15 +536,21 @@ class SecondOpinionVerifier(Verifier):
         self.last_usage = (prompt_tokens, completion_tokens)
         for i, opinion in zip(doubtful, second, strict=True):
             first = out[i]
-            if opinion.verdict != UNSUPPORTED and not _numbers_match(
-                claims[i], "\n".join(passages_per_claim[i])
-            ):
-                # Observed (2026-10-11, Phase 14 demo): Qwen3-8B confirmed "below 120 degrees
-                # Celsius" against "below 40 °C", its reason quoting 40 °C. A number that is
-                # not in the passages is not overruled by the LLM.
-                out[i] = replace(
-                    first, reason=f"{first.reason}; a number in it is not in the passages"
-                )
+            passages = "\n".join(passages_per_claim[i])
+            # The LLM does not overrule the first stage on a changed number or a reversed
+            # direction. Observed (Phase 14 demo): Qwen3-8B confirmed "below 120 degrees
+            # Celsius" against "below 40 °C" (2026-10-11), and "decrease the contact"
+            # against a passage saying "increase the contact", its reason quoting
+            # "increase" (2026-10-22).
+            problem = None
+            if opinion.verdict != UNSUPPORTED:
+                flipped = _flipped(claims[i], passages, phrase_only=True)
+                if not _numbers_match(claims[i], passages):
+                    problem = "a number in it is not in the passages"
+                elif flipped:
+                    problem = f'it says "{flipped[0]}" where the passages say "{flipped[1]}"'
+            if problem:
+                out[i] = replace(first, reason=f"{first.reason}; {problem}")
                 continue
             if opinion.verdict == SUPPORTED:
                 out[i] = Judgement(

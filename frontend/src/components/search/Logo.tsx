@@ -1,6 +1,5 @@
-// The "Patent Intelligence" mark from the reference component: a square sheet with
-// a P drawn as one stroke. With `draw`, both strokes draw themselves in once (CSS,
-// so reduced motion shows it finished).
+// The "Patent Intelligence" mark: a square sheet with a P drawn as one stroke. With
+// `draw`, both strokes draw themselves in once (CSS, so reduced motion shows it finished).
 export function LogoMark({ size = 32, draw = false, className = "" }: { size?: number; draw?: boolean; className?: string }) {
   const stroke = draw ? "pi-draw" : "";
   return (
@@ -11,13 +10,13 @@ export function LogoMark({ size = 32, draw = false, className = "" }: { size?: n
   );
 }
 
-export function Wordmark({ compact = false, draw = false }: { compact?: boolean; draw?: boolean }) {
+export function Wordmark({ draw = false }: { draw?: boolean }) {
   return (
     <span className="flex items-center gap-2.5">
-      <LogoMark size={compact ? 26 : 30} draw={draw} className="shrink-0 text-text" />
-      <span className="leading-tight">
-        <span className="block font-serif text-[17px] font-medium tracking-tight">Patent Intelligence</span>
-        {!compact && <span className="block text-[11px] text-muted">Evidence-grounded patent AI</span>}
+      <LogoMark size={34} draw={draw} className="shrink-0 text-text" />
+      {/* Phones: the mark alone, so the bar's buttons fit */}
+      <span className="hidden text-[1.05rem] leading-none font-bold tracking-tight whitespace-nowrap min-[420px]:inline">
+        Patent Intelligence
       </span>
     </span>
   );

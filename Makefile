@@ -1,7 +1,7 @@
 # Common commands. Run `make help` to list them.
 PY := backend/.venv/bin
 
-.PHONY: help demo setup setup-ml embed-check web-setup web web-test gen-api db-up db-down db-reset db-shell migrate test lint format run eval eval-dry eval-validate eval-export eval-live-build eval-live eval-agreement eval-verifier eval-review eval-rescore eval-tables
+.PHONY: help demo share setup setup-ml embed-check web-setup web web-test gen-api db-up db-down db-reset db-shell migrate test lint format run eval eval-dry eval-validate eval-export eval-live-build eval-live eval-agreement eval-verifier eval-review eval-rescore eval-tables
 
 help:  ## List available commands
 	@grep -E '^[a-z-]+:.*##' Makefile | awk -F':.*## ' '{printf "  make %-10s %s\n", $$1, $$2}'
@@ -44,6 +44,9 @@ format:  ## Auto-format code
 
 demo:  ## Start everything with the real local models (API :8100, UI :3000); needs Ollama + make db-up
 	./scripts/demo.sh
+
+share:  ## Share the running demo with teammates via the Vercel site (run while 'make demo' is open)
+	./scripts/share.sh
 
 run:  ## Start the API at http://localhost:8000 (docs at /docs)
 	cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000

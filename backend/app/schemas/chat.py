@@ -27,6 +27,9 @@ class MessageIn(BaseModel):
         default=False,
         description="Demo mode: plant a false sentence in the first draft to test the checker",
     )
+    timezone: str | None = Field(
+        default=None, max_length=64, description="The user's IANA time zone, e.g. Asia/Kolkata"
+    )
 
 
 class ConversationDocument(BaseModel):
@@ -106,6 +109,39 @@ class ConversationDetail(ConversationSummary):
     messages: list[ChatMessageOut]
 
 
+class LiveSource(BaseModel):
+    kind: str  # "library" | "web" | "patent"
+    label: str
+    title: str
+    url: str | None = None
+
+
+class LiveEvidence(BaseModel):
+    label: str  # "E1", "E2", … as cited in the draft
+    kind: str
+    source: str
+    title: str
+    url: str | None = None
+
+
+class LiveAnswer(BaseModel):
+    """The answer as it happens (app/agents/live.py)."""
+
+    phase: str  # searching | writing | checking | checked | rewriting
+    attempt: int
+    draft: str
+    sources: list[LiveSource]
+    evidence: list[LiveEvidence]
+    claims: list[dict]  # sentence verdicts, as in AskResponse.verification.claims
+    flagged: list[str]  # sentences that failed the check, before a rewrite
+    general: bool = False  # answered from general knowledge: no source had it
+
+
+class SuggestionsOut(BaseModel):
+    suggestions: list[str]
+
+
 class ProgressOut(BaseModel):
     running: bool
     steps: list[TraceStep]
+    live: LiveAnswer | None = None

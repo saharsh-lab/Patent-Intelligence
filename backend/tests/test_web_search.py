@@ -176,22 +176,28 @@ def test_tavily_keys_are_redacted_from_logs():
 
 
 class OffTopicPlanner(FakeLLM):
-    """The LLM planner calls the question out of scope; answers like FakeLLM."""
+    """The LLM planner calls the question out of scope (with `keywords`), and the one-word
+    technology check answers `technical`; otherwise answers like FakeLLM."""
 
-    def __init__(self):
+    def __init__(self, technical: str = "no", keywords: str = ""):
         self.calls = 0
+        self.technical, self.keywords = technical, keywords
+        self.checks = 0
 
     def complete(self, messages, *, temperature, max_tokens):
+        from app.llm.providers import LLMResponse
+
         self.calls += 1
         if self.calls == 1:
-            from app.llm.providers import LLMResponse
-
-            return LLMResponse('{"intent": "out_of_scope"}', "planner", 10, 5, 1)
+            reply = {"intent": "out_of_scope", "search_keywords": self.keywords}
+            return LLMResponse(json.dumps(reply), "planner", 10, 5, 1)
+        if messages[0].content.startswith("Is the user's question about science"):
+            self.checks += 1
+            return LLMResponse(self.technical, "planner", 10, 1, 1)
         return super().complete(messages, temperature=temperature, max_tokens=max_tokens)
 
 
-@pytest.mark.db
-def test_off_topic_question_goes_to_the_web_but_not_the_patent_offices(api, web):
+def _llm_planner(api, llm):
     from app.patents.demo import DemoPatentSource
 
     app = api.app
@@ -199,11 +205,43 @@ def test_off_topic_question_goes_to_the_web_but_not_the_patent_offices(api, web)
     app.dependency_overrides[get_settings] = lambda: base.model_copy(
         update={"agent_planner": "llm"}
     )
-    app.dependency_overrides[get_llm] = lambda: OffTopicPlanner()
+    app.dependency_overrides[get_llm] = lambda: llm
     app.dependency_overrides[get_patent_sources] = lambda: {"demo": DemoPatentSource()}
-    body = api.post("/ask", json={"question": "How do solid-state batteries work?"}).json()
+
+
+@pytest.mark.db
+def test_off_topic_question_goes_to_the_web_but_not_the_patent_offices(api, web):
+    llm = OffTopicPlanner(technical="no")
+    _llm_planner(api, llm)
+    body = api.post("/ask", json={"question": "What's a good pasta recipe?"}).json()
     tools = [s["tool_name"] for s in body["steps"]]
     assert "search_web" in tools and "search_patent_abstracts" not in tools
+    assert llm.checks == 1
+
+
+@pytest.mark.db
+def test_technology_question_the_planner_called_off_topic_still_reaches_patent_filings(api, web):
+    # Observed 2026-10-22: Qwen3 called "How do solid-state batteries work?" out of scope
+    llm = OffTopicPlanner(technical="yes")
+    _llm_planner(api, llm)
+    body = api.post("/ask", json={"question": "How do solid-state batteries work?"}).json()
+    tools = [s["tool_name"] for s in body["steps"]]
+    assert "search_web" in tools and "search_patent_abstracts" in tools
+    assert llm.checks == 1  # asked once, remembered for the rest of the answer
+
+
+class KeywordWeb(FakeWeb):
+    name = "wikipedia"
+    keyword_search = True
+
+
+@pytest.mark.db
+def test_word_matching_search_engines_get_key_words_not_the_question(api, monkeypatch):
+    wiki = KeywordWeb()
+    monkeypatch.setattr(agent_module, "build_web_search", lambda settings: wiki)
+    _llm_planner(api, OffTopicPlanner(technical="yes", keywords="solid-state battery"))
+    api.post("/ask", json={"question": "How do solid-state batteries work?"})
+    assert wiki.queries == ["solid-state battery"]
 
 
 class TechnologyPlanner(OffTopicPlanner):
@@ -270,6 +308,26 @@ def test_a_dropped_connection_is_retried_once(monkeypatch):
 
     tavily = TavilySearch("tvly-k", http=httpx.Client(transport=httpx.MockTransport(handler)))
     assert len(tavily.search("q", 3)) == 1 and calls["n"] == 2
+
+
+def test_an_unreachable_site_is_given_up_at_once(monkeypatch):
+    # Observed 2026-10-22: Wikipedia unreachable; timeout + retry held answers up by 31 s
+    calls = {"n": 0}
+
+    def handler(request):
+        calls["n"] += 1
+        clock["now"] += 5.0  # the connection attempt used up its timeout
+        raise httpx.ConnectError("no route")
+
+    import app.web.search as search_module
+
+    clock = {"now": 0.0}
+    monkeypatch.setattr(search_module.time, "monotonic", lambda: clock["now"])
+    wiki = WikipediaSearch(http=httpx.Client(transport=httpx.MockTransport(handler)))
+    with pytest.raises(Exception, match="Web search failed"):
+        wiki.search("solid-state battery", 3)
+    assert calls["n"] == 1  # no retry after a connection attempt that timed out
+    assert WikipediaSearch()._http.timeout.connect == 5.0
 
 
 class OfflineWeb(WebSearch):

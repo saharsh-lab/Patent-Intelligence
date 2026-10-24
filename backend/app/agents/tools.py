@@ -380,14 +380,33 @@ def normalize_number(text: str) -> str:
 # (web pages and patent-office search results: cited and verified, never stored)
 
 EXTERNAL_PER_SOURCE = 4  # passages kept from each external search
+# Wikipedia returns up to 60 passages (3 articles in sections); embedding them all was the
+# slowest part of a web search. A key-word pre-filter keeps the likeliest for the embedder.
+WEB_EMBED_LIMIT = 24
+
+
+def _most_relevant(chunks: list[TransientChunk], text: str, limit: int) -> list[TransientChunk]:
+    """The `limit` chunks sharing most key words with the question, in their original order."""
+    if len(chunks) <= limit:
+        return chunks
+    words = set(keywords_from_text(text, limit=20).split())
+    scored = sorted(
+        range(len(chunks)),
+        key=lambda i: -len(words & set(keywords_from_text(chunks[i].text, limit=400).split())),
+    )
+    keep = set(scored[:limit])
+    return [c for i, c in enumerate(chunks) if i in keep]
 
 
 @tool
-def search_web(ctx: ToolContext, query: str) -> ToolResult:
-    """Search the web for a general question; the best passages become evidence."""
+def search_web(ctx: ToolContext, query: str, terms: str | None = None) -> ToolResult:
+    """Search the web for a general question; the best passages become evidence.
+    `terms`: key words for search engines that match words rather than questions
+    (Wikipedia); passages are still ranked by similarity to the question itself."""
     if ctx.web is None:
         raise AppError("Web search is not configured.", code="no_web_search")
-    results = ctx.web.search(query, ctx.settings.web_search_max_results)
+    searched = terms if terms and getattr(ctx.web, "keyword_search", False) else query
+    results = ctx.web.search(searched, ctx.settings.web_search_max_results)
     chunks = [
         TransientChunk(
             text=f"{r.title}. {r.content}",
@@ -397,7 +416,11 @@ def search_web(ctx: ToolContext, query: str) -> ToolResult:
         for r in results
     ]
     passages = rank_transient(
-        ctx.embedder, query, chunks, EXTERNAL_PER_SOURCE, ctx.settings.external_min_similarity
+        ctx.embedder,
+        query,
+        _most_relevant(chunks, f"{query} {terms or ''}", WEB_EMBED_LIMIT),
+        EXTERNAL_PER_SOURCE,
+        ctx.settings.external_min_similarity,
     )
     sites = ", ".join(dict.fromkeys(p.chunk.external.label for p in passages)) or "nothing usable"
     return ToolResult(

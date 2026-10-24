@@ -38,4 +38,5 @@ that would otherwise have produced misleading conclusions.
   question.
 - Shared team workspaces on top of the existing per-user accounts; email verification.
 - A premise check before answering: detect when a question presupposes something the
-  evidence does not mention, and say so.
+  evidence does not mention, and say so. A word-based version is in the application
+  (Appendix A.7); a meaning-based check, and measuring it, remain future work.

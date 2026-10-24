@@ -146,6 +146,23 @@ class AskResponse(BaseModel):
     demo_injection: dict | None = Field(
         default=None, description="Demo mode: the planted false sentence and whether it was caught"
     )
+    everyday: str | None = Field(
+        default=None, description="clock | calculator: an exact answer that needs no source"
+    )
+    general: dict | None = Field(
+        default=None,
+        description="Chat: answered from the model's general knowledge (no source had it; "
+        "not checked). {searched, not_found}",
+    )
+    premise: dict | None = Field(
+        default=None,
+        description="Terms of the question no passage uses: {terms, acknowledged}; the "
+        "answer said the sources do not mention the acknowledged ones",
+    )
+    fixes: list[dict] = Field(
+        default_factory=list,
+        description="Sentences the user removed or had rewritten from the sources, in order",
+    )
     evidence: list[EvidenceOut]
     summary: RunSummaryOut
     metrics: RunMetricsOut
@@ -179,6 +196,10 @@ class AskResponse(BaseModel):
             verification_attempts=answer.get("verification_attempts", []),
             error_message=run.error_message,
             demo_injection=answer.get("demo_injection"),
+            everyday=answer.get("everyday"),
+            general=answer.get("general"),
+            premise=answer.get("premise"),
+            fixes=answer.get("fixes", []),
             trace=answer.get("trace", []),
             evidence=evidence,
             summary=RunSummaryOut(

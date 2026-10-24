@@ -122,6 +122,7 @@ def variant_settings(base: Settings, config: ExperimentConfig, variant: VariantC
     overrides.setdefault("agent_live_fallback", False)
     overrides.setdefault("agent_web_search", False)  # added after the experiments too
     overrides.setdefault("verifier_uncited_supported", False)
+    overrides.setdefault("agent_premise_check", False)  # added after the experiments too
     data = base.model_dump() | overrides
     try:
         # model_validate validates the dict alone: it does not re-read .env

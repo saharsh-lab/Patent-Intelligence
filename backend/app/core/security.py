@@ -113,6 +113,14 @@ class RateRule:
     methods: tuple[str, ...]
     prefixes: tuple[str, ...]
     per_minute: int
+    suffix: str = ""  # also required at the end of the path (e.g. "/progress")
+
+    def matches(self, method: str, path: str) -> bool:
+        return (
+            method in self.methods
+            and path.startswith(self.prefixes)
+            and (path.endswith(self.suffix))
+        )
 
 
 class SlidingWindowLimiter:
@@ -145,6 +153,11 @@ def rate_rules(settings: Settings) -> list[RateRule]:
     from app.auth.config import get_auth_settings
 
     return [
+        # The chat polls its live answer about twice a second while one is written: a
+        # dictionary lookup, kept out of the shared default budget
+        RateRule(
+            "poll", ("GET",), ("/conversations",), settings.rate_limit_poll_per_minute, "/progress"
+        ),
         # Password guessing: few attempts per minute per client
         RateRule(
             "auth",
@@ -197,9 +210,7 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
         path, method = scope["path"], scope["method"]
-        rule = next(
-            (r for r in self.rules if method in r.methods and path.startswith(r.prefixes)), None
-        )
+        rule = next((r for r in self.rules if r.matches(method, path)), None)
         if rule is not None:
             wait = self.limiter.hit((rule.name, self._client(scope)), rule.per_minute)
             if wait > 0:

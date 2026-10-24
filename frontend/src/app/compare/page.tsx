@@ -77,14 +77,14 @@ export default function ComparePage() {
                 key={c.key}
                 type="button"
                 onClick={() => toggle(c)}
-                className={`rounded border px-2 py-1 text-xs ${isSelected(c.key) ? "border-accent bg-accent-soft text-accent" : "border-line hover:bg-surface-2"}`}
+                className={`rounded-full border px-2.5 py-1 text-xs ${isSelected(c.key) ? "border-accent bg-accent-soft text-accent" : "border-line hover:bg-surface-2"}`}
               >
                 {isSelected(c.key) && <span className="mr-1 font-mono">S{selected.findIndex((s) => s.key === c.key) + 1}</span>}
                 {c.label}
               </button>
             ))}
             {selected.filter((s) => s.key.startsWith("n:")).map((s) => (
-              <button key={s.key} type="button" onClick={() => toggle(s)} className="rounded border border-accent bg-accent-soft px-2 py-1 text-xs text-accent">
+              <button key={s.key} type="button" onClick={() => toggle(s)} className="rounded-full border border-accent bg-accent-soft px-2.5 py-1 text-xs text-accent">
                 <span className="mr-1 font-mono">S{selected.findIndex((x) => x.key === s.key) + 1}</span>{s.label} ×
               </button>
             ))}
@@ -94,18 +94,18 @@ export default function ComparePage() {
               <span className="text-xs text-muted">Add by publication number (fetched from a patent source)</span>
               <span className="flex gap-2">
                 <input value={number} onChange={(e) => setNumber(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addNumber()}
-                  placeholder="EP1234567A1" className="w-full rounded border border-line-strong bg-surface px-2 py-1 font-mono text-sm" />
+                  placeholder="EP1234567A1" className="w-full rounded-xl border border-line-strong bg-surface px-3 py-1.5 font-mono text-sm" />
                 <Button type="button" variant="secondary" onClick={addNumber} disabled={!number.trim() || selected.length >= 4}>Add</Button>
               </span>
             </label>
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs text-muted">Focus (optional)</span>
               <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g. how each one controls coolant flow"
-                className="rounded border border-line-strong bg-surface px-2 py-1" />
+                className="rounded-xl border border-line-strong bg-surface px-3 py-1.5" />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs text-muted">Method</span>
-              <select value={mode} onChange={(e) => setMode(e.target.value as typeof mode)} className="rounded border border-line-strong bg-surface px-2 py-1">
+              <select value={mode} onChange={(e) => setMode(e.target.value as typeof mode)} className="rounded-xl border border-line-strong bg-surface px-3 py-1.5">
                 <option value="auto">Auto</option>
                 <option value="llm">LLM (written, checked)</option>
                 <option value="extractive">Extractive (quotes only)</option>

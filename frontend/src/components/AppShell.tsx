@@ -11,19 +11,22 @@ import { Wordmark } from "@/components/search/Logo";
 import { Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
 import { auth, initials, useAuth, type User } from "@/lib/auth";
-import { chat, groupByRecency, type ConversationSummary } from "@/lib/chat";
 import { applyTheme, currentTheme, type Theme } from "@/lib/theme";
 import type { HealthReady, WatchOut } from "@/lib/types";
 
 const AUTH_PAGES = ["/login", "/register"];
+const PUBLIC_PAGES = ["/", ...AUTH_PAGES]; // the landing page needs no account
 
-// Four tools besides chat (which is also where you search). Research tools (evaluation, research console, system status)
-// live in the user menu: they are for the project team, not everyday use.
-const TOOLS = [
-  { href: "/documents", label: "Library", icon: icons.file, also: ["/patents", "/compare"] },
-  { href: "/invention", label: "Invention analysis", icon: icons.bulb, also: [] },
-  { href: "/landscape", label: "Landscape map", icon: icons.map, also: [] },
-  { href: "/watches", label: "Patent watch", icon: icons.bell, also: [] },
+// The floating navigation bar (after the reference site): chat, which is also where you
+// search, and the four tools. Research tools (evaluation, research console, system
+// status) live in the account menu: they are for the project team, not everyday use.
+const NAV = [
+  { href: "/chat", label: "Chat", also: ["/search"] },
+  { href: "/documents", label: "Library", also: ["/patents", "/compare"] },
+  { href: "/invention", label: "Invention", also: [] },
+  { href: "/landscape", label: "Landscape", also: [] },
+  { href: "/checker", label: "Checker", also: [] },
+  { href: "/watches", label: "Watch", also: [] },
 ];
 const RESEARCH = [
   { href: "/evaluation", label: "Evaluation results", icon: icons.chart },
@@ -34,20 +37,16 @@ const RESEARCH = [
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { status, error, isLoading, user, refresh } = useAuth();
-  // The mobile drawer belongs to the page it was opened on: navigating closes it
-  const [drawerFor, setDrawerFor] = useState<string | null>(null);
-  const drawer = drawerFor === pathname;
-  const setDrawer = (open: boolean) => setDrawerFor(open ? pathname : null);
+  const { status, isLoading, user, refresh } = useAuth();
 
-  const isAuthPage = AUTH_PAGES.includes(pathname);
+  const isPublic = PUBLIC_PAGES.includes(pathname);
   const mustLogin = status?.auth_required && !status.authenticated;
 
   useEffect(() => {
-    if (!isAuthPage && mustLogin) {
+    if (!isPublic && mustLogin) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [isAuthPage, mustLogin, pathname, router]);
+  }, [isPublic, mustLogin, pathname, router]);
 
   // Theme from the profile wins over this browser's last choice
   useEffect(() => {
@@ -55,242 +54,230 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (preferred) applyTheme(preferred);
   }, [user?.preferences.theme]);
 
-  if (isAuthPage) {
-    return <main className="pi-grid flex min-h-screen items-center justify-center px-4 py-10">{children}</main>;
-  }
-  if (isLoading || mustLogin) {
+  const isChat = pathname.startsWith("/chat") || pathname.startsWith("/search");
+  // Signed in, or a single-user installation without accounts (only then may it load data)
+  const signedIn = !!status && (!status.auth_required || status.authenticated);
+  const nav = <TopNav pathname={pathname} user={user} signedIn={signedIn} authRequired={!!status?.auth_required} onLoggedOut={() => refresh()} />;
+
+  if (!isPublic && (isLoading || mustLogin)) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="pi-grid flex min-h-screen items-center justify-center">
         <Spinner label={mustLogin ? "Redirecting to login…" : "Loading…"} />
       </div>
     );
   }
-
-  // Chat and search fill the content area themselves (no padded wrapper or footer)
-  const isChat = pathname === "/" || pathname.startsWith("/chat") || pathname.startsWith("/search");
-  return (
-    <div className="flex h-screen overflow-hidden bg-bg">
-      {/* Mobile top bar */}
-      <div className="fixed inset-x-0 top-0 z-30 flex h-12 items-center gap-2 border-b border-line bg-surface/95 px-3 backdrop-blur md:hidden">
-        <button type="button" onClick={() => setDrawer(true)} aria-label="Open menu" className="rounded-lg p-1.5 hover:bg-surface-2">
-          <icons.menu />
-        </button>
-        <Brand compact />
-        <Link href="/chat" aria-label="New chat" className="ml-auto rounded-lg p-1.5 text-accent hover:bg-surface-2">
-          <icons.plus />
-        </Link>
-      </div>
-
-      <AnimatePresence>
-        {drawer && (
-          <motion.div
-            className="fixed inset-0 z-40 bg-[#16233a]/30 md:hidden"
-            onClick={() => setDrawer(false)}
-            aria-hidden
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-        )}
-      </AnimatePresence>
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-line bg-sidebar transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] md:static md:z-auto md:w-64 md:translate-x-0 ${
-          drawer ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <Brand />
-          <button type="button" onClick={() => setDrawer(false)} aria-label="Close menu" className="rounded-lg p-1 hover:bg-surface-2 md:hidden">
-            <icons.x />
-          </button>
-        </div>
-        <div className="px-3">
-          <Link
-            href="/chat"
-            className="press flex items-center justify-center gap-2 bg-brand px-3 py-2 text-sm font-medium hover:opacity-90"
-          >
-            <icons.plus width={16} height={16} /> New chat
-          </Link>
-        </div>
-
-        <nav className="mt-3 flex-1 space-y-4 overflow-y-auto px-2 pb-3" aria-label="Main">
-          <Conversations pathname={pathname} />
-          <ToolsNav pathname={pathname} />
-        </nav>
-
-        <UserMenu user={user} authRequired={!!status?.auth_required} onLoggedOut={() => refresh()} />
-        {error ? <p className="px-4 pb-2 text-xs text-bad">Account service unreachable</p> : null}
-      </aside>
-
-      <div className="pi-grid flex min-w-0 flex-1 flex-col overflow-y-auto pt-12 md:pt-0">
-        {isChat ? (
-          children
-        ) : (
-          <>
-            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8">{children}</main>
-            <footer className="border-t border-line px-4 py-3 text-xs text-muted md:px-8">
-              Research assistance only: reports technical similarity and evidence from sources. Not legal advice; does
-              not assess patent validity or infringement.
-            </footer>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Brand({ compact = false }: { compact?: boolean }) {
-  return (
-    <Link href="/chat" className="rounded-lg" aria-label="Patent Intelligence: new chat">
-      <Wordmark compact={compact} draw />
-    </Link>
-  );
-}
-
-function ToolsNav({ pathname }: { pathname: string }) {
-  const watches = useSWR<WatchOut[]>("/watches", fetcher, { shouldRetryOnError: false });
-  const unseen = (watches.data ?? []).reduce((n, w) => n + w.unseen, 0);
-  return (
-    <ul className="stagger space-y-0.5 border-t border-line pt-3">
-      {TOOLS.map(({ href, label, icon: Icon, also }) => {
-        const active = pathname.startsWith(href) || also.some((p) => pathname.startsWith(p));
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              className={`group relative flex items-center gap-2.5 px-2 py-1.5 text-sm ${
-                active ? "font-medium text-accent" : "text-text hover:bg-surface-2"
-              }`}
-            >
-              {active && <ActiveMarker />}
-              <Icon width={16} height={16} className="relative transition-transform duration-200 group-hover:translate-x-0.5" />
-              <span className="relative flex-1">{label}</span>
-              {href === "/watches" && unseen > 0 && (
-                <span className="pi-cite relative rounded-full bg-stamp px-1.5 text-[11px] font-semibold text-white">{unseen}</span>
-              )}
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function Conversations({ pathname }: { pathname: string }) {
-  const router = useRouter();
-  const { data, mutate } = useSWR<ConversationSummary[]>("/conversations", fetcher, { shouldRetryOnError: false });
-  const [editing, setEditing] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
-  if (!data || data.length === 0) {
+  if (isPublic) {
     return (
-      <div>
-        <p className="px-2 pb-1 text-[11px] font-semibold tracking-wider text-muted uppercase">Chats</p>
-        <p className="px-2 text-xs text-muted">{data ? "Your conversations will appear here." : ""}</p>
+      <div className="pi-grid min-h-screen">
+        {nav}
+        {children}
       </div>
     );
   }
-
-  async function rename(id: string) {
-    if (title.trim()) await chat.rename(id, title.trim());
-    setEditing(null);
-    mutate();
-  }
-
-  async function remove(id: string) {
-    if (!window.confirm("Delete this conversation? Its messages are removed; your documents are kept.")) return;
-    await chat.remove(id);
-    await mutate();
-    if (pathname === `/chat/${id}`) router.push("/chat");
-  }
-
   return (
-    <div className="space-y-3">
-      {groupByRecency(data).map(([label, items]) => (
-        <div key={label}>
-          <p className="px-2 pb-1 text-[11px] font-semibold tracking-wider text-muted uppercase">{label}</p>
-          <ul className="stagger space-y-0.5">
-            {items.map((c) => {
-              const active = pathname === `/chat/${c.id}`;
-              return (
-                <li key={c.id} className="group relative">
-                  {editing === c.id ? (
-                    <input
-                      autoFocus
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      onBlur={() => rename(c.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") rename(c.id);
-                        if (e.key === "Escape") setEditing(null);
-                      }}
-                      className="w-full rounded-lg border border-accent bg-surface px-2 py-1.5 text-sm"
-                      aria-label="Conversation title"
-                    />
-                  ) : (
-                    <Link
-                      href={`/chat/${c.id}`}
-                      className={`relative flex items-center gap-2 py-1.5 pr-14 pl-2 text-sm ${
-                        active ? "font-medium text-accent" : "hover:bg-surface-2"
-                      }`}
-                      title={c.title}
-                    >
-                      {active && <ActiveMarker />}
-                      <icons.chat width={15} height={15} className="relative shrink-0 opacity-60" />
-                      <span className="relative truncate">{c.title}</span>
-                    </Link>
-                  )}
-                  {editing !== c.id && (
-                    <span className="absolute top-1/2 right-1 hidden -translate-y-1/2 gap-0.5 group-hover:flex group-focus-within:flex">
-                      <button
-                        type="button"
-                        aria-label={`Rename ${c.title}`}
-                        className="rounded p-1 text-muted hover:bg-surface hover:text-text"
-                        onClick={() => {
-                          setEditing(c.id);
-                          setTitle(c.title);
-                        }}
-                      >
-                        <icons.pencil width={13} height={13} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Delete ${c.title}`}
-                        className="rounded p-1 text-muted hover:bg-surface hover:text-bad"
-                        onClick={() => remove(c.id)}
-                      >
-                        <icons.trash width={13} height={13} />
-                      </button>
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+    <div className="pi-grid flex min-h-screen flex-col">
+      {nav}
+      {isChat ? (
+        // The chat lays out its own columns and fills the window under the bar
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 pt-4 pb-3 md:px-6">{children}</main>
+      ) : (
+        <>
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-8 pb-10 md:px-8">{children}</main>
+          <footer className="px-4 pb-6 text-center text-xs text-muted md:px-8">
+            Research assistance only: reports technical similarity and evidence from sources. Not legal advice; does
+            not assess patent validity or infringement.
+          </footer>
+        </>
+      )}
     </div>
   );
 }
 
-function UserMenu({ user, authRequired, onLoggedOut }: { user: User | null; authRequired: boolean; onLoggedOut: () => void }) {
-  const [open, setOpen] = useState(false);
-  // Only shown after a click, so reading localStorage lazily is hydration-safe
-  const [theme, setTheme] = useState<Theme>(() => (typeof window === "undefined" ? "system" : currentTheme()));
-  const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+function TopNav({
+  pathname,
+  user,
+  signedIn,
+  authRequired,
+  onLoggedOut,
+}: {
+  pathname: string;
+  user: User | null;
+  signedIn: boolean;
+  authRequired: boolean;
+  onLoggedOut: () => void;
+}) {
+  const [menuFor, setMenuFor] = useState<string | null>(null); // the phone menu closes on navigation
+  const menu = menuFor === pathname;
+  // Only when signed in: an unauthorised request sends the browser to the login page
+  const watches = useSWR<WatchOut[]>(signedIn ? "/watches" : null, fetcher, { shouldRetryOnError: false });
+  const unseen = (watches.data ?? []).reduce((n, w) => n + w.unseen, 0);
+  const signedOut = !signedIn;
 
+  const links = NAV.map(({ href, label, also }) => {
+    const active = pathname.startsWith(href) || also.some((p) => pathname.startsWith(p));
+    return { href, label, active, dot: href === "/watches" && unseen > 0 };
+  });
+
+  return (
+    <header className="sticky top-0 z-40 px-3 pt-3 md:px-6 md:pt-4">
+      <nav
+        aria-label="Main"
+        className="relative mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border border-line bg-nav pr-2 pl-3 shadow-card backdrop-blur-md md:h-16 md:pr-3 md:pl-4"
+      >
+        <Link href={signedOut ? "/" : "/chat"} className="shrink-0 rounded-lg" aria-label="Patent Intelligence">
+          <Wordmark draw />
+        </Link>
+        <ul className="mx-auto hidden items-center gap-1 lg:flex">
+          {links.map(({ href, label, active, dot }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={`relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${active ? "text-accent" : "text-muted hover:text-text"}`}
+              >
+                {label}
+                {dot && <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-stamp" aria-label={`${unseen} new`} />}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <ThemeMenu user={user} />
+          {signedOut ? (
+            <Link href="/login" className="press rounded-full bg-brand px-5 py-2 text-sm font-semibold whitespace-nowrap hover:opacity-90">
+              Sign in
+            </Link>
+          ) : (
+            <AccountMenu user={user} authRequired={authRequired} onLoggedOut={onLoggedOut} />
+          )}
+          <button
+            type="button"
+            onClick={() => setMenuFor(menu ? null : pathname)}
+            aria-label={menu ? "Close menu" : "Open menu"}
+            aria-expanded={menu}
+            className="grid h-10 w-10 place-items-center rounded-full border border-line hover:bg-surface-2 lg:hidden"
+          >
+            {menu ? <icons.x width={18} height={18} /> : <icons.menu width={18} height={18} />}
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {menu && (
+            <motion.ul
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6, transition: { duration: 0.12 } }}
+              className="absolute inset-x-0 top-full mt-2 space-y-0.5 rounded-3xl border border-line bg-surface p-2 shadow-hard lg:hidden"
+            >
+              {links.map(({ href, label, active, dot }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className={`flex items-center justify-between rounded-2xl px-4 py-3 text-[0.95rem] font-medium ${active ? "bg-accent-soft text-accent" : "hover:bg-surface-2"}`}
+                  >
+                    {label}
+                    {dot && <span className="h-2 w-2 rounded-full bg-stamp" />}
+                  </Link>
+                </li>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+      </nav>
+    </header>
+  );
+}
+
+/** Dismiss a popup menu on an outside click or Escape. */
+function useDismiss(open: boolean, close: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const close = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
+    const onClick = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && close();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open, close]);
+  return ref;
+}
 
-  function chooseTheme(next: Theme) {
+const POPUP = "absolute right-0 top-full z-50 mt-3 rounded-2xl border border-line bg-surface p-1.5 shadow-hard";
+const pop = {
+  initial: { opacity: 0, y: -4, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -4, scale: 0.98, transition: { duration: 0.1 } },
+  transition: { type: "spring" as const, stiffness: 460, damping: 32 },
+};
+
+/** The reference's round theme button with a Light / Dark / System menu. */
+function ThemeMenu({ user }: { user: User | null }) {
+  const [open, setOpen] = useState(false);
+  // Read lazily on the first click: hydration-safe (the server cannot know it)
+  const [theme, setTheme] = useState<Theme | null>(null);
+  const ref = useDismiss(open, () => setOpen(false));
+  const shown = theme ?? "dark";
+
+  function choose(next: Theme) {
     setTheme(next);
     applyTheme(next);
+    setOpen(false);
     if (user) auth.updateProfile({ preferences: { theme: next } }).catch(() => undefined);
   }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-label="Theme"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => {
+          if (theme === null) setTheme(currentTheme());
+          setOpen((o) => !o);
+        }}
+        className="grid h-10 w-10 place-items-center rounded-full border border-line-strong bg-bg text-text hover:bg-surface-2"
+      >
+        <icons.moon width={17} height={17} className="theme-dark-only" />
+        <icons.sun width={17} height={17} className="theme-light-only" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div {...pop} className={`${POPUP} w-40`} role="menu" style={{ transformOrigin: "top right" }}>
+            {(
+              [
+                ["light", "Light", icons.sun],
+                ["dark", "Dark", icons.moon],
+                ["system", "System", icons.monitor],
+              ] as const
+            ).map(([value, label, Icon]) => (
+              <button
+                key={value}
+                type="button"
+                role="menuitemradio"
+                aria-checked={shown === value}
+                onClick={() => choose(value)}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm hover:bg-surface-2"
+              >
+                <Icon width={15} height={15} className="text-muted" />
+                <span className="flex-1">{label}</span>
+                {shown === value && <icons.check width={14} height={14} />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AccountMenu({ user, authRequired, onLoggedOut }: { user: User | null; authRequired: boolean; onLoggedOut: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useDismiss(open, () => setOpen(false));
+  const router = useRouter();
 
   async function logout() {
     await auth.logout().catch(() => undefined);
@@ -299,73 +286,51 @@ function UserMenu({ user, authRequired, onLoggedOut }: { user: User | null; auth
   }
 
   const name = user?.name ?? (authRequired ? "" : "Local user");
+  const item = "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm hover:bg-surface-2";
   return (
-    <div ref={ref} className="relative border-t border-line p-2">
-      <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0, y: 8, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 6, scale: 0.98, transition: { duration: 0.12 } }}
-          transition={{ type: "spring", stiffness: 420, damping: 32 }}
-          style={{ transformOrigin: "bottom center" }}
-          className="absolute right-2 bottom-full left-2 mb-2 border border-line bg-surface p-2 shadow-hard"
-          role="menu"
-        >
-          <div className="px-2 pt-1 pb-2">
-            <p className="text-sm font-medium">{name}</p>
-            {user && <p className="truncate text-xs text-muted">{user.email}</p>}
-          </div>
-          <p className="px-2 pt-1 text-[11px] font-semibold tracking-wider text-muted uppercase">Theme</p>
-          <div className="m-1 grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1" role="radiogroup" aria-label="Theme">
-            {(["light", "system", "dark"] as Theme[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                role="radio"
-                aria-checked={theme === t}
-                onClick={() => chooseTheme(t)}
-                className={`flex items-center justify-center gap-1 rounded-md py-1 text-xs capitalize ${
-                  theme === t ? "bg-surface font-medium shadow-card" : "text-muted hover:text-text"
-                }`}
-              >
-                {t === "light" ? <icons.sun width={13} height={13} /> : t === "dark" ? <icons.moon width={13} height={13} /> : null}
-                {t}
-              </button>
-            ))}
-          </div>
-          <Link href="/profile" className="mt-1 flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-surface-2" role="menuitem">
-            <icons.user width={15} height={15} /> Profile &amp; preferences
-          </Link>
-          <p className="mt-2 px-2 pt-1 text-[11px] font-semibold tracking-wider text-muted uppercase">Research tools</p>
-          {RESEARCH.map(({ href, label, icon: Icon }) => (
-            <Link key={href} href={href} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-surface-2" role="menuitem">
-              <Icon width={15} height={15} /> {label}
-            </Link>
-          ))}
-          {user && (
-            <button type="button" onClick={logout} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-bad hover:bg-bad-soft" role="menuitem">
-              <icons.logout width={15} height={15} /> Log out
-            </button>
-          )}
-        </motion.div>
-      )}
-      </AnimatePresence>
+    <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-surface-2"
+        aria-label="Account"
+        className="flex h-10 items-center gap-2 rounded-full bg-brand py-1 pr-4 pl-1 text-sm font-semibold hover:opacity-90"
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-bold text-white">
           {user ? initials(user.name) : <icons.user width={15} height={15} />}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{name}</span>
-          <BackendStatus />
-        </span>
+        <span className="hidden max-w-28 truncate sm:inline">{name.split(" ")[0] || "Account"}</span>
       </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div {...pop} className={`${POPUP} w-64`} role="menu" style={{ transformOrigin: "top right" }}>
+            <div className="px-3 pt-2 pb-2.5">
+              <p className="text-sm font-semibold">{name}</p>
+              {user && <p className="truncate text-xs text-muted">{user.email}</p>}
+              <BackendStatus />
+            </div>
+            <div className="border-t border-line pt-1.5">
+              <Link href="/profile" className={item} role="menuitem" onClick={() => setOpen(false)}>
+                <icons.user width={15} height={15} className="text-muted" /> Profile &amp; preferences
+              </Link>
+            </div>
+            <p className="px-3 pt-2.5 pb-1 text-[11px] font-semibold tracking-wider text-muted uppercase">Research tools</p>
+            {RESEARCH.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className={item} role="menuitem" onClick={() => setOpen(false)}>
+                <Icon width={15} height={15} className="text-muted" /> {label}
+              </Link>
+            ))}
+            {user && (
+              <div className="mt-1.5 border-t border-line pt-1.5">
+                <button type="button" onClick={logout} className={`${item} text-bad hover:bg-bad-soft`} role="menuitem">
+                  <icons.logout width={15} height={15} /> Log out
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -375,21 +340,9 @@ function BackendStatus() {
   const ok = data?.status === "ready";
   const label = error ? "Backend unreachable" : !data ? "Checking…" : ok ? "Connected" : "Database down";
   return (
-    <span className="flex items-center gap-1.5 text-[11px] text-muted" title={label}>
+    <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted" title={label}>
       <span className={`h-1.5 w-1.5 rounded-full ${error || (data && !ok) ? "bg-bad" : ok ? "bg-ok" : "bg-line-strong"}`} />
       {label}
     </span>
-  );
-}
-
-/** The highlight behind the current nav item; it slides between items (shared layout). */
-function ActiveMarker() {
-  return (
-    <motion.span
-      layoutId="nav-active"
-      transition={{ type: "spring", stiffness: 420, damping: 36 }}
-      className="absolute inset-0 border-l-[3px] border-cite bg-accent-soft"
-      aria-hidden
-    />
   );
 }

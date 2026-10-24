@@ -1,0 +1,10 @@
+# `make share` deploys from the repo root (the Vercel project's root directory is frontend/),
+# and Vercel uploads everything not listed here: it does not read .gitignore. Upload the
+# website only, never .env, the backend, data or uploaded documents.
+/*
+!/frontend
+/frontend/.env*
+!/frontend/.env.example
+/frontend/node_modules
+/frontend/.next
+/frontend/tsconfig.tsbuildinfo

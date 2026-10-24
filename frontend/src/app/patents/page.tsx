@@ -44,7 +44,7 @@ function ResultRow({
   return (
     <li className="py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-[1_1_18rem]">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm font-medium">{result.publication_number}</span>
             <SourceBadge source={result.source} />
@@ -211,7 +211,7 @@ export default function PatentSearchPage() {
       <LibraryHeader />
 
       {sources.data && available.length === 0 && (
-        <div className="mb-6 rounded border border-warn/40 bg-warn-soft px-4 py-3 text-sm">
+        <div className="mb-6 rounded-xl border border-warn/40 bg-warn-soft px-4 py-3 text-sm">
           <p className="font-medium text-warn">No patent source is configured.</p>
           <p className="mt-1">
             Register for free at developers.epo.org and set <code className="font-mono">EPO_OPS_KEY</code> and{" "}

@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -27,9 +28,23 @@ USER_AGENT = (
 )
 
 
+# A site that does not accept a connection within this is down or blocked: give up, so
+# the other sources can answer. Observed (2026-10-22): Wikipedia unreachable from this
+# network; 15 s timeouts plus a retry held every answer up by 31 s.
+CONNECT_SECONDS = 5.0
+
+
 def _retry(call):
-    """One retry after a dropped connection or timeout."""
+    """One retry after a dropped connection or a slow reply, but not after a connection
+    attempt that used up its timeout: that site is unreachable (on this network the
+    failure arrives as ConnectError after the timeout, not as ConnectTimeout)."""
+    started = time.monotonic()
     try:
+        return call()
+    except (httpx.ConnectTimeout, httpx.ConnectError):
+        if time.monotonic() - started >= CONNECT_SECONDS * 0.8:
+            raise
+        time.sleep(1.0)
         return call()
     except httpx.TransportError:
         time.sleep(1.0)
@@ -51,6 +66,10 @@ class WebResult:
 class WebSearch:
     name = "web"
     label = "Web"
+    # Matches words, not questions: search with key words. Observed (2026-10-22): for
+    # "How do solid-state batteries work?" every Wikipedia passage used was about
+    # solid-state drives.
+    keyword_search = False
 
     def search(self, query: str, max_results: int) -> list[WebResult]:  # pragma: no cover
         raise NotImplementedError
@@ -63,7 +82,7 @@ class TavilySearch(WebSearch):
 
     def __init__(self, api_key: str, timeout: float = 20.0, http: httpx.Client | None = None):
         self._key = api_key
-        self._http = http or httpx.Client(timeout=timeout)
+        self._http = http or httpx.Client(timeout=httpx.Timeout(timeout, connect=CONNECT_SECONDS))
 
     def search(self, query: str, max_results: int) -> list[WebResult]:
         try:
@@ -114,6 +133,7 @@ class WikipediaSearch(WebSearch):
 
     name = "wikipedia"
     label = "Wikipedia"
+    keyword_search = True
     API = "https://en.wikipedia.org/w/api.php"
     FULL_ARTICLES = 3  # the API returns one full article per request
     PASSAGE_CHARS = 900
@@ -131,7 +151,10 @@ class WikipediaSearch(WebSearch):
     }
 
     def __init__(self, timeout: float = 15.0, http: httpx.Client | None = None):
-        self._http = http or httpx.Client(timeout=timeout, headers={"User-Agent": USER_AGENT})
+        self._http = http or httpx.Client(
+            timeout=httpx.Timeout(timeout, connect=CONNECT_SECONDS),
+            headers={"User-Agent": USER_AGENT},
+        )
 
     def _get(self, **params) -> dict:
         return _retry(lambda: self._http.get(self.API, params={**params, "format": "json"})).json()
@@ -142,12 +165,20 @@ class WikipediaSearch(WebSearch):
                 action="query", list="search", srsearch=query[:300], srlimit=max_results
             )
             titles = [hit["title"] for hit in found.get("query", {}).get("search", [])]
-            pages = [
-                self._get(
-                    action="query", prop="extracts|info", explaintext=1, inprop="url", titles=title
+            # One request per article: fetched at the same time, kept in Wikipedia's order
+            with ThreadPoolExecutor(max_workers=self.FULL_ARTICLES) as pool:
+                pages = list(
+                    pool.map(
+                        lambda title: self._get(
+                            action="query",
+                            prop="extracts|info",
+                            explaintext=1,
+                            inprop="url",
+                            titles=title,
+                        ),
+                        titles[: self.FULL_ARTICLES],
+                    )
                 )
-                for title in titles[: self.FULL_ARTICLES]
-            ]
         except (httpx.HTTPError, ValueError) as exc:
             raise AppError(
                 f"Web search failed: {type(exc).__name__}", code="web_search_failed"

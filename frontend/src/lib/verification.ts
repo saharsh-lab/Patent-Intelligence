@@ -13,6 +13,18 @@ export interface ClaimResult {
   misattributed: boolean;
   location: string;
   source_text: string;
+  /** Display only (backend app/verification/issues.py); missing on answers stored before 23 Oct */
+  contradicts?: boolean;
+  issues?: Issue[];
+  closest?: string | null;
+}
+
+/** What exactly is wrong in a flagged sentence: words to mark, and what the passage says. */
+export interface Issue {
+  kind: "number" | "direction" | "negation" | "unstated";
+  text: string;
+  passage_says: string | null;
+  conflict: boolean;
 }
 
 export interface Verification {

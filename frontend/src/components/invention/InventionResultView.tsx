@@ -25,7 +25,7 @@ export function InventionResultView({ runId, result }: { runId: string; result: 
 
   return (
     <div className="space-y-5">
-      <p role="note" className="rounded border border-warn/30 bg-warn-soft px-4 py-2 text-sm text-warn">
+      <p role="note" className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-2 text-sm text-warn">
         {result.disclaimer}
       </p>
 
@@ -133,7 +133,7 @@ export function InventionResultView({ runId, result }: { runId: string; result: 
                               disabled={!cell}
                               onClick={() => cell && setSelected(cell)}
                               aria-label={`${f.id} in ${short[c.key]}: ${style.label}`}
-                              className={`h-7 w-9 rounded font-mono text-sm font-semibold ${style.className} ${
+                              className={`h-7 w-9 rounded-xl font-mono text-sm font-semibold ${style.className} ${
                                 active ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-line-strong"
                               }`}
                             >
@@ -148,7 +148,7 @@ export function InventionResultView({ runId, result }: { runId: string; result: 
               </table>
             </div>
 
-            <div className="rounded border border-line bg-surface-2 p-3 text-sm" aria-live="polite">
+            <div className="rounded-xl border border-line bg-surface-2 p-3 text-sm" aria-live="polite">
               {selected ? (
                 <>
                   <p className="text-xs text-muted">

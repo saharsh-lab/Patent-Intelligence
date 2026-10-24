@@ -898,6 +898,43 @@
         }
       }
     },
+    "/conversations/{conversation_id}/stop": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Stop Answer",
+        "description": "The Stop button: the answer being written stops at its next step (or mid-sentence),\nkeeping what was written so far, marked as not checked.",
+        "operationId": "stop_answer_conversations__conversation_id__stop_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/conversations/{conversation_id}/messages": {
       "post": {
         "tags": [
@@ -935,6 +972,60 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChatMessageOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conversations/{conversation_id}/messages/{run_id}/suggestions": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Message Suggestions",
+        "description": "Follow-up questions for an answer (written once, then kept with it).",
+        "operationId": "message_suggestions_conversations__conversation_id__messages__run_id__suggestions_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsOut"
                 }
               }
             }
@@ -1948,6 +2039,152 @@
           }
         }
       }
+    },
+    "/check": {
+      "post": {
+        "tags": [
+          "checker"
+        ],
+        "summary": "Check Text",
+        "description": "Check every sentence of a text (an AI answer, a draft) against the passages most\nlike it in your documents and patents. Returns the same shape as an answer, with\nthe sentence verdicts under `verification`.",
+        "operationId": "check_text_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/{run_id}/fix": {
+      "post": {
+        "tags": [
+          "checker"
+        ],
+        "summary": "Fix Sentence",
+        "description": "Remove a sentence, rewrite it from its source (checked again; refused if the\nsources do not back it), or restore the original answer.",
+        "operationId": "fix_sentence_runs__run_id__fix_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FixRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checker/history": {
+      "get": {
+        "tags": [
+          "checker"
+        ],
+        "summary": "Checker History",
+        "description": "Your checked answers and text checks, newest first, with what the checker found.",
+        "operationId": "checker_history_checker_history_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckHistoryItem"
+                  },
+                  "title": "Response Checker History Checker History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2268,6 +2505,53 @@
             "title": "Demo Injection",
             "description": "Demo mode: the planted false sentence and whether it was caught"
           },
+          "everyday": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Everyday",
+            "description": "clock | calculator: an exact answer that needs no source"
+          },
+          "general": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General",
+            "description": "Chat: answered from the model's general knowledge (no source had it; not checked). {searched, not_found}"
+          },
+          "premise": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premise",
+            "description": "Terms of the question no passage uses: {terms, acknowledged}; the answer said the sources do not mention the acknowledged ones"
+          },
+          "fixes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Fixes",
+            "description": "Sentences the user removed or had rewritten from the sources, in order"
+          },
           "evidence": {
             "items": {
               "$ref": "#/components/schemas/EvidenceOut"
@@ -2487,6 +2771,168 @@
           "response"
         ],
         "title": "ChatMessageOut"
+      },
+      "CheckHistoryItem": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "check",
+              "answer"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "grounding_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grounding Score"
+          },
+          "original_grounding_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Original Grounding Score",
+            "description": "Before the user's fixes, when there were any"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/VerdictCounts"
+          },
+          "rewritten": {
+            "type": "boolean",
+            "title": "Rewritten",
+            "description": "The checker sent the first draft back to be rewritten"
+          },
+          "draft_flagged": {
+            "type": "integer",
+            "title": "Draft Flagged",
+            "description": "Sentences flagged in the first draft"
+          },
+          "planted_caught": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planted Caught",
+            "description": "Checker test: was the planted sentence caught?"
+          },
+          "fixes": {
+            "type": "integer",
+            "title": "Fixes"
+          },
+          "premise_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Premise Terms",
+            "description": "The answer said the sources do not mention these"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "kind",
+          "title",
+          "conversation_id",
+          "created_at",
+          "grounding_score",
+          "counts",
+          "rewritten",
+          "draft_flagged",
+          "fixes"
+        ],
+        "title": "CheckHistoryItem"
+      },
+      "CheckRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 8000,
+            "minLength": 10,
+            "title": "Text",
+            "description": "The text to check"
+          },
+          "document_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "maxItems": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Ids",
+            "description": "Check against these documents (default: all)"
+          },
+          "patent_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "maxItems": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patent Ids",
+            "description": "Check against these imported patents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CheckRequest"
       },
       "ChunkOut": {
         "properties": {
@@ -3182,6 +3628,37 @@
         ],
         "title": "EvidenceOut"
       },
+      "FixRequest": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "remove",
+              "rewrite",
+              "restore"
+            ],
+            "title": "Action"
+          },
+          "claim_index": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Index",
+            "description": "The sentence (verification claim index); not for restore"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "FixRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -3635,6 +4112,141 @@
         ],
         "title": "LandscapeRequest"
       },
+      "LiveAnswer": {
+        "properties": {
+          "phase": {
+            "type": "string",
+            "title": "Phase"
+          },
+          "attempt": {
+            "type": "integer",
+            "title": "Attempt"
+          },
+          "draft": {
+            "type": "string",
+            "title": "Draft"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/LiveSource"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/LiveEvidence"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "claims": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Claims"
+          },
+          "flagged": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flagged"
+          },
+          "general": {
+            "type": "boolean",
+            "title": "General",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "attempt",
+          "draft",
+          "sources",
+          "evidence",
+          "claims",
+          "flagged"
+        ],
+        "title": "LiveAnswer",
+        "description": "The answer as it happens (app/agents/live.py)."
+      },
+      "LiveEvidence": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "kind",
+          "source",
+          "title"
+        ],
+        "title": "LiveEvidence"
+      },
+      "LiveSource": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "label",
+          "title"
+        ],
+        "title": "LiveSource"
+      },
       "LoginIn": {
         "properties": {
           "email": {
@@ -3674,6 +4286,19 @@
             "title": "Inject False Fact",
             "description": "Demo mode: plant a false sentence in the first draft to test the checker",
             "default": false
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone",
+            "description": "The user's IANA time zone, e.g. Asia/Kolkata"
           }
         },
         "type": "object",
@@ -4264,6 +4889,16 @@
             },
             "type": "array",
             "title": "Steps"
+          },
+          "live": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LiveAnswer"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -4761,6 +5396,22 @@
         "title": "StepOut",
         "description": "One tool call made by the agent (safe summary, no hidden reasoning)."
       },
+      "SuggestionsOut": {
+        "properties": {
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suggestions"
+        ],
+        "title": "SuggestionsOut"
+      },
       "TraceStep": {
         "properties": {
           "kind": {
@@ -4908,6 +5559,32 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VerdictCounts": {
+        "properties": {
+          "supported": {
+            "type": "integer",
+            "title": "Supported",
+            "default": 0
+          },
+          "partly": {
+            "type": "integer",
+            "title": "Partly",
+            "default": 0
+          },
+          "contradicts": {
+            "type": "integer",
+            "title": "Contradicts",
+            "default": 0
+          },
+          "not_found": {
+            "type": "integer",
+            "title": "Not Found",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "VerdictCounts"
       },
       "WatchCheckOut": {
         "properties": {

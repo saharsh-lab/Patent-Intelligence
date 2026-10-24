@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import useSWR from "swr";
 
 import { Button, ErrorNotice, PageHeader, Panel } from "@/components/ui";
+import { fetcher } from "@/lib/api";
 import { auth, initials, useAuth } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import { applyTheme, type Theme } from "@/lib/theme";
+import type { SystemInfo } from "@/lib/types";
 
 const field = "mt-1 w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20";
 
@@ -24,6 +27,8 @@ function Choice<T extends string>({ value, options, onChange, label }: { value: 
 
 export default function ProfilePage() {
   const { user, status, refresh } = useAuth();
+  const info = useSWR<SystemInfo>("/system/info", fetcher);
+  const cloud = info.data?.cloud_llm;
   const [edited, setName] = useState<string | null>(null);
   const name = edited ?? user?.name ?? "";
   const [saved, setSaved] = useState<string | null>(null);
@@ -110,7 +115,7 @@ export default function ProfilePage() {
               </span>
               <Choice<Theme>
                 label="Theme"
-                value={prefs.theme ?? "system"}
+                value={prefs.theme ?? "dark"}
                 options={[["light", "Light"], ["system", "System"], ["dark", "Dark"]]}
                 onChange={(t) => {
                   applyTheme(t);
@@ -143,6 +148,34 @@ export default function ProfilePage() {
                 value={prefs.verification ?? "balanced"}
                 options={[["balanced", "Balanced"], ["strict", "Strict"]]}
                 onChange={(v) => update({ preferences: { verification: v } }, "Preference saved.")}
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                <span className="block font-medium">Answer length</span>
+                <span className="text-xs text-muted">Detailed answers explain more (up to about 400 words).</span>
+              </span>
+              <Choice
+                label="Answer length"
+                value={prefs.answer_detail ?? "concise"}
+                options={[["concise", "Concise"], ["detailed", "Detailed"]]}
+                onChange={(v) => update({ preferences: { answer_detail: v } }, "Preference saved.")}
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                <span className="block font-medium">Chat model</span>
+                <span className="text-xs text-muted">
+                  {cloud?.available
+                    ? `Local runs on this computer (private). Cloud (${cloud.model}) answers several times faster; your question and the found passages are sent to the cloud service.`
+                    : "Local runs on this computer. A faster cloud model can be enabled by setting CLOUD_LLM_API_KEY in the server's .env file."}
+                </span>
+              </span>
+              <Choice
+                label="Chat model"
+                value={cloud?.available ? (prefs.model ?? "local") : "local"}
+                options={cloud?.available ? [["local", "Local"], ["cloud", "Cloud (fast)"]] : [["local", "Local"]]}
+                onChange={(v) => update({ preferences: { model: v } }, "Preference saved.")}
               />
             </div>
           </div>

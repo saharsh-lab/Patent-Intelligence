@@ -116,7 +116,7 @@ export function ComparisonTable({
   const { sources, aspects, cells, metrics } = comparison;
   const verdictOf = new Map((verification?.claims ?? []).map((c) => [c.location, c]));
   return (
-    <section className="rounded border border-line bg-surface">
+    <section className="rounded-xl border border-line bg-surface">
       <header className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-2.5">
         <h2 className="text-sm font-semibold">Technical comparison</h2>
         <Badge tone={comparison.mode === "llm" ? "accent" : "neutral"}>{MODE_LABELS[comparison.mode]}</Badge>

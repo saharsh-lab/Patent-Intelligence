@@ -128,3 +128,8 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "internal_error", "An unexpected error occurred. Please try again."
             ),
         )
+
+
+class AnswerStopped(Exception):  # noqa: N818 - a request, not an error
+    """The user pressed Stop while an answer was being written (raised from the live view's
+    sinks, so the agent stops at its next step or mid-sentence while streaming)."""

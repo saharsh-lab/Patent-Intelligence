@@ -55,7 +55,7 @@ function UploadPanel({ onUploaded }: { onUploaded: () => void }) {
           setDragging(false);
           if (!busy) uploadFiles(Array.from(e.dataTransfer.files));
         }}
-        className={`flex flex-col items-center justify-center gap-2 rounded border border-dashed px-4 py-8 text-center ${
+        className={`flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-8 text-center ${
           dragging ? "border-accent bg-accent-soft" : "border-line-strong"
         }`}
       >
@@ -122,15 +122,15 @@ export default function DocumentsPage() {
           {data?.length === 0 && <EmptyState title="No documents yet">Upload a patent PDF, DOCX or TXT to begin.</EmptyState>}
           {data && data.length > 0 && (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
+              <table className="w-full text-sm md:min-w-[720px]">
                 <thead className="text-left text-xs text-muted">
                   <tr>
                     <th className="pb-2 font-medium">Document</th>
                     <th className="pb-2 font-medium">Status</th>
-                    <th className="pb-2 font-medium">Sections detected</th>
-                    <th className="pb-2 pl-4 text-right font-medium">Pages</th>
-                    <th className="pb-2 pl-4 text-right font-medium">Passages</th>
-                    <th className="pb-2 pl-4 text-right font-medium">Size</th>
+                    <th className="hidden pb-2 font-medium md:table-cell">Sections detected</th>
+                    <th className="hidden pb-2 pl-4 text-right font-medium md:table-cell">Pages</th>
+                    <th className="hidden pb-2 pl-4 text-right font-medium sm:table-cell">Passages</th>
+                    <th className="hidden pb-2 pl-4 text-right font-medium md:table-cell">Size</th>
                     <th className="pb-2" />
                   </tr>
                 </thead>
@@ -150,7 +150,7 @@ export default function DocumentsPage() {
                         {doc.error_message && <p className="mt-1 text-xs text-bad">{doc.error_message}</p>}
                       </td>
                       <td className="py-2.5 pr-3"><StatusBadge status={doc.status} /></td>
-                      <td className="py-2.5 pr-3 text-xs">
+                      <td className="hidden py-2.5 pr-3 text-xs md:table-cell">
                         {doc.section_detection === "none" ? (
                           <span className="text-muted">None found (page-level citations)</span>
                         ) : (
@@ -159,18 +159,17 @@ export default function DocumentsPage() {
                           </span>
                         )}
                       </td>
-                      <td className="py-2.5 pl-4 text-right font-mono text-xs">{doc.page_count ?? "—"}</td>
-                      <td className="py-2.5 pl-4 text-right font-mono text-xs">{doc.chunk_count}</td>
-                      <td className="py-2.5 pl-4 text-right font-mono text-xs whitespace-nowrap">{formatBytes(doc.size_bytes)}</td>
-                      <td className="py-2.5 pl-3 text-right whitespace-nowrap">
-                        {doc.status === "ready" && (
-                          <span className="mr-3">
-                            <StartChatButton documentId={doc.id} label="Chat" />
-                          </span>
-                        )}
-                        <Button variant="danger" className="px-2 py-1 text-xs" disabled={deleting === doc.id} onClick={() => remove(doc)}>
-                          Delete
-                        </Button>
+                      <td className="hidden py-2.5 pl-4 text-right font-mono text-xs md:table-cell">{doc.page_count ?? "—"}</td>
+                      <td className="hidden py-2.5 pl-4 text-right font-mono text-xs sm:table-cell">{doc.chunk_count}</td>
+                      <td className="hidden py-2.5 pl-4 text-right font-mono text-xs whitespace-nowrap md:table-cell">{formatBytes(doc.size_bytes)}</td>
+                      <td className="py-2.5 pl-3 whitespace-nowrap">
+                        {/* Phones: the two actions stacked, so neither is cut off */}
+                        <div className="flex flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                          {doc.status === "ready" && <StartChatButton documentId={doc.id} label="Chat" />}
+                          <Button variant="danger" className="px-2 py-1 text-xs" disabled={deleting === doc.id} onClick={() => remove(doc)}>
+                            Delete
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

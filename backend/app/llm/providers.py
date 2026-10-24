@@ -8,12 +8,16 @@
         (LLM_BASE_URL=http://localhost:11434/v1, no API key needed).
 
 Every call reports token usage and latency so cost can be measured per run.
+`stream()` gives the same reply while it is written (the chat shows it word by word);
+providers that cannot stream hand over the whole text at once.
 """
 
+import json
 import logging
 import re
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
 from urllib.parse import urlparse
@@ -27,6 +31,7 @@ from app.rag.chunking import approx_tokens
 logger = logging.getLogger(__name__)
 
 _THINK_BLOCK = re.compile(r"<think>.*?</think>\s*", re.DOTALL)
+_OPEN_THINK = re.compile(r"<think>.*\Z", re.DOTALL)  # still "thinking": nothing to show yet
 
 
 @dataclass
@@ -52,6 +57,20 @@ class LLMProvider(ABC):
     def complete(
         self, messages: list[ChatMessage], *, temperature: float, max_tokens: int
     ) -> LLMResponse: ...
+
+    def stream(
+        self,
+        messages: list[ChatMessage],
+        *,
+        temperature: float,
+        max_tokens: int,
+        on_text: Callable[[str], None],
+    ) -> LLMResponse:
+        """Like `complete`, calling `on_text` with the reply so far while it is written.
+        Default: no streaming, the whole reply arrives at once."""
+        response = self.complete(messages, temperature=temperature, max_tokens=max_tokens)
+        on_text(response.text)
+        return response
 
 
 class FakeLLM(LLMProvider):
@@ -98,7 +117,7 @@ class OpenAICompatibleLLM(LLMProvider):
         self._timeout = timeout
         self._reasoning_effort = reasoning_effort
 
-    def complete(self, messages, *, temperature, max_tokens):
+    def _payload(self, messages, temperature, max_tokens) -> dict:
         payload = {
             "model": self.model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
@@ -107,6 +126,10 @@ class OpenAICompatibleLLM(LLMProvider):
         }
         if self._reasoning_effort:
             payload["reasoning_effort"] = self._reasoning_effort
+        return payload
+
+    def complete(self, messages, *, temperature, max_tokens):
+        payload = self._payload(messages, temperature, max_tokens)
         started = time.perf_counter()
         error = "unknown error"
         for attempt in range(3):
@@ -134,6 +157,60 @@ class OpenAICompatibleLLM(LLMProvider):
         )
         raise ExternalServiceError(message)
 
+    def stream(self, messages, *, temperature, max_tokens, on_text):
+        """Server-sent events ("stream": true). If the stream fails before any text arrived,
+        the ordinary request (with its retries) is used instead."""
+        payload = self._payload(messages, temperature, max_tokens) | {
+            "stream": True,
+            "stream_options": {"include_usage": True},
+        }
+        started = time.perf_counter()
+        parts: list[str] = []
+        usage: dict = {}
+        model = self.model
+        try:
+            with httpx.stream(
+                "POST", self._url, json=payload, headers=self._headers, timeout=self._timeout
+            ) as response:
+                if response.status_code != 200:
+                    raise ValueError(f"HTTP {response.status_code}")
+                for line in response.iter_lines():
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        break
+                    chunk = json.loads(data)
+                    usage = chunk.get("usage") or usage
+                    model = chunk.get("model") or model
+                    delta = "".join(
+                        (choice.get("delta") or {}).get("content") or ""
+                        for choice in chunk.get("choices") or []
+                    )
+                    if delta:
+                        parts.append(delta)
+                        on_text(visible_text("".join(parts)))
+        except (httpx.HTTPError, ValueError) as exc:
+            if parts:
+                logger.error("LLM stream broke off: %s", type(exc).__name__)
+                raise ExternalServiceError(
+                    "The language model stopped while writing. Please try again."
+                ) from exc
+            logger.info("LLM streaming unavailable (%s); using a normal request", exc)
+            return super().stream(
+                messages, temperature=temperature, max_tokens=max_tokens, on_text=on_text
+            )
+        text = _THINK_BLOCK.sub("", "".join(parts)).strip()
+        return LLMResponse(
+            text=text,
+            model=model,
+            prompt_tokens=usage.get("prompt_tokens")
+            or approx_tokens(" ".join(m.content for m in messages)),
+            completion_tokens=usage.get("completion_tokens") or approx_tokens(text),
+            latency_ms=round((time.perf_counter() - started) * 1000),
+            usage_estimated=not usage,
+        )
+
     def _parse(self, body: dict, messages: list[ChatMessage], started: float) -> LLMResponse:
         try:
             text = body["choices"][0]["message"]["content"] or ""
@@ -151,6 +228,11 @@ class OpenAICompatibleLLM(LLMProvider):
             latency_ms=round((time.perf_counter() - started) * 1000),
             usage_estimated=estimated,
         )
+
+
+def visible_text(partial: str) -> str:
+    """The part of a reply being written that can be shown: no reasoning ("<think>")."""
+    return _OPEN_THINK.sub("", _THINK_BLOCK.sub("", partial)).lstrip()
 
 
 def estimate_cost_usd(response: LLMResponse, settings: Settings) -> float:
@@ -175,3 +257,18 @@ def build_llm(settings: Settings) -> LLMProvider:
 @lru_cache
 def get_llm() -> LLMProvider:
     return build_llm(get_settings())
+
+
+def cloud_llm(settings: Settings) -> LLMProvider | None:
+    """The optional fast cloud model for the chat, or None when no key is configured."""
+    key = settings.cloud_llm_api_key.get_secret_value()
+    if not key:
+        return None
+    return _cloud(
+        settings.cloud_llm_base_url, key, settings.cloud_llm_model, settings.llm_timeout_seconds
+    )
+
+
+@lru_cache
+def _cloud(base_url: str, key: str, model: str, timeout: float) -> LLMProvider:
+    return OpenAICompatibleLLM(base_url=base_url, api_key=key, model=model, timeout=timeout)

@@ -1,6 +1,7 @@
 "use client";
 
 import { renderInlines } from "@/components/ask/AnswerView";
+import { AnswerBlocks } from "@/components/chat/AnswerBlocks";
 import { parseAnswer, parseInline, stripInterpretation } from "@/lib/citations";
 import type { AskResponse } from "@/lib/types";
 import type { ClaimResult, Verification } from "@/lib/verification";
@@ -21,7 +22,18 @@ type XRayMode = { selected: XRaySelection; onSelect: (s: XRaySelection) => void;
 
 /** The answer itself, kept calm: text with source numbers. In X-ray mode every checked
  *  sentence is coloured by its verdict and opens the passage it was checked against. */
-export function ChatAnswer({ run, onCite, xray }: { run: AskResponse; onCite: (label: string) => void; xray?: XRayMode | null }) {
+export function ChatAnswer({
+  run,
+  onCite,
+  xray,
+  instant = false,
+}: {
+  run: AskResponse;
+  onCite: (label: string) => void;
+  xray?: XRayMode | null;
+  /** Just watched being written: no entrance animation */
+  instant?: boolean;
+}) {
   const verification = run.verification as unknown as Verification | null | undefined;
   const claims = (verification?.claims ?? []).filter((c) => c.location === "answer");
   const blocks = parseAnswer(run.answer ? stripInterpretation(run.answer) : "");
@@ -37,7 +49,7 @@ export function ChatAnswer({ run, onCite, xray }: { run: AskResponse; onCite: (l
   return (
     // Paragraphs arrive one after another (stagger), citations pop in (pi-cite)
     <div
-      className={`stagger relative space-y-3 font-serif text-[1.08rem] leading-[1.65] ${xray ? "xr-on" : ""} ${developed ? "xr-developed" : ""}`}
+      className={`${instant ? "" : "stagger"} relative space-y-3 text-[0.98rem] leading-7 ${xray ? "xr-on" : ""} ${developed ? "xr-developed" : ""}`}
     >
       {xray && <span aria-hidden className="xr-scan" />}
       {run.legal_question && (
@@ -46,18 +58,7 @@ export function ChatAnswer({ run, onCite, xray }: { run: AskResponse; onCite: (l
         </p>
       )}
 
-      {run.status === "succeeded" &&
-        blocks.map((block, i) =>
-          block.kind === "list" ? (
-            <ul key={i} className="list-disc space-y-1 pl-5 marker:text-cite">
-              {block.raws.map((raw, j) => (
-                <li key={j}>{line(raw)}</li>
-              ))}
-            </ul>
-          ) : (
-            <p key={i}>{line(block.raw)}</p>
-          ),
-        )}
+      {(run.status === "succeeded" || run.status === "stopped") && <AnswerBlocks blocks={blocks} line={line} />}
 
       {run.status === "succeeded" && run.interpretation && (
         <p className="border-l-2 border-warn pl-3 text-sm text-muted">
@@ -65,6 +66,8 @@ export function ChatAnswer({ run, onCite, xray }: { run: AskResponse; onCite: (l
           {run.interpretation}
         </p>
       )}
+
+      {run.status === "stopped" && !run.answer && <p className="text-muted">Stopped before any text was written.</p>}
 
       {run.status === "insufficient_evidence" && (
         <div>

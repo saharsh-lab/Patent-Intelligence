@@ -7,7 +7,7 @@ export function SelfCheckView({ summary, rows }: { summary: SelfCheckSummary; ro
   const metrics = Object.entries(summary.results);
   return (
     <div className="space-y-5">
-      <section className="rounded border border-line bg-surface px-4 py-3">
+      <section className="rounded-xl border border-line bg-surface px-4 py-3">
         <div className="flex flex-wrap items-baseline gap-x-3">
           <h2 className="font-mono text-sm font-semibold">{summary.experiment}</h2>
           <span className="text-xs text-muted">{formatDateTime(summary.finished_at)}</span>
@@ -21,7 +21,7 @@ export function SelfCheckView({ summary, rows }: { summary: SelfCheckSummary; ro
           <Badge tone="ok">no labels needed</Badge>
         </div>
         {summary.warnings.length > 0 && (
-          <ul className="mt-3 rounded border border-warn/30 bg-warn-soft px-3 py-2 text-xs text-warn">
+          <ul className="mt-3 rounded-xl border border-warn/30 bg-warn-soft px-3 py-2 text-xs text-warn">
             {summary.warnings.map((w) => (
               <li key={w}>{w}</li>
             ))}

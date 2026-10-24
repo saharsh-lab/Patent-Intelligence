@@ -112,3 +112,12 @@ def test_find_planted_ignores_citations():
         "invented_detail", "It also requires a liquid-nitrogen stage [E1].", None
     )
     assert find_planted([Claim()], injection) is not None
+
+
+def test_a_flip_never_repeats_a_word_already_in_the_sentence():
+    from app.agents.demo_injection import _flip
+
+    assert _flip("It works in both heating and cooling modes.") is None
+    assert _flip("It runs in heating and cooling modes and increases efficiency.") == (
+        "It runs in heating and cooling modes and decreases efficiency."
+    )

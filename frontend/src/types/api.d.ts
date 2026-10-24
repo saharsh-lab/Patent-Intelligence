@@ -310,6 +310,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/conversations/{conversation_id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop Answer
+         * @description The Stop button: the answer being written stops at its next step (or mid-sentence),
+         *     keeping what was written so far, marked as not checked.
+         */
+        post: operations["stop_answer_conversations__conversation_id__stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/conversations/{conversation_id}/messages": {
         parameters: {
             query?: never;
@@ -325,6 +346,26 @@ export interface paths {
          *     conversation (memory) and answers are scoped to the attached documents.
          */
         post: operations["send_message_conversations__conversation_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversations/{conversation_id}/messages/{run_id}/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Message Suggestions
+         * @description Follow-up questions for an answer (written once, then kept with it).
+         */
+        post: operations["message_suggestions_conversations__conversation_id__messages__run_id__suggestions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -711,6 +752,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Text
+         * @description Check every sentence of a text (an AI answer, a draft) against the passages most
+         *     like it in your documents and patents. Returns the same shape as an answer, with
+         *     the sentence verdicts under `verification`.
+         */
+        post: operations["check_text_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/runs/{run_id}/fix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fix Sentence
+         * @description Remove a sentence, rewrite it from its source (checked again; refused if the
+         *     sources do not back it), or restore the original answer.
+         */
+        post: operations["fix_sentence_runs__run_id__fix_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/checker/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Checker History
+         * @description Your checked answers and text checks, newest first, with what the checker found.
+         */
+        get: operations["checker_history_checker_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -832,6 +936,32 @@ export interface components {
             demo_injection?: {
                 [key: string]: unknown;
             } | null;
+            /**
+             * Everyday
+             * @description clock | calculator: an exact answer that needs no source
+             */
+            everyday?: string | null;
+            /**
+             * General
+             * @description Chat: answered from the model's general knowledge (no source had it; not checked). {searched, not_found}
+             */
+            general?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Premise
+             * @description Terms of the question no passage uses: {terms, acknowledged}; the answer said the sources do not mention the acknowledged ones
+             */
+            premise?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Fixes
+             * @description Sentences the user removed or had rewritten from the sources, in order
+             */
+            fixes?: {
+                [key: string]: unknown;
+            }[];
             /** Evidence */
             evidence: components["schemas"]["EvidenceOut"][];
             summary: components["schemas"]["RunSummaryOut"];
@@ -913,6 +1043,76 @@ export interface components {
              */
             created_at: string;
             response: components["schemas"]["AskResponse"];
+        };
+        /** CheckHistoryItem */
+        CheckHistoryItem: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "check" | "answer";
+            /** Title */
+            title: string;
+            /** Conversation Id */
+            conversation_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Grounding Score */
+            grounding_score: number | null;
+            /**
+             * Original Grounding Score
+             * @description Before the user's fixes, when there were any
+             */
+            original_grounding_score?: number | null;
+            counts: components["schemas"]["VerdictCounts"];
+            /**
+             * Rewritten
+             * @description The checker sent the first draft back to be rewritten
+             */
+            rewritten: boolean;
+            /**
+             * Draft Flagged
+             * @description Sentences flagged in the first draft
+             */
+            draft_flagged: number;
+            /**
+             * Planted Caught
+             * @description Checker test: was the planted sentence caught?
+             */
+            planted_caught?: boolean | null;
+            /** Fixes */
+            fixes: number;
+            /**
+             * Premise Terms
+             * @description The answer said the sources do not mention these
+             */
+            premise_terms?: string[];
+        };
+        /** CheckRequest */
+        CheckRequest: {
+            /**
+             * Text
+             * @description The text to check
+             */
+            text: string;
+            /**
+             * Document Ids
+             * @description Check against these documents (default: all)
+             */
+            document_ids?: string[] | null;
+            /**
+             * Patent Ids
+             * @description Check against these imported patents
+             */
+            patent_ids?: string[] | null;
         };
         /** ChunkOut */
         ChunkOut: {
@@ -1154,6 +1354,19 @@ export interface components {
             /** Rerank Score */
             rerank_score: number | null;
         };
+        /** FixRequest */
+        FixRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "remove" | "rewrite" | "restore";
+            /**
+             * Claim Index
+             * @description The sentence (verification claim index); not for restore
+             */
+            claim_index?: number | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1330,6 +1543,57 @@ export interface components {
              */
             limit: number;
         };
+        /**
+         * LiveAnswer
+         * @description The answer as it happens (app/agents/live.py).
+         */
+        LiveAnswer: {
+            /** Phase */
+            phase: string;
+            /** Attempt */
+            attempt: number;
+            /** Draft */
+            draft: string;
+            /** Sources */
+            sources: components["schemas"]["LiveSource"][];
+            /** Evidence */
+            evidence: components["schemas"]["LiveEvidence"][];
+            /** Claims */
+            claims: {
+                [key: string]: unknown;
+            }[];
+            /** Flagged */
+            flagged: string[];
+            /**
+             * General
+             * @default false
+             */
+            general: boolean;
+        };
+        /** LiveEvidence */
+        LiveEvidence: {
+            /** Label */
+            label: string;
+            /** Kind */
+            kind: string;
+            /** Source */
+            source: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
+        /** LiveSource */
+        LiveSource: {
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -1353,6 +1617,11 @@ export interface components {
              * @default false
              */
             inject_false_fact: boolean;
+            /**
+             * Timezone
+             * @description The user's IANA time zone, e.g. Asia/Kolkata
+             */
+            timezone?: string | null;
         };
         /** PasswordIn */
         PasswordIn: {
@@ -1539,6 +1808,7 @@ export interface components {
             running: boolean;
             /** Steps */
             steps: components["schemas"]["TraceStep"][];
+            live?: components["schemas"]["LiveAnswer"] | null;
         };
         /** RegisterIn */
         RegisterIn: {
@@ -1701,6 +1971,11 @@ export interface components {
             /** Latency Ms */
             latency_ms: number | null;
         };
+        /** SuggestionsOut */
+        SuggestionsOut: {
+            /** Suggestions */
+            suggestions: string[];
+        };
         /** TraceStep */
         TraceStep: {
             /**
@@ -1768,6 +2043,29 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerdictCounts */
+        VerdictCounts: {
+            /**
+             * Supported
+             * @default 0
+             */
+            supported: number;
+            /**
+             * Partly
+             * @default 0
+             */
+            partly: number;
+            /**
+             * Contradicts
+             * @default 0
+             */
+            contradicts: number;
+            /**
+             * Not Found
+             * @default 0
+             */
+            not_found: number;
         };
         /** WatchCheckOut */
         WatchCheckOut: {
@@ -2557,6 +2855,35 @@ export interface operations {
             };
         };
     };
+    stop_answer_conversations__conversation_id__stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     send_message_conversations__conversation_id__messages_post: {
         parameters: {
             query?: never;
@@ -2579,6 +2906,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatMessageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    message_suggestions_conversations__conversation_id__messages__run_id__suggestions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionsOut"];
                 };
             };
             /** @description Validation Error */
@@ -3317,6 +3676,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LandscapeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_text_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fix_sentence_runs__run_id__fix_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FixRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    checker_history_checker_history_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckHistoryItem"][];
                 };
             };
             /** @description Validation Error */

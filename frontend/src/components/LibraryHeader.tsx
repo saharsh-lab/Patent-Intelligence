@@ -14,23 +14,25 @@ export function LibraryHeader() {
   const pathname = usePathname();
   const current = TABS.find((t) => pathname.startsWith(t.href)) ?? TABS[0];
   return (
-    <header className="mb-6">
-      <h1 className="text-xl font-semibold tracking-tight">Library</h1>
-      <nav aria-label="Library" className="mt-3 flex gap-1 border-b border-line">
+    <header className="mb-8">
+      <h1 className="pi-line text-3xl tracking-tight md:text-[2.6rem] md:leading-[1.1]">
+        <span>Library</span>
+      </h1>
+      <p className="mt-2 max-w-3xl text-[0.95rem] text-muted">{current.text}</p>
+      <nav aria-label="Library" className="mt-5 inline-flex gap-1 rounded-full border border-line bg-surface/60 p-1">
         {TABS.map((t) => (
           <Link
             key={t.href}
             href={t.href}
             aria-current={t === current ? "page" : undefined}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm ${
-              t === current ? "border-accent font-medium text-accent" : "border-transparent text-muted hover:text-text"
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              t === current ? "bg-brand" : "text-muted hover:text-text"
             }`}
           >
             {t.label}
           </Link>
         ))}
       </nav>
-      <p className="mt-3 max-w-3xl text-sm text-muted">{current.text}</p>
     </header>
   );
 }

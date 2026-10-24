@@ -1,6 +1,10 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 
-/** The app opens on the one asking page: a new chat with the search-style start screen. */
+import { Landing } from "@/components/landing/Landing";
+
+export const metadata: Metadata = { title: { absolute: "Patent Intelligence · Where patents meet proof" } };
+
+/** The public front page; the app itself starts at /chat. */
 export default function Home() {
-  redirect("/chat");
+  return <Landing />;
 }

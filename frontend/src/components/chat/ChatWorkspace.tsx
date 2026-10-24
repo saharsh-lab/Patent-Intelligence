@@ -6,14 +6,14 @@ import { useEffect, useRef, useState, useSyncExternalStore, type DragEvent, type
 import useSWR, { useSWRConfig } from "swr";
 
 import { AssistantAvatar, ChatMessageView, UserBubble } from "@/components/chat/ChatMessageView";
+import { ChatSidebar } from "@/components/chat/ChatSidebar";
+import { LiveAnswer } from "@/components/chat/LiveAnswer";
 import { icons } from "@/components/icons";
-import { Background } from "@/components/search/Background";
-import { LiveTrace } from "@/components/chat/AgentTrace";
-import { LogoMark } from "@/components/search/Logo";
 import { ErrorNotice, Spinner } from "@/components/ui";
 import { fetcher } from "@/lib/api";
 import { greeting, useAuth } from "@/lib/auth";
 import { chat, type ConversationDetail, type ConversationDocument } from "@/lib/chat";
+import { setSidebarHidden, useSidebarHidden } from "@/lib/sidebar";
 import { SUGGESTIONS } from "@/lib/search";
 
 const DOCUMENT_SUGGESTIONS = [
@@ -27,16 +27,13 @@ const COMPARE_SUGGESTIONS = [
   "How do their claims differ?",
 ];
 const START_SUGGESTIONS = [...SUGGESTIONS.slice(0, 2), "What is a patent claim?", "Latest patents on battery immersion cooling"];
-const PENDING_STAGES = ["Searching your library and the web", "Ranking passages", "Writing the answer", "Checking every sentence"];
-const LIVE_STAGES = ["Searching the patent offices and the web", "Reading abstracts and pages", "Writing the answer", "Checking every sentence"];
-const TEST_STAGES = ["Searching the sources again", "Writing a first draft", "Planting a false sentence", "Checking every sentence (not told which)"];
 const ACCEPT = ".pdf,.docx,.txt";
-const CHIP = "border border-line bg-surface px-3.5 py-2 text-[0.9rem] text-text transition-colors hover:border-text";
 
 /**
- * The one page for asking: a new chat opens on the search-style start screen (big box,
- * suggestions, tools); once a question is asked it becomes a conversation with the box
- * docked at the bottom. Attachments, follow-ups and the patent-database switch work in both.
+ * The one page for asking, laid out after the reference site's analysis page: the actions,
+ * tools and chat history on the left; on the right one rounded panel with the active
+ * context (attached documents, the patent-database switch), the conversation and the
+ * question box. A new chat opens on a greeting with suggested questions.
  */
 export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   const router = useRouter();
@@ -56,6 +53,8 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   const [error, setError] = useState<unknown>(null);
   const [dragging, setDragging] = useState(false);
   const [liveSearch, setLiveSearch] = useState(false); // also search the patent offices
+  const [sheet, setSheet] = useState(false); // phones: the left column as a sheet
+  const sidebarHidden = useSidebarHidden(); // wide screens: the left column hidden
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
@@ -63,6 +62,11 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   const messages = conversation.data?.messages ?? [];
   const documents = conversation.data?.documents ?? [];
   const running = messages.some((m) => m.response.status === "running");
+  // The question whose answer was just watched live: it then appears without a fade-in
+  // (otherwise the answer the reader was following blinks out and back)
+  const [watched, setWatched] = useState<string | null>(null);
+  const live = pending ?? messages.find((m) => m.response.status === "running")?.user_message ?? null;
+  if (live && live !== watched) setWatched(live);
 
   // When a running answer finishes, the sidebar title (set with the answer) changes too
   const wasRunning = useRef(false);
@@ -74,6 +78,36 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   useEffect(() => {
     if (messages.length || pending) bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length, pending]);
+
+  // Ctrl/⌘+B hides or shows the left column (as in code editors)
+  useEffect(() => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        setSidebarHidden(!sidebarHidden);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [sidebarHidden]);
+
+  // The phone sheet closes with Escape too
+  useEffect(() => {
+    if (!sheet) return;
+    const onKey = (e: globalThis.KeyboardEvent) => e.key === "Escape" && setSheet(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [sheet]);
+
+  // "Jump to latest" appears when the end of the conversation is out of view
+  const [atBottom, setAtBottom] = useState(true);
+  useEffect(() => {
+    const end = bottom.current;
+    if (!end) return;
+    const observer = new IntersectionObserver(([entry]) => setAtBottom(entry.isIntersecting), { rootMargin: "0px 0px 160px 0px" });
+    observer.observe(end);
+    return () => observer.disconnect();
+  }, [messages.length]);
 
   /** The conversation to work in, created on first use (a new chat has none yet). */
   async function ensureConversation(): Promise<string> {
@@ -110,6 +144,11 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
       setPending(null);
       textarea.current?.focus();
     }
+  }
+
+  /** The Stop button: the answer stops at its next step, keeping what was written. */
+  async function stop() {
+    if (conversationId) await chat.stop(conversationId).catch(setError);
   }
 
   async function attach(files: FileList | File[]) {
@@ -149,29 +188,17 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
   }
 
   const empty = messages.length === 0 && !pending && !conversation.isLoading;
+  const examples = documents.length > 1 ? COMPARE_SUGGESTIONS : documents.length ? DOCUMENT_SUGGESTIONS : START_SUGGESTIONS;
   const scope = documents.length
     ? `Answers use ${documents.length === 1 ? "this document" : "these documents"}`
     : liveSearch
-      ? "Answers search your library, the patent offices and the web"
-      : "Answers search your library and the web (patent offices for patent questions)";
-  const composer = (variant: "hero" | "dock") => (
-    <Composer
-      variant={variant}
-      draft={draft}
-      setDraft={setDraft}
-      onSend={() => send()}
-      onAttach={() => fileInput.current?.click()}
-      liveSearch={liveSearch}
-      toggleLive={() => setLiveSearch((v) => !v)}
-      pending={!!pending || running}
-      hasDocuments={documents.length > 0}
-      textarea={textarea}
-    />
-  );
+      ? "Every answer also searches the patent offices"
+      : "Your library, patent filings and the web";
+  const openFiles = () => fileInput.current?.click();
 
   return (
     <div
-      className="relative isolate flex h-full min-h-[calc(100vh-3rem)] flex-col md:min-h-screen"
+      className="relative flex h-[calc(100dvh-6rem)] md:h-[calc(100dvh-7.25rem)]"
       onDragOver={(e) => {
         e.preventDefault();
         setDragging(true);
@@ -181,145 +208,274 @@ export function ChatWorkspace({ conversationId }: { conversationId?: string }) {
       }}
       onDrop={onDrop}
     >
-      <Background calm={!empty} />
       <input ref={fileInput} type="file" accept={ACCEPT} multiple hidden onChange={(e) => e.target.files && attach(e.target.files)} />
-      {dragging && (
-        <div className="pointer-events-none absolute inset-3 z-20 flex items-center justify-center border-2 border-dashed border-cite bg-surface/85 text-sm font-medium text-text">
-          Drop PDF, DOCX or TXT files to attach them to this chat
+
+      {/* Left column (after the reference's analysis page): hideable with the panel button;
+          a sheet on phones. Its width animates; the content keeps its width meanwhile. */}
+      <aside id="chat-sidebar" className="chat-aside hidden shrink-0 overflow-hidden lg:block" inert={sidebarHidden} aria-hidden={sidebarHidden}>
+        <div className="chat-aside-inner h-full overflow-y-auto">
+          <ChatSidebar onAttach={openFiles} />
+        </div>
+      </aside>
+      {sheet && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-label="Chats and tools">
+          <button type="button" aria-label="Close" className="absolute inset-0 bg-black/60" onClick={() => setSheet(false)} />
+          <div className="pi-in absolute inset-y-3 left-3 w-[min(340px,calc(100vw-1.5rem))] overflow-y-auto rounded-3xl bg-bg p-1">
+            <div className="flex justify-end pb-2">
+              <button type="button" onClick={() => setSheet(false)} aria-label="Close chats and tools" className="grid h-9 w-9 place-items-center rounded-full border border-line bg-surface hover:bg-surface-2">
+                <icons.x width={16} height={16} />
+              </button>
+            </div>
+            <ChatSidebar
+              onAttach={() => {
+                setSheet(false);
+                openFiles();
+              }}
+            />
+          </div>
         </div>
       )}
 
-      {empty ? (
-        // ------------------------------------------------------------- start screen
-        <div className="mx-auto flex w-full max-w-[1080px] flex-1 flex-col items-center px-4 pt-[12vh] pb-16 text-center md:px-6 md:pt-[16vh]">
-          <LogoMark size={44} draw className="text-text" />
-          <h1 className="pi-line mt-[0.3em] mb-[0.2em] text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-text">
-            <span>
-              {greeting()}
-              {user ? (
-                <>
-                  , <span className="text-stamp italic">{user.name.split(" ")[0]}</span>
-                </>
-              ) : null}
+      <section className="glass relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-3xl">
+        {dragging && (
+          <div className="pointer-events-none absolute inset-3 z-20 flex items-center justify-center rounded-3xl border-2 border-dashed border-cite bg-surface/90 text-sm font-medium">
+            Drop PDF, DOCX or TXT files to attach them to this chat
+          </div>
+        )}
+        <div className="flex items-center gap-1 border-b border-line px-3 md:px-5">
+          <button type="button" onClick={() => setSheet(true)} aria-label="Chats and tools" className="mr-1 grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text lg:hidden">
+            <icons.menu width={17} height={17} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setSidebarHidden(!sidebarHidden)}
+            aria-controls="chat-sidebar"
+            aria-expanded={!sidebarHidden}
+            aria-label={sidebarHidden ? "Show chats and tools" : "Hide chats and tools"}
+            title={`${sidebarHidden ? "Show" : "Hide"} chats and tools (Ctrl/⌘ B)`}
+            className="mr-1 hidden h-9 w-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text lg:grid"
+          >
+            <icons.sidebar width={18} height={18} />
+          </button>
+          <span className="-mb-px border-b-2 border-accent px-3 py-4 text-sm font-semibold text-accent">Chat assistant</span>
+          <Link href="/invention" className="px-3 py-4 text-sm font-medium text-muted transition-colors hover:text-text">
+            Invention analysis
+          </Link>
+          {conversation.data && !empty && (
+            <span className="ml-auto hidden max-w-[40%] truncate text-xs text-muted md:block" title={conversation.data.title}>
+              {conversation.data.title}
             </span>
-          </h1>
-          <p className="pi-in mx-auto mb-7 max-w-[62ch] leading-[1.55] text-muted" style={{ animationDelay: "0.2s" }}>
-            Ask about any technology or patent. Answers come from your documents, patent filings and the web, with every
-            sentence linked to its source and checked.
-          </p>
-
-          <DocumentChips documents={documents} uploading={uploading} onDetach={detach} className="mb-3 justify-center" />
-          <div className="w-full max-w-[720px] text-left">{composer("hero")}</div>
-
-          <div className="stagger mt-[22px] flex max-w-[720px] flex-wrap justify-center gap-2" aria-label="Suggested questions">
-            {(documents.length > 1 ? COMPARE_SUGGESTIONS : documents.length ? DOCUMENT_SUGGESTIONS : START_SUGGESTIONS).map((s) => (
-              <button key={s} type="button" onClick={() => send(s)} className={CHIP}>
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {documents.length === 0 && (
-            <nav aria-label="Tools" className="pi-in mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm" style={{ animationDelay: "0.5s" }}>
-              <button type="button" onClick={() => fileInput.current?.click()} className="flex items-center gap-1.5 text-muted hover:text-text">
-                <icons.paperclip width={15} height={15} /> Talk to a patent
-              </button>
-              <Link href="/invention" className="flex items-center gap-1.5 text-muted hover:text-text">
-                <icons.bulb width={15} height={15} /> Check an idea
-              </Link>
-              <Link href="/landscape" className="flex items-center gap-1.5 text-muted hover:text-text">
-                <icons.map width={15} height={15} /> Map a field
-              </Link>
-              <Link href="/watches" className="flex items-center gap-1.5 text-muted hover:text-text">
-                <icons.bell width={15} height={15} /> Follow a topic
-              </Link>
-            </nav>
           )}
-          {error ? (
-            <div className="mt-6 w-full max-w-[720px] text-left">
-              <ErrorNotice error={error} />
-            </div>
-          ) : null}
         </div>
-      ) : (
-        // ------------------------------------------------------------- conversation
-        <>
-          <header className="sticky top-0 z-10 border-b border-line bg-surface/90 px-4 py-2.5 backdrop-blur md:px-8">
-            <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
-              <h1 className="mr-2 truncate text-sm font-semibold">{conversation.data?.title ?? "New chat"}</h1>
-              <DocumentChips documents={documents} uploading={uploading} onDetach={detach} />
-              <span className="ml-auto text-xs text-muted">{scope}</span>
-            </div>
-          </header>
 
-          <div className="flex-1 px-4 py-6 md:px-8">
-            <div className="mx-auto max-w-3xl space-y-8">
-              {conversation.isLoading && <Spinner label="Loading conversation…" />}
-              {conversation.error && <ErrorNotice error={conversation.error} title="Could not load this conversation" />}
-              {messages.map((m, i) => (
-                <ChatMessageView
-                  key={m.run_id}
-                  message={m}
-                  index={i}
-                  userName={user?.name}
-                  busy={!!pending || running}
-                  onTestChecker={(question) => send(question, { test: true })}
-                />
-              ))}
-              {pending && (
-                <div className="space-y-4">
-                  <UserBubble text={pending} name={user?.name} />
-                  <div className="flex gap-3">
-                    <AssistantAvatar />
-                    <LiveTrace
-                      conversationId={conversationId ?? null}
-                      stages={testing ? TEST_STAGES : liveSearch ? LIVE_STAGES : PENDING_STAGES}
-                    />
-                  </div>
+        <ContextBar
+          documents={documents}
+          uploading={uploading}
+          onDetach={detach}
+          onAttach={openFiles}
+          scope={scope}
+          liveSearch={liveSearch}
+          toggleLive={() => setLiveSearch((v) => !v)}
+        />
+
+        <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8">
+          <div className="mx-auto max-w-3xl space-y-8">
+            {conversation.isLoading && <Spinner label="Loading conversation…" />}
+            {conversation.error && <ErrorNotice error={conversation.error} title="Could not load this conversation" />}
+            {empty && <Welcome name={user?.name} examples={examples} onAsk={(s) => send(s)} hasDocuments={documents.length > 0} />}
+            {messages.map((m, i) => (
+              <ChatMessageView
+                key={m.run_id}
+                message={m}
+                index={i}
+                userName={user?.name}
+                busy={!!pending || running}
+                onTestChecker={(question) => send(question, { test: true })}
+                onAsk={i === messages.length - 1 && !pending ? (text) => send(text) : undefined}
+                onRegenerate={() => send(m.user_message)}
+                onFixed={() => conversation.mutate()}
+                onEdit={(text) => {
+                  setDraft(text);
+                  textarea.current?.focus();
+                }}
+                instant={i === messages.length - 1 && m.user_message === watched}
+                examples={examples}
+              />
+            ))}
+            {pending && (
+              <div className="space-y-4">
+                <UserBubble text={pending} name={user?.name} />
+                <div className="flex gap-3">
+                  <AssistantAvatar />
+                  <LiveAnswer conversationId={conversationId ?? null} testing={testing} />
                 </div>
-              )}
-              {error ? <ErrorNotice error={error} /> : null}
-              <div ref={bottom} />
-            </div>
+              </div>
+            )}
+            {error ? <ErrorNotice error={error} /> : null}
+            <div ref={bottom} />
           </div>
+        </div>
 
-          <div className="sticky bottom-0 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur md:px-8">
-            <div className="mx-auto max-w-3xl">{composer("dock")}</div>
-            <p className="mx-auto mt-1.5 max-w-3xl text-center text-[11px] text-muted">
-              Enter to send · Shift+Enter for a new line · Technical information only, not legal advice.
+        <div className="relative px-3 pt-2 pb-3 md:px-6 md:pb-4">
+          {!atBottom && (messages.length > 0 || !!pending) && (
+            <button
+              type="button"
+              onClick={() => bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" })}
+              aria-label="Jump to the latest message"
+              className="pi-in absolute -top-11 left-1/2 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full border border-line bg-surface text-text shadow-card hover:border-line-strong"
+            >
+              <icons.arrowDown width={16} height={16} />
+            </button>
+          )}
+          <div className="mx-auto max-w-3xl">
+            <Composer
+              draft={draft}
+              setDraft={setDraft}
+              onSend={() => send()}
+              onAttach={openFiles}
+              pending={!!pending || running}
+              onStop={stop}
+              hasDocuments={documents.length > 0}
+              textarea={textarea}
+              autoFocus={empty}
+            />
+            <p className="mt-2 hidden text-center text-[11px] text-muted sm:block">
+              Enter to send · Shift+Enter for a new line · Technical information only, not legal advice
             </p>
           </div>
-        </>
-      )}
+        </div>
+      </section>
     </div>
   );
 }
 
-/** The question box: big on the start screen, docked under the conversation. */
+/** A new chat: the assistant's greeting and questions to start with. */
+function Welcome({ name, examples, onAsk, hasDocuments }: { name?: string; examples: string[]; onAsk: (q: string) => void; hasDocuments: boolean }) {
+  return (
+    <div className="space-y-5">
+      <div className="pi-in flex gap-3">
+        <AssistantAvatar draw />
+        <div className="rounded-2xl rounded-tl-md border-2 border-text/80 px-5 py-3.5">
+          <p className="text-[1.05rem] font-semibold tracking-tight">
+            {greeting()}
+            {name ? `, ${name.split(" ")[0]}` : ""}. How can I help you?
+          </p>
+          <p className="mt-0.5 text-sm text-muted">
+            {hasDocuments
+              ? "Ask about the attached documents: every sentence of the answer is linked to its source and checked."
+              : "Ask about any technology or patent. Answers come from your documents, patent filings and the web, with every sentence checked."}
+          </p>
+        </div>
+      </div>
+      <div className="stagger grid gap-2.5 pl-11 sm:grid-cols-2" aria-label="Suggested questions">
+        {examples.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => onAsk(q)}
+            className="press group flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface/50 px-4 py-3 text-left text-sm transition-colors hover:border-line-strong hover:bg-surface-2"
+          >
+            <span>{q}</span>
+            <icons.arrowRight width={15} height={15} className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** What the answers draw on: the attached documents, or everything (the reference's
+ *  "Active context" bar). */
+function ContextBar({
+  documents,
+  uploading,
+  onDetach,
+  onAttach,
+  scope,
+  liveSearch,
+  toggleLive,
+}: {
+  documents: ConversationDocument[];
+  uploading: string[];
+  onDetach: (id: string) => void;
+  onAttach: () => void;
+  scope: string;
+  liveSearch: boolean;
+  toggleLive: () => void;
+}) {
+  const attached = documents.length > 0 || uploading.length > 0;
+  return (
+    <div className="mx-3 mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-surface-2/60 px-4 py-3 md:mx-4">
+      <span className="hidden h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-surface text-accent sm:grid">
+        <icons.file width={19} height={19} />
+      </span>
+      {/* Wide enough for the title; on phones the buttons wrap underneath */}
+      <div className="min-w-[13rem] flex-1">
+        <p className="text-[11px] font-semibold tracking-[0.12em] text-muted uppercase">Active context</p>
+        {attached ? (
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            {documents.map((d) => (
+              <span key={d.id} className="inline-flex items-center gap-1 rounded-full border border-line bg-surface py-0.5 pr-1 pl-2.5 text-xs font-medium">
+                {d.kind === "patent" ? <icons.search width={12} height={12} className="text-muted" /> : <icons.file width={12} height={12} className="text-muted" />}
+                <span className="max-w-44 truncate" title={d.title ?? d.filename}>
+                  {d.title || d.filename}
+                </span>
+                <button type="button" onClick={() => onDetach(d.id)} aria-label={`Remove ${d.filename} from this chat`} className="rounded-full p-0.5 text-muted hover:bg-surface-2 hover:text-bad">
+                  <icons.x width={11} height={11} />
+                </button>
+              </span>
+            ))}
+            {uploading.map((name) => (
+              <span key={name} className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-cite/60 px-2.5 py-0.5 text-xs">
+                <Spinner /> {name}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="truncate font-semibold tracking-tight">No document attached</p>
+        )}
+        <p className="truncate text-xs text-muted">{scope}</p>
+      </div>
+      <div className="-ml-3 flex items-center gap-1 sm:ml-0">
+        <button
+          type="button"
+          onClick={toggleLive}
+          aria-pressed={liveSearch}
+          title={liveSearch ? "On: every question also searches the patent offices (EPO)" : "Off: the patent offices are searched for patent questions, or when nothing else answers"}
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${liveSearch ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface hover:text-text"}`}
+        >
+          <icons.globe width={14} height={14} /> Patent DBs {liveSearch ? "on" : "off"}
+        </button>
+        <button type="button" onClick={onAttach} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface hover:text-text">
+          <icons.paperclip width={14} height={14} /> {attached ? "Add" : "Attach"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** The question box: a pill, as on the reference. */
 function Composer({
-  variant,
   draft,
   setDraft,
   onSend,
   onAttach,
-  liveSearch,
-  toggleLive,
   pending,
+  onStop,
   hasDocuments,
   textarea,
+  autoFocus,
 }: {
-  variant: "hero" | "dock";
   draft: string;
   setDraft: (text: string) => void;
   onSend: () => void;
   onAttach: () => void;
-  liveSearch: boolean;
-  toggleLive: () => void;
   pending: boolean;
+  onStop: () => void;
   hasDocuments: boolean;
   textarea: RefObject<HTMLTextAreaElement | null>;
+  autoFocus: boolean;
 }) {
-  const hero = variant === "hero";
   const narrow = useNarrowScreen();
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -328,37 +484,18 @@ function Composer({
     }
   }
   const lines = Math.max(0, draft.split("\n").length - 1);
-  // One row: tools, text and button share the same height and are centred together.
-  // Several lines of text: everything sits at the bottom, next to the line being typed.
-  const tool = `flex shrink-0 items-center justify-center gap-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-text ${hero ? "h-11" : "h-9"}`;
+  const round = "grid h-10 w-10 shrink-0 place-items-center rounded-full";
   return (
     <form
-      // Reference search-bar look: ink border and hard shadow, both turn blue on focus
-      className={`flex gap-1 border-[1.5px] border-text bg-surface p-1.5 shadow-hard transition-[border-color,box-shadow] duration-200 focus-within:border-cite focus-within:[box-shadow:var(--shadow-hard-focus)] ${lines ? "items-end" : "items-center"}`}
+      className={`flex gap-1.5 border border-line bg-pill p-1.5 shadow-card transition-[border-color,box-shadow,border-radius] duration-200 focus-within:border-cite focus-within:[box-shadow:var(--shadow-hard-focus)] ${lines ? "items-end rounded-[22px]" : "items-center rounded-full"}`}
       onSubmit={(e) => {
         e.preventDefault();
         onSend();
       }}
     >
-      <button type="button" onClick={onAttach} aria-label="Attach documents" title="Attach PDF, DOCX or TXT"
-        className={`${tool} ${hero ? "w-11" : "w-9"}`}>
+      <button type="button" onClick={onAttach} aria-label="Attach documents" title="Attach PDF, DOCX or TXT" className={`${round} text-muted hover:bg-surface-2 hover:text-text`}>
         <icons.paperclip width={18} height={18} />
       </button>
-      <button
-        type="button"
-        onClick={toggleLive}
-        aria-pressed={liveSearch}
-        aria-label="Search patent databases"
-        title={liveSearch
-          ? "On: every question also searches the patent offices (EPO) and uses the best abstracts"
-          : "Off: the patent offices are searched for patent questions, or when your library has no answer"}
-        className={`${tool} px-2.5 text-[13px] leading-none font-medium ${liveSearch ? "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent" : ""}`}
-      >
-        <icons.globe width={18} height={18} />
-        <span className="hidden sm:inline">Patent DBs</span>
-      </button>
-      {/* Follows the tools: centred on one row, beside the last line when there are several */}
-      <span aria-hidden className={`mx-1 w-px shrink-0 bg-line ${hero ? "h-6" : "h-5"} ${lines ? (hero ? "mb-2.5" : "mb-2") : ""}`} />
       <textarea
         ref={textarea}
         value={draft}
@@ -366,49 +503,23 @@ function Composer({
         onKeyDown={onKeyDown}
         rows={1}
         maxLength={2000}
-        autoFocus={hero}
-        placeholder={hasDocuments ? (narrow ? "Ask about them…" : "Ask about the attached documents…") : narrow ? "Ask a question…" : "Describe a technology or ask a question"}
+        autoFocus={autoFocus}
+        placeholder={hasDocuments ? (narrow ? "Ask about them…" : "Ask about the attached documents…") : narrow ? "Ask a question…" : "Ask about any technology or patent…"}
         aria-label="Message"
-        className={`max-h-40 min-w-0 flex-1 resize-none bg-transparent px-1 outline-none placeholder:text-muted ${hero ? "py-[11px] text-[1.05rem] leading-[22px]" : "py-2 text-sm leading-5"}`}
-        style={{ height: `${Math.min(160, (hero ? 44 : 36) + lines * (hero ? 22 : 20))}px` }}
+        className="max-h-40 min-w-0 flex-1 resize-none bg-transparent px-1 py-2 text-[0.95rem] leading-6 outline-none placeholder:text-muted"
+        style={{ height: `${Math.min(160, 40 + lines * 24)}px` }}
       />
-      <button type="submit" disabled={!draft.trim() || pending} aria-label="Send"
-        className={`flex shrink-0 items-center justify-center bg-brand font-medium hover:opacity-90 disabled:opacity-40 ${hero ? "h-11 px-[22px]" : "h-9 w-10"}`}>
-        {hero ? "Ask" : <icons.send width={18} height={18} />}
-      </button>
+      {pending ? (
+        // While an answer is written the button stops it (and keeps what was written)
+        <button type="button" onClick={onStop} aria-label="Stop the answer" title="Stop" className={`${round} bg-text text-bg hover:opacity-90`}>
+          <icons.stop width={15} height={15} />
+        </button>
+      ) : (
+        <button type="submit" disabled={!draft.trim()} aria-label="Send" className={`${round} bg-brand hover:opacity-90 disabled:opacity-30`}>
+          <icons.arrowRight width={18} height={18} />
+        </button>
+      )}
     </form>
-  );
-}
-
-function DocumentChips({
-  documents,
-  uploading,
-  onDetach,
-  className = "",
-}: {
-  documents: ConversationDocument[];
-  uploading: string[];
-  onDetach: (id: string) => void;
-  className?: string;
-}) {
-  if (!documents.length && !uploading.length) return null;
-  return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
-      {documents.map((d) => (
-        <span key={d.id} className="inline-flex items-center gap-1 border border-line bg-surface-2 py-0.5 pr-1 pl-2.5 text-xs">
-          {d.kind === "patent" ? <icons.search width={12} height={12} className="text-muted" /> : <icons.file width={12} height={12} className="text-muted" />}
-          <span className="max-w-40 truncate" title={d.title ?? d.filename}>{d.title || d.filename}</span>
-          <button type="button" onClick={() => onDetach(d.id)} aria-label={`Remove ${d.filename} from this chat`} className="p-0.5 text-muted hover:bg-surface hover:text-bad">
-            <icons.x width={11} height={11} />
-          </button>
-        </span>
-      ))}
-      {uploading.map((name) => (
-        <span key={name} className="inline-flex items-center gap-1.5 border border-dashed border-cite/60 px-2.5 py-0.5 text-xs text-text">
-          <Spinner /> {name}
-        </span>
-      ))}
-    </div>
   );
 }
 

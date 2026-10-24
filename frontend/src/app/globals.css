@@ -1,129 +1,144 @@
 @import "tailwindcss";
 
-/* Design tokens: the "drafting table" look from the reference PatentSearch component.
-   Blue-grey paper with a fine grid, white sheets, ink text, one signal blue for
-   links, citations and focus, and a red "stamp" for figure labels.
-   Utilities such as bg-surface / text-muted / border-line come from these.
-   Theme: light by default, dark (navy blueprint) when the OS prefers it, unless the
-   user picked one (html[data-theme="light" | "dark"], set before first paint). */
+/* Design tokens, after the reference site (ragmedscan.vercel.app): a near-black navy
+   page with a faint grid, translucent dark cards with thin white borders, Inter, white
+   pill buttons, one blue for active states, links and citations.
+   Dark is the default look; light (html[data-theme="light"]) and "follow the system"
+   (html[data-theme="system"]) are chosen in the theme menu, set before first paint.
+   Utilities such as bg-surface / text-muted / border-line come from these. */
 :root {
-  --bg: #eef2f5; /* paper */
-  --surface: #ffffff; /* sheet */
-  --surface-2: #f4f7fa;
-  --sidebar: #f7f9fb;
-  --line: #c9d3de;
-  --line-strong: #a9b6c4;
-  --grid: rgb(201 211 222 / 0.55);
-  --text: #16233a; /* ink */
-  --muted: #5b6b80;
-  --accent: #1f5fd6; /* blue: links, active states */
-  --accent-soft: #e3ecfb;
-  --accent-strong: #174bb0;
-  --cite: #1f5fd6; /* citation markers, focus, score fills */
-  --stamp: #b8322a; /* "Fig." labels */
-  --brand: #16233a; /* primary buttons: ink */
-  --on-brand: #ffffff;
-  --sage: #6f9a86;
-  --dusty: #6a8fc7;
-  --stone: #a9b6c4;
-  --ok: #1e7a4f;
-  --ok-soft: #e2f2ea;
-  --warn: #9a5800;
-  --warn-soft: #fbf0dc;
-  --bad: #b8322a;
-  --bad-soft: #f9e4e2;
-  --highlight: #dce8fb;
+  color-scheme: dark; /* native controls (selects, date pickers, scrollbars) match */
+  --bg: #030711;
+  --surface: #0a0d14;
+  --surface-2: #171c26;
+  --sidebar: #0a0d14;
+  --nav: rgb(24 24 27 / 0.8);
+  --pill: #1f232c;
+  --line: rgb(255 255 255 / 0.1);
+  --line-strong: rgb(255 255 255 / 0.2);
+  --grid: rgb(255 255 255 / 0.035);
+  --text: #f8fafc;
+  --muted: #9ca3af;
+  --accent: #60a5fa;
+  --accent-soft: rgb(96 165 250 / 0.12);
+  --accent-strong: #93c5fd;
+  --cite: #60a5fa;
+  --stamp: #f87171;
+  --brand: #ffffff;
+  --on-brand: #030711;
+  --sage: #4ade80;
+  --dusty: #93c5fd;
+  --stone: #6b7280;
+  --ok: #4ade80;
+  --ok-soft: rgb(74 222 128 / 0.12);
+  --warn: #fbbf24;
+  --warn-soft: rgb(251 191 36 / 0.12);
+  --bad: #f87171;
+  --bad-soft: rgb(248 113 113 / 0.12);
+  --miss: #a78bfa;
+  --miss-soft: rgb(167 139 250 / 0.13);
+  --highlight: rgb(96 165 250 / 0.25);
   /* landscape map clusters (Phase 16) */
-  --map-1: #1f5fd6;
-  --map-2: #1e7a4f;
-  --map-3: #b8322a;
-  --map-4: #9a5800;
-  --map-5: #7a3fb3;
-  --map-6: #0f7c8c;
-  --glow: rgb(31 95 214 / 0.1);
-  --shadow: 0 1px 0 rgb(22 35 58 / 0.05);
-  --shadow-hard: 6px 6px 0 var(--text);
-  --shadow-hard-focus: 6px 6px 0 var(--cite);
+  --map-1: #60a5fa;
+  --map-2: #4ade80;
+  --map-3: #f87171;
+  --map-4: #fbbf24;
+  --map-5: #c084fc;
+  --map-6: #22d3ee;
+  --glow: rgb(59 130 246 / 0.16);
+  --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+  --shadow-hard: 0 24px 48px -16px rgb(0 0 0 / 0.7);
+  --shadow-hard-focus: 0 0 0 4px rgb(96 165 250 / 0.2);
 }
 
-:root[data-theme="dark"] {
-  --bg: #0f1a2b;
-  --surface: #15233a;
-  --surface-2: #1b2c47;
-  --sidebar: #122036;
-  --line: #2a3d5a;
-  --line-strong: #3d5476;
-  --grid: rgb(42 61 90 / 0.55);
-  --text: #e6edf5;
-  --muted: #93a4ba;
-  --accent: #82a9f4;
-  --accent-soft: #1c3158;
-  --accent-strong: #a8c3f7;
-  --cite: #5b8fef;
-  --stamp: #ec7b72;
-  --brand: #2f6fe0;
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef4fc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --sidebar: #ffffff;
+  --nav: rgb(255 255 255 / 0.85);
+  --pill: #ffffff;
+  --line: rgb(15 23 42 / 0.1);
+  --line-strong: rgb(15 23 42 / 0.2);
+  --grid: rgb(15 23 42 / 0.045);
+  --text: #0f1729;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --accent-soft: rgb(37 99 235 / 0.08);
+  --accent-strong: #1d4ed8;
+  --cite: #2563eb;
+  --stamp: #dc2626;
+  --brand: #111111;
   --on-brand: #ffffff;
-  --sage: #8fb8a4;
-  --dusty: #86a7dc;
-  --stone: #5d7392;
-  --ok: #6fd3a0;
-  --ok-soft: #133528;
-  --warn: #f0b860;
-  --warn-soft: #33270f;
-  --bad: #f08a80;
-  --bad-soft: #3a1c1c;
-  --highlight: #1f3a66;
-  --map-1: #5b8fef;
-  --map-2: #6fd3a0;
-  --map-3: #f08a80;
-  --map-4: #f0b860;
-  --map-5: #c39af0;
-  --map-6: #5ccbd8;
-  --glow: rgb(91 143 239 / 0.14);
-  --shadow: 0 1px 0 rgb(0 0 0 / 0.25);
-  --shadow-hard: 6px 6px 0 #070d17;
-  --shadow-hard-focus: 6px 6px 0 var(--cite);
+  --sage: #16a34a;
+  --dusty: #3b82f6;
+  --stone: #94a3b8;
+  --ok: #16a34a;
+  --ok-soft: #dcfce7;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --bad: #dc2626;
+  --bad-soft: #fee2e2;
+  --miss: #7c3aed;
+  --miss-soft: #ede9fe;
+  --highlight: #dbeafe;
+  --map-1: #2563eb;
+  --map-2: #16a34a;
+  --map-3: #dc2626;
+  --map-4: #d97706;
+  --map-5: #9333ea;
+  --map-6: #0891b2;
+  --glow: rgb(37 99 235 / 0.12);
+  --shadow: 0 10px 15px -3px rgb(15 23 42 / 0.08);
+  --shadow-hard: 0 24px 48px -20px rgb(15 23 42 / 0.3);
+  --shadow-hard-focus: 0 0 0 4px rgb(37 99 235 / 0.15);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0f1a2b;
-    --surface: #15233a;
-    --surface-2: #1b2c47;
-    --sidebar: #122036;
-    --line: #2a3d5a;
-    --line-strong: #3d5476;
-    --grid: rgb(42 61 90 / 0.55);
-    --text: #e6edf5;
-    --muted: #93a4ba;
-    --accent: #82a9f4;
-    --accent-soft: #1c3158;
-    --accent-strong: #a8c3f7;
-    --cite: #5b8fef;
-    --stamp: #ec7b72;
-    --brand: #2f6fe0;
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    color-scheme: light;
+  --bg: #eef4fc;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --sidebar: #ffffff;
+    --nav: rgb(255 255 255 / 0.85);
+    --pill: #ffffff;
+    --line: rgb(15 23 42 / 0.1);
+    --line-strong: rgb(15 23 42 / 0.2);
+    --grid: rgb(15 23 42 / 0.045);
+    --text: #0f1729;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --accent-soft: rgb(37 99 235 / 0.08);
+    --accent-strong: #1d4ed8;
+    --cite: #2563eb;
+    --stamp: #dc2626;
+    --brand: #111111;
     --on-brand: #ffffff;
-    --sage: #8fb8a4;
-    --dusty: #86a7dc;
-    --stone: #5d7392;
-    --ok: #6fd3a0;
-    --ok-soft: #133528;
-    --warn: #f0b860;
-    --warn-soft: #33270f;
-    --bad: #f08a80;
-    --bad-soft: #3a1c1c;
-    --highlight: #1f3a66;
-    --map-1: #5b8fef;
-    --map-2: #6fd3a0;
-    --map-3: #f08a80;
-    --map-4: #f0b860;
-    --map-5: #c39af0;
-    --map-6: #5ccbd8;
-    --glow: rgb(91 143 239 / 0.14);
-    --shadow: 0 1px 0 rgb(0 0 0 / 0.25);
-    --shadow-hard: 6px 6px 0 #070d17;
-    --shadow-hard-focus: 6px 6px 0 var(--cite);
-  }
+    --sage: #16a34a;
+    --dusty: #3b82f6;
+    --stone: #94a3b8;
+    --ok: #16a34a;
+    --ok-soft: #dcfce7;
+    --warn: #b45309;
+    --warn-soft: #fef3c7;
+    --bad: #dc2626;
+    --bad-soft: #fee2e2;
+    --miss: #7c3aed;
+    --miss-soft: #ede9fe;
+    --highlight: #dbeafe;
+    --map-1: #2563eb;
+    --map-2: #16a34a;
+    --map-3: #dc2626;
+    --map-4: #d97706;
+    --map-5: #9333ea;
+    --map-6: #0891b2;
+    --glow: rgb(37 99 235 / 0.12);
+    --shadow: 0 10px 15px -3px rgb(15 23 42 / 0.08);
+    --shadow-hard: 0 24px 48px -20px rgb(15 23 42 / 0.3);
+    --shadow-hard-focus: 0 0 0 4px rgb(37 99 235 / 0.15);
+}
 }
 
 @theme inline {
@@ -138,6 +153,8 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-strong: var(--accent-strong);
   --color-sidebar: var(--sidebar);
+  --color-nav: var(--nav);
+  --color-pill: var(--pill);
   --color-cite: var(--cite);
   --color-stamp: var(--stamp);
   --color-ok: var(--ok);
@@ -146,26 +163,28 @@
   --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
+  --color-miss: var(--miss);
+  --color-miss-soft: var(--miss-soft);
   --color-highlight: var(--highlight);
   --color-sage: var(--sage);
   --color-dusty: var(--dusty);
   --color-stone: var(--stone);
   --shadow-card: var(--shadow);
   --shadow-hard: var(--shadow-hard);
-  --font-sans: var(--font-schibsted);
-  --font-serif: var(--font-newsreader);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-inter); /* one typeface, as in the reference */
   --font-mono: var(--font-geist-mono);
 }
 
-/* Square, drafted corners everywhere (pills and dots keep rounded-full) */
+/* Softer corners than Tailwind's defaults, as on the reference (fields ≈ 12 px, cards 24 px) */
 @theme {
-  --radius-xs: 1px;
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 3px;
-  --radius-xl: 3px;
-  --radius-2xl: 4px;
-  --radius-3xl: 4px;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
 }
 
 body {
@@ -178,13 +197,12 @@ body {
 
 /* Base layer, so Tailwind utilities (e.g. focus-visible:outline-none, font-sans) can override */
 @layer base {
-  /* Headings in Newsreader; UI text stays in Schibsted Grotesk */
+  /* Headings: bold, tightly tracked Inter */
   h1,
   h2 {
-    font-family: var(--font-serif), Georgia, serif;
-    font-weight: 500;
-    font-optical-sizing: auto;
-    letter-spacing: -0.02em;
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
   /* Visible keyboard focus everywhere (mouse clicks do not show it) */
@@ -196,7 +214,7 @@ body {
   /* Micro-interaction: every button presses in slightly */
   button:not(:disabled),
   a.press {
-    transition-property: color, background-color, border-color, opacity, scale, translate;
+    transition-property: color, background-color, border-color, opacity, scale, translate, box-shadow;
     transition-duration: 0.15s;
   }
   button:not(:disabled):active,
@@ -229,17 +247,17 @@ body {
   }
 }
 
-/* Graph-paper grid (from the reference): applied to the app's content area */
+/* The faint grid behind every page (as on the reference) */
 @utility pi-grid {
   background-color: var(--bg);
   background-image:
     linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 48px 48px;
+  background-size: 44px 44px;
   background-position: -1px -1px;
 }
 
-/* Primary actions: solid ink (blue in dark mode) */
+/* Primary actions: the reference's white pill (black in the light theme) */
 @utility bg-brand {
   background-color: var(--brand);
   color: var(--on-brand);
@@ -251,9 +269,88 @@ body {
 @utility bg-glow {
   background-image: radial-gradient(60% 60% at 50% 0%, var(--glow), transparent 70%);
 }
-/* The reference's hard offset shadow; turns blue while focused */
+/* A soft lift (cards, menus, the question box); a blue ring while focused */
 @utility shadow-hard {
   box-shadow: var(--shadow-hard);
+}
+/* Glass card: translucent surface over the grid, thin border */
+@utility glass {
+  background-color: color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+}
+/* Gradient headline text (the reference's "Health Companion") */
+@utility text-gradient {
+  background-image: linear-gradient(90deg, #60a5fa, #818cf8 55%, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The chat's left column: slides closed (width and gap to zero) when hidden */
+.chat-aside {
+  width: 320px;
+  margin-right: 1.25rem;
+  transition:
+    width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-right 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.25s ease;
+}
+.chat-aside-inner {
+  width: 320px;
+}
+@media (min-width: 80rem) {
+  .chat-aside,
+  .chat-aside-inner {
+    width: 340px;
+  }
+}
+:root[data-chat-sidebar="hidden"] .chat-aside {
+  width: 0;
+  margin-right: 0;
+  opacity: 0;
+}
+
+/* The theme button shows a moon on the dark theme and a sun on the light one */
+.theme-light-only {
+  display: none;
+}
+:root[data-theme="light"] .theme-light-only {
+  display: block;
+}
+:root[data-theme="light"] .theme-dark-only {
+  display: none;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] .theme-light-only {
+    display: block;
+  }
+  :root[data-theme="system"] .theme-dark-only {
+    display: none;
+  }
+}
+
+/* Landing page: the product screenshot tilted back (straightens on hover), and the
+   "how it works" cards scrolling past (pause on hover; still under reduced motion) */
+.lp-tilt {
+  transform: rotateX(18deg) scale(0.96);
+  transform-origin: center top;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.lp-tilt:hover {
+  transform: rotateX(4deg) scale(1);
+}
+@keyframes lp-marquee {
+  to { transform: translateX(-50%); }
+}
+.lp-marquee {
+  animation: lp-marquee 60s linear infinite;
+}
+.lp-marquee:hover {
+  animation-play-state: paused;
+}
+.lp-marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
 }
 
 /* ======================================================================
@@ -442,6 +539,24 @@ body {
   background-color: var(--bad-soft);
   box-shadow: inset 0 -2px 0 var(--bad);
 }
+.xr-developed .xr-miss,
+.xr-sentence.xr-miss:where(:not(.xr-on *)) {
+  background-color: var(--miss-soft);
+  box-shadow: inset 0 -2px 0 var(--miss);
+}
+/* The exact words the checker found wrong: red where the passage says otherwise,
+   violet where it says nothing */
+.xr-issue {
+  background: none;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline wavy var(--miss);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.xr-issue.xr-issue-conflict {
+  text-decoration-color: var(--bad);
+}
 .xr-sentence:hover {
   filter: saturate(1.6);
 }
@@ -454,6 +569,62 @@ body {
   .pi-card.flash {
     transform: none;
   }
+}
+
+/* Live answer (chat): stage dots, sources popping in as they are found, the checker
+   scanning the finished draft, verdict colours arriving sentence by sentence. */
+.lv-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--line);
+  transition: background-color 0.4s, border-color 0.4s;
+}
+.lv-dot.lv-done,
+.lv-dot.lv-now {
+  background: var(--cite);
+  border-color: var(--cite);
+}
+.lv-now::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 1.5px solid var(--cite);
+  animation: lv-ring 1.3s ease-out infinite;
+}
+@keyframes lv-ring {
+  from { transform: scale(0.5); opacity: 1; }
+  to { transform: scale(1.5); opacity: 0; }
+}
+.lv-chip {
+  animation: lv-pop 0.4s cubic-bezier(0.3, 1.4, 0.5, 1) backwards;
+}
+@keyframes lv-pop {
+  from { opacity: 0; transform: translateY(4px) scale(0.92); }
+}
+.lv-checking {
+  overflow: hidden;
+}
+.lv-checking::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--cite) 10%, transparent) 75%, color-mix(in srgb, var(--cite) 55%, transparent) 99%, transparent);
+  animation: lv-scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes lv-scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100%); }
+}
+/* The text stays; each sentence's colour arrives in turn (delay per sentence: XRayText) */
+@keyframes lv-verdict {
+  from { background-color: transparent; box-shadow: inset 0 0 0 transparent; }
+}
+.lv-judged .xr-sentence {
+  animation: lv-verdict 0.5s ease backwards;
 }
 
 /* Brief highlight when a citation chip scrolls its evidence card into view */
@@ -473,15 +644,15 @@ body {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
   animation: pi-sweep 1.6s ease-in-out infinite;
 }
-:root[data-theme="dark"] .skeleton::after {
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+:root[data-theme="light"] .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .skeleton::after {
-    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] .skeleton::after {
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
   }
 }
 
@@ -525,8 +696,11 @@ body {
     scroll-behavior: auto !important;
   }
   .blob,
+  .lp-marquee,
   .pi-scanline,
   .pi-caret,
+  .lv-now::after,
+  .lv-checking::after,
   .pi-busy::after,
   .skeleton::after {
     animation: none !important;

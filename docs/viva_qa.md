@@ -402,3 +402,118 @@ Probably, in meaning: nearby dots usually describe similar technology. But flatt
 1,024 dimensions into two distorts distances, so the map is for a first overview. The
 similarity numbers in the side panel are computed in the full space and are the reliable
 ones. Neither says anything about legal overlap.
+
+**71. The answer now appears word by word. Is it a different answer from before?**
+No. The model's reply is streamed to the page as it is written instead of being sent when
+it is finished. With the same settings (temperature 0) the streamed text is identical to
+the text a normal request returns; we checked this against the local model. The
+experiments and the /ask API still use the normal request.
+
+**72. If text is shown before it is checked, can the user read a hallucination?**
+For a few seconds, yes, and the page says so: the draft is labelled as being written, then
+"checking each sentence". Each sentence then takes its verdict colour. Unsupported
+sentences are listed struck through while the answer is rewritten, and the answer that
+stays in the conversation is the checked one. Showing the draft makes the checking
+visible; it does not skip it.
+
+**73. How did the chat get faster without changing the results?**
+Mostly by showing it sooner: the first words appear as soon as the model writes them (about
+6–11 s instead of waiting about 50 s for everything). Questions about the assistant itself
+are answered without a search, and a source that cannot be reached is given up after 5 s
+instead of 31. The library, web and patent searches also run at the same time, but we
+measured that honestly with an A/B test: it saves only 0–2.5 s, because they share one
+embedding model that runs one job at a time. The answers are unchanged.
+
+**74. Why does the page poll the server instead of using WebSockets or streaming the
+HTTP response?**
+The answer keeps running on the server even if the page changes address, is reloaded or
+the connection drops (it happens behind the Next.js proxy and when shared through a
+tunnel). A poll twice a second always gets the current state from the server, so nothing
+is lost; the page smooths the text between polls so it still reads like typing.
+
+**75. Where do the "Ask next" questions come from? Could they be wrong?**
+The language model suggests them after reading the question and the checked answer. They
+are questions, not facts: when one is clicked, it goes through the normal search, answer
+and check like any typed question. Questions about legal matters (infringement, validity)
+are filtered out.
+
+**76. The checker approved a sentence that reversed "increase" to "decrease". What did
+you do?**
+The NLI model had flagged it; the LLM second opinion then confirmed it, although its own
+reason said the passages state "increase". As with changed numbers, the LLM may no longer
+overrule the first check when the sentence uses a direction word (increase, higher, above,
+before, open, heat, …) whose opposite is in the passages and the word itself is not, or
+whose phrase is reversed: a later test wrote "immersion heating systems" where the source
+says "immersion cooling", and "heat" did occur elsewhere in it ("heat dissipation"). We
+re-measured the checker on the 150 labelled statements before keeping the rule. A first
+version added one false alarm ("one or more coils" against "less than"), so it now compares
+the word's phrase, not just whether the opposite appears somewhere; with that, no result
+changed. One honest limit: our checker test reverses words from a similar list, so those
+tests now mostly show this rule working, not the NLI model.
+
+**77. Your system refuses to answer without sources. Why does it now answer "Who won the
+2018 World Cup?" from the model's own knowledge?**
+Because a chat assistant that says "I couldn't find this" to everyday questions is not
+useful, and the user asked for it. But it is kept separate: such answers only appear in the
+chat, only when no source had the answer, and they carry a visible label "General knowledge ·
+not from sources, not checked". The research answers, the /ask API and all experiments are
+unchanged. In our own test one such answer contained a false claim, which shows why the
+label is needed.
+
+**78. How does it answer "What day is it?" or "What is 15% of 240?" exactly?**
+Those are not questions for a language model. The date comes from the clock in the user's
+time zone (sent by the browser) and sums from a small calculator that only accepts numbers
+and arithmetic operators, so nothing else can run. Both are decided by simple rules and
+answered in under a second.
+
+**79. What happens when the user presses Stop?**
+The page tells the server, and the agent stops at its next step; if the model is writing, the
+stream is closed mid-sentence, which also stops the model. What was written so far is saved
+as a "stopped" message and marked as not checked.
+
+**80. Why offer a cloud model if the project is about running locally?**
+Speed: on a laptop, an 8B model needs 10–16 s to write an answer and more to check it; a
+hosted model is several times faster. It is optional, chosen per user, off by default, and
+the profile page says that questions and passages are then sent to the provider. The
+experiments and the report's results all use the local model.
+
+**81. What is the difference between red and violet in the X-ray?**
+Red means the sentence contradicts its passage: the passage gives a different number with
+the same unit ("50 Hz" where it says "10 Hz") or the opposite direction ("decreases" where it
+says "increases"). Violet means no passage says it at all. Both are "unsupported" and count
+the same in the grounding score; the split only helps the reader. Red is decided by those
+concrete checks, not by the NLI model's contradiction score, which is unreliable on
+paraphrases.
+
+**82. How does it know which words are wrong?**
+After the verdict, the statement is compared with the passage it was checked against:
+numbers with their units, direction words in the same phrase, an added "not", and content
+words the passage never uses. These are rules, so they explain a verdict but never change
+it; the measured verdicts stay exactly as in Experiment I.
+
+**83. What is a false premise, and what does the system do about it?**
+A question that assumes something the sources never say, like "Which neural network does
+the Kalman-filter patent train?" when the patent has no neural network. Before writing, the
+system finds the question's terms that no retrieved passage uses and tells the writer to say
+so plainly if the question assumes them. The answer then starts "The sources do not mention
+a neural network" and continues with what they do say. The note is shown only when the
+answer itself says this, so a synonym that the word check misses does not raise a false
+alarm.
+
+**84. Can the user fix a flagged sentence? Is that not hiding the system's mistakes?**
+Yes: "Remove it", or "Rewrite from the source", where the model rewrites only that sentence
+from the passage and the checker checks it again; if the sources do not back the rewrite it
+is refused. It hides nothing: the original answer and its verdicts are kept, every edit is
+listed as "Edited by you", the original can be restored, and the stored claim
+verifications still record what the system itself produced.
+
+**85. What is the Fact Checker page for?**
+To check any text, for example an answer from another AI assistant, against your own
+documents and patents. Each sentence is matched to its closest passages with the same
+hybrid retrieval and checked by the same verifier, with the same X-ray. It turns the
+project's hallucination detection into a tool for text the system did not write.
+
+**86. Did these changes affect your evaluation results?**
+No. The verifier code was not changed; the new information is computed after the verdict.
+The false-premise instruction changes what the writer is asked, so it is switched off in
+experiment reruns, like the other features added after the experiments.

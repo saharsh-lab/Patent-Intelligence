@@ -82,7 +82,7 @@ export function WorkflowPanel({ run }: { run: AskResponse }) {
       )}
 
       {recoveries.length > 0 && (
-        <div className="mt-3 rounded bg-surface-2 px-3 py-2 text-xs">
+        <div className="mt-3 rounded-xl bg-surface-2 px-3 py-2 text-xs">
           <p className="font-medium">Recovery</p>
           <ul className="mt-0.5 list-disc pl-4 text-muted">
             {recoveries.map((r) => <li key={r}>{r}</li>)}

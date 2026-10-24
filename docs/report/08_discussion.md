@@ -83,6 +83,8 @@ measure.
 - **False premises.** A question that presupposes something absent from the patent ("which
   neural network does the Kalman-filter patent train?") was answered about what the patent
   does contain instead of rejecting the premise; verification flagged most of that answer.
+  A word-based premise check was added to the application afterwards (Appendix A.7); it is
+  not part of the evaluated system.
 - **Single live source.** EPO OPS only; USPTO and Lens clients are designed but not
   implemented. EPO supplies English claims for EP and some WO publications only, so the
   live question set has no US or CN patents, and its 30 questions ask only about claims.

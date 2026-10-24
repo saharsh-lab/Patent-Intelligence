@@ -19,13 +19,20 @@ import re
 from dataclasses import asdict, dataclass, field
 from typing import Literal
 
+from app.agents.everyday import is_everyday
 from app.llm.providers import ChatMessage, LLMProvider
 from app.patents.numbers import parse_publication_number
 
 logger = logging.getLogger(__name__)
 
 Intent = Literal[
-    "document_qa", "patent_lookup", "find_similar", "compare", "out_of_scope", "small_talk"
+    "document_qa",
+    "patent_lookup",
+    "find_similar",
+    "compare",
+    "out_of_scope",
+    "small_talk",
+    "everyday",  # date/time or arithmetic: answered exactly, no source needed
 ]
 INTENTS: tuple[str, ...] = (
     "document_qa",
@@ -33,7 +40,7 @@ INTENTS: tuple[str, ...] = (
     "find_similar",
     "compare",
     "out_of_scope",
-)  # what the LLM planner may choose; small_talk is decided by rules only
+)  # what the LLM planner may choose; small_talk and everyday are decided by rules only
 
 # A whole message that is only a greeting, thanks or a question about the assistant.
 # Observed (2026-10-05): with a patent attached, "hi" and "hello" were answered with a
@@ -49,8 +56,35 @@ _SMALL_TALK = re.compile(
 )
 
 
+# A whole message asking what the assistant is or can do. Observed (2026-10-22): "Can I
+# talk anything?" went through the full search, took 79 s and ended in "no evidence".
+# Anchored at both ends, so "What do you know about solid-state batteries?" or "How does
+# it work?" (about an attached patent) stay questions.
+_ABOUT_ASSISTANT = re.compile(
+    r"^\s*(?:"
+    r"(?:can|may|could)\s+i\s+(?:talk|ask|chat|speak)(?:\s+(?:to|with))?(?:\s+you)?(?:\s+about)?"
+    r"\s+(?:anything|everything|any\s+(?:topic|thing|questions?))(?:\s+else)?"
+    r"|(?:what|which\s+questions?)\s+(?:can|should|could)\s+i\s+ask(?:\s+you)?"
+    r"|what\s+(?:do|can)\s+you\s+(?:do|know)(?:\s+for\s+me)?"
+    r"|how\s+(?:do\s+you|does\s+(?:this|the)\s+(?:app|tool|site|website|system|assistant|"
+    r"chatbot|bot))\s+work"
+    r"|what\s+is\s+this\s+(?:app|tool|site|website|system|assistant|chatbot|bot)"
+    r"|who\s+(?:made|built|created|developed)\s+(?:you|this(?:\s+(?:app|tool|site|system))?)"
+    r"|are\s+you\s+(?:a\s+bot|a\s+robot|an?\s+ai|human|real|chat\s?gpt)"
+    r"|(?:how\s+can|can)\s+you\s+help(?:\s+me)?"
+    r"|tell\s+me\s+about\s+yourself|introduce\s+yourself"
+    r"|what\s+are\s+your\s+(?:features|capabilities|limits|limitations)"
+    r")(?:\s+please)?[\s!.,?]*$",
+    re.IGNORECASE,
+)
+
+
+def is_about_assistant(text: str) -> bool:
+    return bool(_ABOUT_ASSISTANT.match(text or ""))
+
+
 def is_small_talk(text: str) -> bool:
-    return bool(_SMALL_TALK.match(text or ""))
+    return bool(_SMALL_TALK.match(text or "")) or is_about_assistant(text)
 
 
 SECTIONS = ("abstract", "claims", "description", "background", "summary", "technical_field")
@@ -149,6 +183,8 @@ def keywords_from_text(text: str, limit: int = 4) -> str:
 def analyze_rules(question: str) -> QueryAnalysis:
     if is_small_talk(question):
         return QueryAnalysis(intent="small_talk", analyzer="rules")
+    if is_everyday(question):
+        return QueryAnalysis(intent="everyday", analyzer="rules")
     numbers = find_publication_numbers(question)
     claim = _CLAIM.search(question)
     section = None
@@ -206,8 +242,8 @@ publication_numbers: copy any patent numbers exactly as written in the question.
 
 def analyze_llm(question: str, llm: LLMProvider) -> QueryAnalysis:
     rules = analyze_rules(question)
-    if rules.intent == "small_talk":
-        return rules  # no planner call for "hi"
+    if rules.intent in ("small_talk", "everyday"):
+        return rules  # no planner call for "hi" or "what day is it?"
     try:
         response = llm.complete(
             [ChatMessage("system", _PLANNER_PROMPT), ChatMessage("user", question)],

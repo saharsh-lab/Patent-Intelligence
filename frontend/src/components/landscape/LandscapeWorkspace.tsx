@@ -94,7 +94,7 @@ export function LandscapeWorkspace() {
               onChange={(e) => setKeywords(e.target.value)}
               placeholder="e.g. battery immersion cooling"
               maxLength={200}
-              className="mt-1 w-full rounded border border-line-strong bg-surface px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-2 text-sm"
             />
           </label>
           <div className="flex flex-wrap gap-2 text-xs">
@@ -113,13 +113,13 @@ export function LandscapeWorkspace() {
               rows={2}
               maxLength={4000}
               placeholder="Describe it in a sentence or two"
-              className="mt-1 w-full rounded border border-line-strong bg-surface px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-line-strong bg-surface px-3 py-2 text-sm"
             />
           </label>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            <label className="flex items-center gap-1.5">
-              <span className="text-muted">or a document:</span>
-              <select value={documentId} onChange={(e) => setDocumentId(e.target.value)} className="max-w-56 rounded border border-line-strong bg-surface px-2 py-1 text-xs">
+            <label className="flex max-w-full min-w-0 items-center gap-1.5">
+              <span className="shrink-0 whitespace-nowrap text-muted">or a document:</span>
+              <select value={documentId} onChange={(e) => setDocumentId(e.target.value)} className="min-w-0 max-w-56 rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-xs">
                 <option value="">— none —</option>
                 {ready.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -134,7 +134,7 @@ export function LandscapeWorkspace() {
             </label>
             <label className="flex items-center gap-1.5">
               <span className="text-muted">patents:</span>
-              <select value={limit} onChange={(e) => setLimit(Number(e.target.value))} className="rounded border border-line-strong bg-surface px-2 py-1 text-xs">
+              <select value={limit} onChange={(e) => setLimit(Number(e.target.value))} className="rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-xs">
                 {[30, 60, 100].map((n) => (
                   <option key={n}>{n}</option>
                 ))}
@@ -179,7 +179,7 @@ function LandscapeView({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <figure className="min-w-0">
-        <div className="border border-line bg-surface">
+        <div className="overflow-hidden rounded-3xl border border-line bg-surface">
           <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="block h-auto w-full" role="img" aria-label={`Map of ${map.points.length} documents in ${map.clusters.length} groups`}>
             {map.invention &&
               closest.map((p) => (
@@ -234,7 +234,7 @@ function LandscapeView({
                   type="button"
                   onClick={() => onFocusCluster(focusCluster === c.id ? null : c.id)}
                   aria-pressed={focusCluster === c.id}
-                  className={`flex w-full items-center gap-2 rounded px-1.5 py-1 text-left hover:bg-surface-2 ${focusCluster === c.id ? "bg-surface-2" : ""}`}
+                  className={`flex w-full items-center gap-2 rounded-xl px-1.5 py-1 text-left hover:bg-surface-2 ${focusCluster === c.id ? "bg-surface-2" : ""}`}
                 >
                   <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: colour(c.id) }} aria-hidden />
                   <span className="min-w-0 flex-1 leading-snug">{c.name}</span>
@@ -266,9 +266,9 @@ function LandscapeView({
 
       <section className="lg:col-span-2">
         <h3 className="mb-2 font-serif text-lg">Everything on the map</h3>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
           {map.clusters.map((c) => (
-            <div key={c.id} className="border border-line bg-surface px-3 py-2.5">
+            <div key={c.id} className="min-w-0 rounded-2xl border border-line bg-surface px-4 py-3">
               <p className="mb-1.5 flex items-center gap-2 text-sm font-medium">
                 <span className="h-3 w-3 rounded-full" style={{ background: colour(c.id) }} aria-hidden />
                 {c.name}
@@ -294,7 +294,7 @@ function LandscapeView({
 
 function PointCard({ point, hasInvention }: { point: LandscapePoint; hasInvention: boolean }) {
   return (
-    <div className="pi-in border border-line bg-surface px-4 py-3 text-sm">
+    <div className="pi-in rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
       <p className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-xs">{point.label}</span>
         {point.kind !== "patent" && <Badge tone="accent">in your library</Badge>}

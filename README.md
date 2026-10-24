@@ -188,6 +188,7 @@ its default and its description is defined in `backend/app/core/config.py` (the
 | `USPTO_API_KEY` | Phase 5 (optional) | USPTO Open Data Portal (data.uspto.gov); requires identity verification | Free |
 | `LLM_API_KEY` | Phase 3 | e.g. platform.openai.com, or a free-tier OpenAI-compatible provider. Not needed for a local Ollama model | Pay-per-use or free tier |
 | `TAVILY_API_KEY` | Optional (web search) | tavily.com → sign up → API key | Free tier (1 credit per question) |
+| `CLOUD_LLM_API_KEY` | Optional (fast chat model) | e.g. console.groq.com → API keys. Users then choose it in Profile → Chat model. `CLOUD_LLM_BASE_URL` / `CLOUD_LLM_MODEL` change the provider/model (default: Groq, `llama-3.3-70b-versatile`) | Free tier |
 | `LANGSMITH_API_KEY` | Optional | smith.langchain.com | Free developer tier |
 
 WIPO PATENTSCOPE's web-service API is a paid subscription, so the plan uses Lens

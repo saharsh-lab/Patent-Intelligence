@@ -48,7 +48,7 @@ export function EvaluationWorkspace() {
                       type="button"
                       onClick={() => router.replace(`${pathname}?r=${encodeURIComponent(key(e))}`, { scroll: false })}
                       aria-current={active ? "true" : undefined}
-                      className={`w-full rounded border px-2.5 py-1.5 text-left text-sm ${
+                      className={`w-full rounded-xl border px-2.5 py-1.5 text-left text-sm ${
                         active ? "border-accent bg-accent-soft" : "border-line bg-surface hover:bg-surface-2"
                       }`}
                     >
@@ -98,7 +98,7 @@ function HowToRun() {
   return (
     <EmptyState title="No experiment results yet">
       <p>Experiments run from the command line and write their results to experiments/results/.</p>
-      <pre className="mx-auto mt-3 max-w-xl overflow-x-auto rounded bg-surface-2 px-3 py-2 text-left font-mono text-xs text-text">
+      <pre className="mx-auto mt-3 max-w-xl overflow-x-auto rounded-xl bg-surface-2 px-3 py-2 text-left font-mono text-xs text-text">
         {`cd backend
 .venv/bin/python -m app.evaluation run --config ../experiments/configs/smoke.yaml`}
       </pre>

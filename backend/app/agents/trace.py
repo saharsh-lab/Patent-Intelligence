@@ -9,9 +9,12 @@ with the answer afterwards. Nothing here changes what the agent does.
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from collections.abc import Callable
 from typing import Any
+
+from app.core.errors import AnswerStopped
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,8 @@ NODE_LABELS = {
     "regenerate": "Rewriting with the checker's feedback",
     "finish": "Finishing",
     "small_talk": "Replying",
+    "everyday": "Working it out (clock or calculator)",
+    "general": "Answering from general knowledge",
 }
 TOOL_LABELS = {
     "search_uploaded_documents": "Search your library",
@@ -87,6 +92,7 @@ class TraceRecorder:
         self.sink = sink
         self.rows: list[dict] = []
         self._t0 = time.perf_counter()
+        self._lock = threading.RLock()  # parallel searches report from several threads
 
     def _ms(self) -> int:
         return round((time.perf_counter() - self._t0) * 1000)
@@ -95,7 +101,11 @@ class TraceRecorder:
         if self.sink is None:
             return
         try:
-            self.sink([dict(row) for row in self.rows])
+            with self._lock:
+                rows = [dict(row) for row in self.rows]
+            self.sink(rows)
+        except AnswerStopped:
+            raise  # the user pressed Stop: stop at this step
         except Exception:  # noqa: BLE001 - a display problem must never stop an answer
             logger.warning("Trace sink failed", exc_info=True)
 
@@ -110,14 +120,16 @@ class TraceRecorder:
             "at_ms": self._ms(),
             "ms": None,
         }
-        self.rows.append(row)
+        with self._lock:
+            self.rows.append(row)
         self._publish()
         return row
 
     def end(self, row: dict, detail: str = "", ok: bool = True) -> None:
-        row["status"] = "done" if ok else "failed"
-        row["detail"] = detail
-        row["ms"] = self._ms() - row["at_ms"]
+        with self._lock:
+            row["status"] = "done" if ok else "failed"
+            row["detail"] = detail
+            row["ms"] = self._ms() - row["at_ms"]
         self._publish()
 
     def traced(self, name: str, fn: Callable[[dict], dict]) -> Callable[[dict], dict]:

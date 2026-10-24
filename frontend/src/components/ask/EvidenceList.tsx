@@ -20,15 +20,17 @@ function EvidenceCard({ item, idPrefix }: { item: EvidenceOut; idPrefix: string 
   return (
     <li
       id={item.label ? `${idPrefix}evidence-${item.label}` : undefined}
-      className={`pi-card scroll-mt-4 border bg-surface px-[18px] py-3.5 ${item.cited ? "border-line-strong" : "border-line"}`}
+      className={`pi-card scroll-mt-4 overflow-hidden rounded-2xl border bg-surface px-[18px] py-3.5 ${item.cited ? "border-line-strong" : "border-line"}`}
     >
       <div className="flex flex-wrap items-center gap-2">
         {item.label ? (
-          <span className="font-serif text-[0.95rem] text-stamp italic">Fig. {item.label.replace(/^E/, "")}</span>
+          <span className="grid h-6 min-w-6 place-items-center rounded-full bg-accent-soft px-1.5 font-mono text-xs font-semibold text-accent" title={`Source ${item.label.replace(/^E/, "")}`}>
+            {item.label.replace(/^E/, "")}
+          </span>
         ) : (
           <span className="font-mono text-xs text-muted">#{item.rank}</span>
         )}
-        <span className="min-w-0 truncate font-serif text-[1rem] font-medium" title={item.source_title ?? undefined}>
+        <span className="min-w-0 truncate text-[0.95rem] font-semibold tracking-tight" title={item.source_title ?? undefined}>
           {locationLabel(item)}
         </span>
         {item.source_type !== "upload" && (

@@ -45,7 +45,7 @@ export function VerificationPanel({ run, onCite }: { run: AskResponse; onCite: (
           {attempts.map((a, i) => (
             <li key={a.attempt} className="flex items-center gap-2">
               {i > 0 && <span className="text-muted">→ regenerated with feedback →</span>}
-              <span className={`rounded border px-2 py-1 ${a.kept ? "border-accent bg-accent-soft" : "border-line text-muted"}`}>
+              <span className={`rounded-xl border px-2 py-1 ${a.kept ? "border-accent bg-accent-soft" : "border-line text-muted"}`}>
                 Attempt {a.attempt}: {formatPercent(a.grounding_score)}
                 {a.kept ? " (shown)" : " (discarded)"}
               </span>
@@ -57,7 +57,7 @@ export function VerificationPanel({ run, onCite }: { run: AskResponse; onCite: (
       {issues.length > 0 ? (
         <ul className="mt-3 space-y-2">
           {issues.map((claim) => (
-            <li key={`${claim.location}-${claim.index}`} className="rounded border border-line px-3 py-2 text-sm">
+            <li key={`${claim.location}-${claim.index}`} className="rounded-xl border border-line px-3 py-2 text-sm">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={claim.verdict === "unsupported" ? "bad" : "warn"}>{VERDICT_LABEL[claim.verdict]}</Badge>
                 {claim.location !== "answer" && <span className="font-mono text-[11px] text-muted">{claim.location}</span>}

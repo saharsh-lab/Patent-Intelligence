@@ -27,7 +27,7 @@ export function ExperimentView({ summary, rows }: { summary: ExperimentSummary; 
 
 function Overview({ summary }: { summary: ExperimentSummary }) {
   return (
-    <section className="rounded border border-line bg-surface px-4 py-3">
+    <section className="rounded-xl border border-line bg-surface px-4 py-3">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className="font-mono text-sm font-semibold">{summary.experiment}</h2>
         <span className="text-xs text-muted">{formatDateTime(summary.finished_at)}</span>
@@ -43,14 +43,14 @@ function Overview({ summary }: { summary: ExperimentSummary }) {
         </Badge>
       </div>
       {summary.warnings.length > 0 && (
-        <ul className="mt-3 space-y-1 rounded border border-warn/30 bg-warn-soft px-3 py-2 text-xs text-warn">
+        <ul className="mt-3 space-y-1 rounded-xl border border-warn/30 bg-warn-soft px-3 py-2 text-xs text-warn">
           {summary.warnings.map((w) => (
             <li key={w}>{w}</li>
           ))}
         </ul>
       )}
       {(summary.caveats ?? []).length > 0 && (
-        <ul className="mt-3 space-y-1 rounded border border-line bg-surface-2 px-3 py-2 text-xs text-muted">
+        <ul className="mt-3 space-y-1 rounded-xl border border-line bg-surface-2 px-3 py-2 text-xs text-muted">
           {summary.caveats!.map((c) => (
             <li key={c}>{c}</li>
           ))}
@@ -236,7 +236,7 @@ function PerQuestion({ summary, rows }: { summary: ExperimentSummary; rows: RunR
         <select
           value={variant}
           onChange={(e) => setVariant(e.target.value)}
-          className="rounded border border-line-strong bg-surface px-2 py-1 text-xs"
+          className="rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-xs"
           aria-label="Variant"
         >
           {summary.variants.map((v) => (

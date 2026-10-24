@@ -18,23 +18,38 @@ Why a graph instead of a free-running "LLM calls tools in a loop" agent?
   choosing search terms, writing the answer); control flow stays deterministic.
 """
 
+import contextvars
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, replace
 from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from sqlalchemy import select
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
 
+from app.agents import premise
 from app.agents.analysis import (
     QueryAnalysis,
     analyze_llm,
     analyze_rules,
     asks_to_compare,
+    is_about_assistant,
     keywords_from_text,
 )
 from app.agents.demo_injection import Injection, find_planted, plant_false_fact
+from app.agents.everyday import (
+    GENERAL_PROMPT,
+    asks_for_time,
+    calculator_reply,
+    clock_reply,
+    is_creative,
+    now_in,
+)
+from app.agents.live import LiveAnswer
 from app.agents.tools import TOOLS, Target, ToolContext, ToolResult
 from app.agents.trace import TOOL_LABELS, TraceRecorder, tool_reason
 from app.core.errors import AppError
@@ -49,6 +64,7 @@ from app.rag.retrieval import (
     has_sufficient_evidence,
     retrieve,
 )
+from app.services.patents import PatentService
 from app.verification.checker import (
     VerificationReport,
     regeneration_instructions,
@@ -86,6 +102,20 @@ SEARCH_TERMS_PROMPT = (
     "using the terms patent documents use instead of everyday words (e.g. 'foreign object "
     "detection wireless charging' for 'how does a charger notice a coin'). Reply with the "
     "keywords only, separated by spaces."
+)
+# Chat answers (not the /ask API or experiments): written like a chat assistant's. Observed
+# (2026-10-22): drafts said "In E2, the battery pack…", naming passage labels in the prose.
+CHAT_STYLE = (
+    "Write for someone reading in a chat: begin with a direct one- or two-sentence answer, "
+    "then the details. Keep paragraphs short. Use a bulleted list when you list several "
+    "items, steps or features, with the key term in **bold** at the start of an item. Do not "
+    "use headings. Never write passage labels such as E2 in the text itself; put them only "
+    "in square brackets after the statement they support."
+)
+DETAILED_STYLE = "The user prefers detailed answers: up to about 400 words."
+TECHNICAL_PROMPT = (
+    "Is the user's question about science, engineering, technology, a device, a material, "
+    "a product or an invention? Reply with exactly one word: yes or no."
 )
 LEGAL_INSTRUCTION = (
     "The user asked for a legal opinion. Start by saying that you cannot assess validity, "
@@ -129,12 +159,17 @@ class AgentState(TypedDict, total=False):
     inject_false_fact: bool  # demo mode (Phase 14): plant a false sentence in the draft
     injection: Injection | None
     external_passages: list[RetrievedPassage]  # web pages / patent abstracts, this answer only
+    everyday: str | None  # "clock" | "calculator": answered exactly, no source needed
+    general: dict | None  # answered from the model's general knowledge (chat only)
+    premise_terms: list[str]  # the question's terms no passage uses (app/agents/premise.py)
 
 
 _UNREACHABLE = re.compile(r"could not reach|timed out|ConnectError|connection", re.IGNORECASE)
 
 # Searches whose results are used for one answer only (app/rag/transient.py)
 _EXTERNAL_TOOLS = {"search_patents", "search_patent_abstracts", "search_web"}
+# Searches that need nothing from each other: run at the same time when planned together
+_PARALLEL_TOOLS = {"search_uploaded_documents", "search_web", "search_patent_abstracts"}
 # A general question about patents: also search the patent offices' abstracts
 _ABOUT_PATENTS = re.compile(
     r"\b(patent(?:s|ed)?|inventions?|prior art|assignees?|patent office)\b", re.IGNORECASE
@@ -154,6 +189,11 @@ class AgentGraph:
         web_search: bool = False,
         live_import_limit: int = 3,
         trace: TraceRecorder | None = None,
+        live: LiveAnswer | None = None,
+        parallel_searches: bool = False,
+        general_fallback: bool = False,
+        timezone: str | None = None,
+        chat_style: str | None = None,
     ):
         self.ctx = ctx
         self.planner = planner  # "rules" | "llm"
@@ -167,8 +207,16 @@ class AgentGraph:
         self.web_search = web_search
         self.live_import_limit = live_import_limit
         self._live_terms: str | None = None
+        self._technical: bool | None = None
         self._verifier = None
         self.trace = trace or TraceRecorder()
+        # The chat's live view: sources found, the draft as it is written, the verdicts
+        self.live = live
+        self.parallel_searches = parallel_searches
+        # Chat only: with no source for an answer, the model's own knowledge, labelled as such
+        self.general_fallback = general_fallback
+        self.timezone = timezone  # the user's, for "what day is it?"
+        self.chat_style = chat_style  # None (API, experiments) | "concise" | "detailed"
         self.graph = self._build()
 
     # ------------------------------------------------------------------ graph
@@ -189,14 +237,22 @@ class AgentGraph:
 
         g.add_edge(START, "analyze")
         g.add_node("small_talk", traced("small_talk", self.small_talk))
+        g.add_node("everyday", traced("everyday", self.everyday))
+        g.add_node("general", traced("general", self.general))
         g.add_conditional_edges(
             "analyze",
-            lambda s: {"out_of_scope": "finish", "small_talk": "small_talk"}.get(
-                s["analysis"].intent, "resolve_targets"
-            ),
-            {"finish": "finish", "small_talk": "small_talk", "resolve_targets": "resolve_targets"},
+            self.route_after_analyze,
+            {
+                "finish": "finish",
+                "small_talk": "small_talk",
+                "everyday": "everyday",
+                "general": "general",
+                "resolve_targets": "resolve_targets",
+            },
         )
         g.add_edge("small_talk", END)
+        g.add_edge("everyday", END)
+        g.add_edge("general", END)
         g.add_edge("resolve_targets", "plan")
         g.add_edge("plan", "execute")
         g.add_edge("execute", "check")
@@ -210,10 +266,16 @@ class AgentGraph:
             "generate", self.route_after_generate, {"recover": "recover", "verify": "verify"}
         )
         g.add_conditional_edges(
-            "verify", self.route_after_verify, {"regenerate": "regenerate", "end": END}
+            "verify",
+            self.route_after_verify,
+            {"regenerate": "regenerate", "general": "general", "end": END},
         )
         g.add_edge("regenerate", "verify")
-        g.add_edge("finish", END)
+        g.add_conditional_edges(
+            "finish",
+            lambda s: "general" if self._general_allowed(s) else "end",
+            {"general": "general", "end": END},
+        )
         return g.compile()
 
     def run(
@@ -256,9 +318,12 @@ class AgentGraph:
     def analyze(self, state: AgentState) -> dict:
         question = state["question"]
         started = time.perf_counter()
+        # A writing task in the chat ("write a poem about…") goes to the model directly:
+        # no need for the planner's call (2.5 s)
+        writing_task = self.general_fallback and is_creative(question)
         analysis = (
             analyze_llm(question, self.ctx.llm)
-            if self.planner == "llm"
+            if self.planner == "llm" and not writing_task
             else analyze_rules(question)
         )
         # Timed: with the LLM planner this is a full LLM call (Phase 10 found it missing)
@@ -459,7 +524,14 @@ class AgentGraph:
                     "llm_scope_override",
                 )
                 about_patents = bool(
-                    state.get("live_search") or _ABOUT_PATENTS.search(question) or in_scope
+                    state.get("live_search")
+                    or _ABOUT_PATENTS.search(question)
+                    or in_scope
+                    or (
+                        analysis.analyzer == "llm_scope_override"
+                        and self.ctx.patents.sources
+                        and self._is_technical(question)
+                    )
                 )
                 steps += self._live_steps(state, patents=about_patents)
         return {"steps": steps}
@@ -515,69 +587,37 @@ class AgentGraph:
         queue = list(state["steps"])
 
         while queue:
-            step = queue.pop(0)
-            import_top = step.args.get("import_top")
-            args = {k: v for k, v in step.args.items() if k != "import_top"}
-            args = self._resolve_args(args, targets, concepts, state)
-            if args is None:
-                log.append(self._log(step.tool, step.args, False, "skipped: no indexed target", 0))
-                continue
-            started = time.perf_counter()
-            row = self.trace.start(
-                "tool",
-                step.tool,
-                TOOL_LABELS.get(step.tool, step.tool),
-                why=tool_reason(step.tool, args, state),
-            )
-            try:
-                result: ToolResult = TOOLS[step.tool](self.ctx, **args)
-            except AppError as exc:
-                # Undo any half-finished database work (e.g. a partly indexed patent)
-                self.ctx.session.rollback()
-                log.append(self._log(step.tool, args, False, exc.message, started))
-                self.trace.end(row, exc.message, ok=False)
-                continue
-            self.trace.end(row, result.summary)
-            entry = self._log(step.tool, args, True, result.summary, started)
-            if result.data.get("sources"):
-                entry["sources"] = result.data["sources"]  # which external databases were used
-            log.append(entry)
-
-            for new in result.new_targets:  # an external number was fetched & indexed
-                targets = [
-                    t
-                    for t in targets
-                    if not (
-                        t.kind == "external"
-                        and t.number
-                        and new.number
-                        and new.number.startswith(t.number)
-                    )
-                ]
-                if all(t.id != new.id for t in targets):
-                    targets.append(new)
-            if step.tool == "extract_key_concepts":
-                concepts = result.data.get("keywords", "")
-            if step.tool == "search_patents":
-                candidates = result.data.get("candidates", [])
-                own = {t.number for t in targets if t.number}
-                fresh = [c for c in candidates if c["publication_number"] not in own]
-                # Among the most relevant, prefer patents whose claims can be imported
-                preferred = [c for c in fresh[:10] if c.get("full_text")]
-                picks = (preferred + [c for c in fresh if c not in preferred])[: import_top or 0]
-                queue = [
-                    Step(
-                        "get_patent_details",
-                        {"number": c["publication_number"], "source": c["source"]},
-                    )
-                    for c in picks
-                ] + queue
-            if result.external:
-                external.extend(result.passages)
+            batch = self._parallel_batch(queue)
+            if len(batch) > 1:
+                del queue[: len(batch)]
+                outcomes = self._run_parallel(batch, state)
             else:
-                (direct if result.direct else passages).extend(result.passages)
-            if result.retrieval is not None:
-                retrievals.append(result.retrieval)
+                step = queue.pop(0)
+                args = {k: v for k, v in step.args.items() if k != "import_top"}
+                args = self._resolve_args(args, targets, concepts, state)
+                if args is None:
+                    log.append(
+                        self._log(step.tool, step.args, False, "skipped: no indexed target", 0)
+                    )
+                    continue
+                outcomes = [(step, *self._call_tool(step.tool, args, state, self.ctx))]
+            for step, entry, result in outcomes:
+                log.append(entry)
+                if result is None:
+                    continue
+                queue = self._absorb(step, result, targets, queue)
+                if step.tool == "extract_key_concepts":
+                    concepts = result.data.get("keywords", "")
+                if step.tool == "search_patents":
+                    candidates = result.data.get("candidates", [])
+                if result.external:
+                    external.extend(result.passages)
+                else:
+                    (direct if result.direct else passages).extend(result.passages)
+                if result.retrieval is not None:
+                    retrievals.append(result.retrieval)
+                if self.live is not None:
+                    self.live.found(result.passages)
 
         return {
             "targets": targets,
@@ -590,6 +630,114 @@ class AgentGraph:
             "candidates": candidates,
             "steps": [],
         }
+
+    def _call_tool(
+        self, tool: str, args: dict, state: AgentState, ctx: ToolContext
+    ) -> tuple[dict, ToolResult | None]:
+        """Run one tool: a trace row while it runs; its log entry, and its result (None
+        if it failed)."""
+        started = time.perf_counter()
+        row = self.trace.start(
+            "tool", tool, TOOL_LABELS.get(tool, tool), why=tool_reason(tool, args, state)
+        )
+        try:
+            result: ToolResult = TOOLS[tool](ctx, **args)
+        except AppError as exc:
+            # Undo any half-finished database work (e.g. a partly indexed patent)
+            ctx.session.rollback()
+            self.trace.end(row, exc.message, ok=False)
+            return self._log(tool, args, False, exc.message, started), None
+        self.trace.end(row, result.summary)
+        entry = self._log(tool, args, True, result.summary, started)
+        if result.data.get("sources"):
+            entry["sources"] = result.data["sources"]  # which external databases were used
+        return entry, result
+
+    def _parallel_batch(self, queue: list[Step]) -> list[Step]:
+        """The independent searches at the head of the queue (library, web, patent
+        abstracts): their inputs are the question itself, not another tool's output.
+        Each needs its own database connection, so not on a session bound to one
+        connection (the tests' transaction)."""
+        if not self.parallel_searches or not isinstance(self.ctx.session.get_bind(), Engine):
+            return []
+        batch = []
+        for step in queue:
+            if step.tool not in _PARALLEL_TOOLS or any(
+                isinstance(v, str) and v.startswith("$") for v in step.args.values()
+            ):
+                break
+            batch.append(step)
+        return batch
+
+    def _run_parallel(self, steps: list[Step], state: AgentState) -> list[tuple]:
+        """Run independent searches at the same time. The first keeps the request's
+        session, the others get their own; local models still take turns (the inference
+        lock), so the gain is the waiting on the web and the patent offices. Results are
+        used in plan order: the answer is the same as when they run one after another."""
+        bind = self.ctx.session.get_bind()
+
+        def run(index: int, step: Step):
+            if index == 0:
+                return self._call_tool(step.tool, step.args, state, self.ctx)
+            session = Session(bind=bind)
+            ctx = replace(
+                self.ctx,
+                session=session,
+                patents=PatentService(
+                    session, self.ctx.settings, self.ctx.embedder, self.ctx.patents.sources
+                ),
+            )
+            try:
+                outcome = self._call_tool(step.tool, step.args, state, ctx)
+                session.commit()  # e.g. cached search results
+                return outcome
+            finally:
+                session.close()
+
+        with ThreadPoolExecutor(max_workers=len(steps)) as pool:
+            # Each thread runs in a copy of this context: the owner scope (whose documents
+            # are visible) must hold there too
+            futures = [
+                pool.submit(contextvars.copy_context().run, run, i, step)
+                for i, step in enumerate(steps)
+            ]
+            return [(step, *f.result()) for step, f in zip(steps, futures, strict=True)]
+
+    def _absorb(
+        self, step: Step, result: ToolResult, targets: list[Target], queue: list[Step]
+    ) -> list[Step]:
+        """Fold a tool's new targets into `targets` (in place); returns the queue, with
+        imports of the best search results first."""
+
+        for new in result.new_targets:  # an external number was fetched & indexed
+            targets[:] = [
+                t
+                for t in targets
+                if not (
+                    t.kind == "external"
+                    and t.number
+                    and new.number
+                    and new.number.startswith(t.number)
+                )
+            ]
+            if all(t.id != new.id for t in targets):
+                targets.append(new)
+        if step.tool == "search_patents":
+            candidates = result.data.get("candidates", [])
+            own = {t.number for t in targets if t.number}
+            fresh = [c for c in candidates if c["publication_number"] not in own]
+            # Among the most relevant, prefer patents whose claims can be imported
+            preferred = [c for c in fresh[:10] if c.get("full_text")]
+            import_top = step.args.get("import_top") or 0
+            picks = (preferred + [c for c in fresh if c not in preferred])[:import_top]
+            queue = [
+                Step(
+                    "get_patent_details",
+                    {"number": c["publication_number"], "source": c["source"]},
+                )
+                for c in picks
+            ] + queue
+        return queue
 
     def route_after_check(self, state: AgentState) -> str:
         if self._unavailable_patents(state):
@@ -612,6 +760,84 @@ class AgentGraph:
             return "recover"
         return "finish"
 
+    def route_after_analyze(self, state: AgentState) -> str:
+        intent = state["analysis"].intent
+        if intent in ("out_of_scope", "small_talk", "everyday"):
+            return "finish" if intent == "out_of_scope" else intent
+        if self._general_allowed(state, searched=False) and is_creative(state["question"]):
+            return "general"  # "write a poem about batteries": no source to search
+        return "resolve_targets"
+
+    def _general_allowed(self, state: AgentState, searched: bool = True) -> bool:
+        """Chat only: a general question (no document attached or named, not a request for
+        patents or a comparison) that the sources could not answer."""
+        analysis = state["analysis"]
+        parsed = state.get("parsed")
+        return bool(
+            self.general_fallback
+            and analysis.intent in ("document_qa", "out_of_scope")
+            and not state["document_ids"]
+            and not state["patent_ids"]
+            and not analysis.refers_to_scope
+            and not analysis.publication_numbers
+            and (not searched or (parsed is not None and parsed.status != "answered"))
+        )
+
+    def everyday(self, state: AgentState) -> dict:
+        """Date/time from the clock, arithmetic from the calculator: exact, no source."""
+        question = state["question"]
+        if asks_for_time(question):
+            kind, text = "clock", clock_reply(question, self.timezone)
+        else:
+            kind, text = "calculator", calculator_reply(question) or ""
+        return {
+            "parsed": ParsedAnswer(status="answered", text=text),
+            "evidence": [],
+            "final_passages": [],
+            "llm_response": None,
+            "comparison": None,
+            "verification": None,
+            "everyday": kind,
+        }
+
+    def general(self, state: AgentState) -> dict:
+        """An answer from the model's general knowledge, when no source had one (chat only).
+        Not checked: the checker needs passages to check against. The page labels it."""
+        settings = self.ctx.settings
+        today = now_in(self.timezone)
+        messages = [
+            ChatMessage("system", GENERAL_PROMPT.format(today=f"{today:%A, %d %B %Y}")),
+            ChatMessage("user", state["question"]),
+        ]
+        searched = state.get("parsed")
+        if self.live is not None:
+            self.live.general()
+            response = self.ctx.llm.stream(
+                messages,
+                temperature=settings.llm_temperature,
+                max_tokens=settings.llm_max_tokens,
+                on_text=self.live.text,
+            )
+        else:
+            response = self.ctx.llm.complete(
+                messages, temperature=settings.llm_temperature, max_tokens=settings.llm_max_tokens
+            )
+        text = re.sub(r"(?s)<think>.*?</think>", "", response.text).strip()
+        if not text or text.upper().startswith("INSUFFICIENT_EVIDENCE"):
+            return {}  # keep "not found" rather than an empty answer or a marker
+        return {
+            "parsed": ParsedAnswer(status="answered", text=text),
+            "evidence": [],
+            "final_passages": [],
+            "llm_response": response,
+            "comparison": None,
+            "verification": None,
+            "general": {
+                "searched": searched is not None,
+                "not_found": searched.insufficient_reason if searched is not None else None,
+            },
+        }
+
     def small_talk(self, state: AgentState) -> dict:
         """A short reply to greetings and thanks: no retrieval, no LLM, nothing to verify."""
         text = state["question"].strip().lower()
@@ -620,6 +846,19 @@ class AgentGraph:
             reply = "You're welcome! Ask me anything else about patents whenever you like."
         elif re.match(r"(bye|goodbye|see you)", text):
             reply = "Goodbye! Your conversation is saved; you can continue it any time."
+        elif is_about_assistant(text):
+            reply = (
+                "Yes, ask me anything. I'm built for technology and patents: I search "
+                + ("the attached document, " if scoped else "your documents, ")
+                + "patent filings and the web, then answer with every sentence linked to its "
+                "source and checked by a hallucination checker. For example:\n\n"
+                '- How a technology works: "How do solid-state batteries work?"\n'
+                '- A patent you attach: "What does claim 1 cover?"\n'
+                '- Patents on a topic: "Latest patents on battery immersion cooling"\n'
+                "- Comparing documents, mapping a field or checking an idea (the tools "
+                "under the question box)\n\n"
+                "Other topics I answer from the web where I can. I don't give legal opinions."
+            )
         elif scoped:
             reply = (
                 "Hello! Ask me anything about the attached document, for example "
@@ -692,7 +931,7 @@ class AgentGraph:
         databases could answer, and no such search has been made for it yet."""
         analysis = state["analysis"]
         return bool(
-            (self._patents_allowed(state) or self.ctx.web is not None)
+            (self._patents_allowed(state, decide=False) or self.ctx.web is not None)
             and analysis.intent == "document_qa"
             and not state["document_ids"]
             and not state["patent_ids"]
@@ -703,14 +942,37 @@ class AgentGraph:
             and (self.ctx.web is not None or self._live_keywords(state))
         )
 
-    def _patents_allowed(self, state: AgentState) -> bool:
+    def _patents_allowed(self, state: AgentState, decide: bool = True) -> bool:
         """The patent offices are searched only for questions that could be about patents:
         when the LLM planner judged a question off-topic ("a good pasta recipe?"), the web
         may answer it, the patent offices may not (2026-10-10: general questions should be
-        answered like a general assistant)."""
-        return bool(self.ctx.patents.sources) and (
-            state["analysis"].analyzer != "llm_scope_override"
-        )
+        answered like a general assistant), unless a second look finds it technical.
+        `decide=False`: no model call, only what is already known."""
+        if not self.ctx.patents.sources:
+            return False
+        if state["analysis"].analyzer != "llm_scope_override":
+            return True
+        return self._is_technical(state["question"]) if decide else bool(self._technical)
+
+    def _is_technical(self, question: str) -> bool:
+        """A second look at a question the planner called off-topic. Observed (2026-10-22):
+        Qwen3 judged "How do solid-state batteries work?" out of scope, so only the web was
+        searched and it answered about solid-state drives. A one-word check (about 0.5 s;
+        11 of 11 right on a test list) lets patent filings answer technology questions."""
+        if self._technical is None:
+            self._technical = False
+            if self.ctx.use_llm_helpers:
+                try:
+                    response = self.ctx.llm.complete(
+                        [ChatMessage("system", TECHNICAL_PROMPT), ChatMessage("user", question)],
+                        temperature=0.0,
+                        max_tokens=3,
+                    )
+                    reply = re.sub(r"(?s)<think>.*?</think>", "", response.text).strip().lower()
+                    self._technical = reply.startswith("yes")
+                except Exception:  # noqa: BLE001 - then the planner's judgement stands
+                    logger.info("Technology check failed; keeping the planner's judgement")
+        return self._technical
 
     def _live_keywords(self, state: AgentState) -> str:
         """Search terms for the patent databases. Observed (2026-10-04): the question's own
@@ -741,7 +1003,10 @@ class AgentGraph:
         """The web and/or the patent offices, used for this answer only (no import)."""
         steps = []
         if self.ctx.web is not None:
-            steps.append(Step("search_web", {"query": state["question"]}))
+            args = {"query": state["question"]}
+            if state["analysis"].search_keywords:
+                args["terms"] = state["analysis"].search_keywords
+            steps.append(Step("search_web", args))
         if patents and self._patents_allowed(state) and self._live_keywords(state):
             steps.append(
                 Step(
@@ -761,7 +1026,11 @@ class AgentGraph:
         instructions = (
             [TASK_INSTRUCTIONS[self._task(state)]] if self._task(state) in TASK_INSTRUCTIONS else []
         )
+        instructions += self._style()
         question = state["question"]
+        terms = self._premise_terms(question, evidence)
+        if terms:
+            instructions.append(premise.instruction(terms))
         if analysis.legal_question:
             instructions.append(LEGAL_INSTRUCTION)
             # Observed: given the legal question verbatim, Qwen3 refused entirely. Asking the
@@ -771,10 +1040,9 @@ class AgentGraph:
                 "Describe and compare the technical features of the sources in the evidence. "
                 f'(The user asked: "{question}". Do not give a legal opinion.)'
             )
-        response = self.ctx.llm.complete(
+        response = self._write(
             build_messages(question, evidence, instructions=" ".join(instructions) or None),
-            temperature=self.ctx.settings.llm_temperature,
-            max_tokens=self.ctx.settings.llm_max_tokens,
+            evidence,
         )
         parsed = parse_answer(response.text, {item.label for item in evidence})
         injection = None
@@ -783,13 +1051,42 @@ class AgentGraph:
             if planted is not None:
                 parsed, injection = planted
                 logger.info("Demo mode: planted a false sentence (%s)", injection.kind)
+        if self.live is not None and parsed.status == "answered":
+            self.live.checking(parsed.text)
         return {
             "injection": injection or state.get("injection"),
             "parsed": parsed,
             "evidence": evidence,
             "llm_response": response,
             "final_passages": passages,
+            "premise_terms": terms,
         }
+
+    def _premise_terms(self, question: str, evidence: list) -> list[str]:
+        if not self.ctx.settings.agent_premise_check or not evidence:
+            return []
+        return premise.unstated_terms(question, [item.passage.chunk.text for item in evidence])
+
+    def _style(self) -> list[str]:
+        if self.chat_style is None:
+            return []
+        return [CHAT_STYLE] + ([DETAILED_STYLE] if self.chat_style == "detailed" else [])
+
+    def _write(self, messages: list[ChatMessage], evidence: list) -> LLMResponse:
+        """The answer-writing LLM call; streamed to the live view when there is one (the
+        reply is the same either way)."""
+        settings = self.ctx.settings
+        if self.live is None:
+            return self.ctx.llm.complete(
+                messages, temperature=settings.llm_temperature, max_tokens=settings.llm_max_tokens
+            )
+        self.live.writing(evidence)
+        return self.ctx.llm.stream(
+            messages,
+            temperature=settings.llm_temperature,
+            max_tokens=settings.llm_max_tokens,
+            on_text=self.live.text,
+        )
 
     def _generate_comparison(self, state: AgentState, targets: list[Target]) -> dict:
         """Compare intent: a structured, cited table instead of free text."""
@@ -835,7 +1132,10 @@ class AgentGraph:
             state["evidence"],
             comparison=state.get("comparison"),
             uncited_supported=self.ctx.settings.verifier_uncited_supported,
+            premise_terms=state.get("premise_terms"),
         )
+        if self.live is not None and state.get("comparison") is None:
+            self.live.checked(report)
         attempt = {
             "parsed": parsed,
             "evidence": state["evidence"],
@@ -861,6 +1161,8 @@ class AgentGraph:
         }
 
     def route_after_verify(self, state: AgentState) -> str:
+        if self._general_allowed(state):
+            return "general"  # the model read the passages and found no answer in them
         report = state.get("verification")
         settings = self.ctx.settings
         latest = state["verify_attempts"][-1]["report"] if state["verify_attempts"] else None
@@ -886,6 +1188,8 @@ class AgentGraph:
         """Retrieve evidence for each unsupported statement, then rewrite with feedback."""
         started = time.perf_counter()
         report = state["verify_attempts"][-1]["report"]
+        if self.live is not None:
+            self.live.rewriting([c.source_text or c.text for c in report.unsupported()])
         indexed = [t for t in state["targets"] if t.kind in ("document", "patent") and t.id]
         scope = {}
         if indexed:
@@ -920,15 +1224,19 @@ class AgentGraph:
         instructions = (
             [TASK_INSTRUCTIONS[self._task(state)]] if self._task(state) in TASK_INSTRUCTIONS else []
         )
+        instructions += self._style()
         if analysis.legal_question:
             instructions.append(LEGAL_INSTRUCTION)
+        if state.get("premise_terms"):
+            instructions.append(premise.instruction(state["premise_terms"]))
         instructions.append(regeneration_instructions(report))
-        response = self.ctx.llm.complete(
+        response = self._write(
             build_messages(state["question"], evidence, instructions=" ".join(instructions)),
-            temperature=self.ctx.settings.llm_temperature,
-            max_tokens=self.ctx.settings.llm_max_tokens,
+            evidence,
         )
         parsed = parse_answer(response.text, {item.label for item in evidence})
+        if self.live is not None and parsed.status == "answered":
+            self.live.checking(parsed.text)
         timings = dict(state["extra_timings"])
         timings[f"regenerate {state['regenerations'] + 1}"] = round(
             (time.perf_counter() - started) * 1000

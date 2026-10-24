@@ -421,6 +421,24 @@ whose numbers are not in its passages. Re-measured on the same split
 alarms instead of 7 (the extra one cites "interior region 104", a numeral its passage does
 not contain) and still catches 5/9 (development 5/69 and 1/3; test 2/68 and 4/6).
 
+**Direction rule (22 October).** Checker tests in the live chat (Appendix A.5) that
+reversed a direction word passed three different stages. "Increase the contact" changed to
+"decrease the contact" was flagged by NLI but confirmed by the second-opinion LLM, whose
+reason quoted "increase". "Immersion cooling systems" changed to "immersion heating systems"
+was passed by the key-word rescue, because "heat" occurs elsewhere in the passage ("heat
+dissipation"). And the NLI model itself entailed "the resistance of the coil decreases" from
+"the resistance of the coil increases" (p = 0.79). A statement is now unsupported, whichever
+stage judged it, when a direction word from the rescue's list (increase, higher, above,
+before, open, heat, …) stands next to a word that, in the supporting passage, stands next to
+the opposite and never next to the word itself, in either order ("heating liquid" against
+"liquid cooling"). The rescue keeps its looser whole-text test as well. A first version used
+that whole-text test for all stages and added one false alarm (9/137: "one or more coils"
+against "less than the threshold"); the phrase test flags none of the 150 labelled
+statements. Re-measured on the same split (`exp_i_verifier_choice/20261022-171312`): every
+result is identical to the run above, so the rule's value rests on the checker tests rather
+than on these labels. Because the checker test's planter reverses words from an overlapping
+list, reversed-relation tests now mainly exercise this rule.
+
 **How far to trust these numbers.** The lexical rescue was designed on the development half
 only. The second-opinion prompt and the attribution guard were revised after an error
 analysis that looked at all nine unsupported statements, including the test half, so the

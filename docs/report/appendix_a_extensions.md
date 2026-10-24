@@ -72,3 +72,89 @@ its five most similar patents. Each cluster is named by the two words or phrases
 typical of it; patent boilerplate ("the utility model discloses") had to be excluded for
 the names to be meaningful. Nothing is imported. The page states that 2D distances are
 approximate and that the similarity is technical, not legal.
+
+## A.5 Live chat
+
+Users found the chat slow: a typical answer took 47–60 seconds and nothing appeared until
+all of it was ready. The chat now shows the answer as it happens. Above the answer, the
+stage (understand, search, write, check) and the sources appear as the tools find them.
+The draft is shown word by word while the model writes it; the reply is streamed, and with
+the same settings it is the same text as an ordinary request. While the draft is checked,
+a scan passes over it, and each sentence then takes its verdict colour. If sentences fail,
+they are shown struck through and the rewritten draft is typed out. The view is fed by the
+same twice-a-second poll as the agent trace (A.3); the agent's behaviour does not depend on
+it, and experiments do not use it.
+
+Three changes make answers faster without changing them, the first only slightly. The
+library, web and patent-abstract searches that the planner selects together run
+concurrently, each with its own database connection, and their results are used in plan
+order; because they share the embedding model, which runs one job at a time, an A/B test on
+three questions saved 0–2.5 seconds of the search stage. Questions about the assistant itself
+("Can I talk anything?") are answered immediately with its capabilities and example
+questions; the pattern matches none of the 157 experiment questions. A web source that does
+not accept a connection within five seconds is abandoned. In a browser test with the local
+model, a new question showed its first words after 5.7 seconds and was complete and checked
+after 27.8. After each answer, the model suggests three follow-up questions, written once
+the answer is shown so that they do not delay it.
+
+The tests also found two accuracy problems. The planner judged "How do solid-state
+batteries work?" out of scope, so only the web was searched, and the passages found were
+about solid-state drives. When the planner says out of scope and a live search is planned,
+a one-word technology check now decides whether patent filings are searched, and Wikipedia
+is searched with the planner's key words rather than the question. Checker tests
+that reversed a direction ("increase" to "decrease", "immersion cooling" to "immersion
+heating") were passed by the LLM second opinion, by the key-word rescue and once by the NLI
+model itself. No stage may now accept a statement whose direction word is reversed within its
+phrase relative to its supporting passage; the labelled results are unchanged (Section 6.6),
+and because the test's planter uses an overlapping word list, such tests now mainly exercise
+this rule.
+
+## A.6 Everyday questions and a chat-assistant feel
+
+Further user feedback asked for the chat to behave more like a general chat assistant.
+Questions that need no source are now answered exactly: the date and time from the clock,
+in the user's time zone, and arithmetic from a calculator that accepts only numbers and
+arithmetic operators. Both are recognised by rules and take under a second. When a general
+question finds nothing in the library, the patent offices or the web, or for a writing
+task such as a poem, the model answers from its general knowledge. Such answers carry the
+label "General knowledge · not from sources, not checked", because the checker has no
+passages to check them against; in a test one of them contained a false statement, which is
+the reason for the label. They appear only in the chat, never in the /ask API or the
+experiments.
+
+Chat answers are written in a chat style (a direct answer first, then short paragraphs and
+lists) at a length the user chooses, and are rendered with lists, numbered steps and line
+breaks. As in common chat assistants, an answer can be stopped (what was written is kept,
+marked as not checked), copied with its sources, asked again, or edited and resent, and its
+sources appear as numbered chips. The local model is kept loaded between questions, and a
+faster hosted model can be chosen per user; it is off by default, and the profile page
+states that questions and passages are then sent to the provider.
+
+## A.7 A more informative checker and a Fact Checker page
+
+The X-ray now says what is wrong in a flagged sentence, not only that it is flagged. After
+the verdict, the sentence is compared with the passage it was checked against, and the
+words at fault are underlined: a number the passage does not have (with the number it does
+have), a direction reversed within its phrase, an added negation, or words the passage
+never uses. Unsupported sentences are split into two colours: "contradicts its source",
+when the passage gives a different number with the same unit or the opposite direction,
+and "not found in the sources" otherwise. These explanations are computed by rules after
+the verdict and never change it, so the verdicts and grounding scores reported in
+Chapter 6 are unaffected.
+
+A question can presuppose something no source says (Section 7.3). Before the answer is
+written, the question's terms that no retrieved passage uses are found and the writer is
+asked to say plainly when the question assumes them. With the battery document as the
+only source, questions about a neural network or LiDAR sensors were answered "The sources do
+not mention ..." followed by cited facts, and three ordinary questions raised no such note.
+The detection is word-based, so a synonym can trigger it; the note is therefore shown only
+when the answer itself states the absence. It is switched off in experiment reruns.
+
+A flagged sentence can be removed, or rewritten from its source: the model rewrites only
+that sentence from the passage and the checker checks it again, refusing the rewrite if the
+sources do not back it. The original answer and its verdicts are kept and can be restored.
+A new Fact Checker page applies the same checking to any pasted text, for example an answer
+from another AI assistant: each sentence is matched to its closest passages in the user's
+documents and patents with the same hybrid retrieval and checked by the same verifier. It
+also lists what the checker found in the user's earlier answers.
+

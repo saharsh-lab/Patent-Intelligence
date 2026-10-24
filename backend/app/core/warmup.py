@@ -9,6 +9,7 @@ waits for the model as before.
 import logging
 import threading
 import time
+from urllib.parse import urlparse
 
 from app.core.config import Settings
 
@@ -36,6 +37,42 @@ def warm_up(settings: Settings) -> None:
         logger.warning("Model warm-up failed", exc_info=True)
         return
     logger.info("Models ready (warm-up took %.1f s)", time.perf_counter() - started)
+
+
+def local_llm(settings: Settings) -> bool:
+    host = urlparse(settings.llm_base_url).hostname or ""
+    return settings.llm_provider == "openai_compatible" and host in (
+        "localhost",
+        "127.0.0.1",
+        "host.docker.internal",
+    )
+
+
+def keep_warm(settings: Settings, stop: threading.Event) -> None:
+    """Keep the local LLM loaded. Ollama unloads a model after 5 idle minutes, and reloading
+    the 5 GB Qwen3-8B made the first question after a pause wait several seconds more
+    (2026-10-22). A one-token request every few minutes, and one at start-up, avoids that."""
+    from app.llm.providers import ChatMessage, build_llm
+
+    llm = build_llm(settings)
+    interval = settings.llm_keep_warm_minutes * 60
+    while True:
+        try:
+            llm.complete([ChatMessage("user", "ok")], temperature=0.0, max_tokens=1)
+        except Exception:  # noqa: BLE001 - Ollama closed or busy: try again next time
+            logger.info("Keep-warm request to the LLM failed")
+        if stop.wait(interval):
+            return
+
+
+def start_keep_warm(settings: Settings) -> threading.Event | None:
+    if not local_llm(settings) or settings.llm_keep_warm_minutes <= 0:
+        return None
+    stop = threading.Event()
+    threading.Thread(
+        target=keep_warm, args=(settings, stop), name="llm-keep-warm", daemon=True
+    ).start()
+    return stop
 
 
 def start_warm_up(settings: Settings) -> threading.Thread | None:

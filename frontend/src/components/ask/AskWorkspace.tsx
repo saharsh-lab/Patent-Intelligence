@@ -126,7 +126,7 @@ export function AskWorkspace() {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
               }}
               placeholder="e.g. How does the claimed system estimate the core temperature of a battery cell?"
-              className="mt-1.5 w-full resize-y rounded border border-line-strong bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+              className="mt-1.5 w-full resize-y rounded-xl border border-line-strong bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
             />
             {readyDocs.length === 0 && patentList.length === 0 && documents.data && patents.data && (
               <p className="mt-2 text-sm text-warn">
@@ -142,7 +142,7 @@ export function AskWorkspace() {
                 {readyDocs.map((doc) => (
                   <label
                     key={doc.id}
-                    className={`cursor-pointer rounded border px-2 py-1 text-xs ${
+                    className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs ${
                       scope.includes(doc.id) ? "border-accent bg-accent-soft text-accent" : "border-line hover:bg-surface-2"
                     }`}
                   >
@@ -154,7 +154,7 @@ export function AskWorkspace() {
                   <label
                     key={p.id}
                     title={p.title ?? undefined}
-                    className={`cursor-pointer rounded border px-2 py-1 text-xs ${
+                    className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs ${
                       patentScope.includes(p.id) ? "border-accent bg-accent-soft text-accent" : "border-line hover:bg-surface-2"
                     }`}
                   >
@@ -167,10 +167,10 @@ export function AskWorkspace() {
             </fieldset>
 
             {showOptions && (
-              <div className="mt-3 grid gap-3 rounded border border-line bg-surface-2 p-3 text-sm sm:grid-cols-4">
+              <div className="mt-3 grid gap-3 rounded-xl border border-line bg-surface-2 p-3 text-sm sm:grid-cols-4">
                 <label className="flex flex-col gap-1">
                   <span className="text-xs text-muted">Pipeline</span>
-                  <select value={pipeline} onChange={(e) => setPipeline(e.target.value as "agentic" | "baseline")} className="rounded border border-line-strong bg-surface px-2 py-1">
+                  <select value={pipeline} onChange={(e) => setPipeline(e.target.value as "agentic" | "baseline")} className="rounded-xl border border-line-strong bg-surface px-3 py-1.5">
                     <option value="agentic">Agent (chooses tools)</option>
                     <option value="baseline">Baseline RAG (fixed)</option>
                   </select>
@@ -180,12 +180,12 @@ export function AskWorkspace() {
                   <input
                     type="number" min={1} max={20} value={topK} onChange={(e) => setTopK(e.target.value)}
                     placeholder={`default ${info.data?.retrieval.top_k ?? ""}`}
-                    className="rounded border border-line-strong bg-surface px-2 py-1"
+                    className="rounded-xl border border-line-strong bg-surface px-3 py-1.5"
                   />
                 </label>
                 <label className="flex flex-col gap-1">
                   <span className="text-xs text-muted">Retrieval method</span>
-                  <select value={mode} onChange={(e) => setMode(e.target.value as "" | RetrievalMode)} className="rounded border border-line-strong bg-surface px-2 py-1">
+                  <select value={mode} onChange={(e) => setMode(e.target.value as "" | RetrievalMode)} className="rounded-xl border border-line-strong bg-surface px-3 py-1.5">
                     <option value="">Default ({info.data?.retrieval.mode ?? "hybrid"})</option>
                     <option value="hybrid">Hybrid (vector + keyword)</option>
                     <option value="vector">Vector only</option>
@@ -194,7 +194,7 @@ export function AskWorkspace() {
                 </label>
                 <label className="flex flex-col gap-1">
                   <span className="text-xs text-muted">Reranking</span>
-                  <select value={rerank} onChange={(e) => setRerank(e.target.value as "" | "on" | "off")} className="rounded border border-line-strong bg-surface px-2 py-1">
+                  <select value={rerank} onChange={(e) => setRerank(e.target.value as "" | "on" | "off")} className="rounded-xl border border-line-strong bg-surface px-3 py-1.5">
                     <option value="">Default ({info.data?.retrieval.reranker_enabled ? "on" : "off"})</option>
                     <option value="on">On (cross-encoder)</option>
                     <option value="off">Off</option>
@@ -223,7 +223,7 @@ export function AskWorkspace() {
                   <button
                     type="button" key={example}
                     onClick={() => { setQuestion(example); textarea.current?.focus(); }}
-                    className="rounded border border-line px-2 py-1 text-xs text-muted hover:bg-surface-2"
+                    className="rounded-xl border border-line px-2 py-1 text-xs text-muted hover:bg-surface-2"
                   >
                     {example}
                   </button>
@@ -267,7 +267,7 @@ export function AskWorkspace() {
               <button
                 type="button"
                 onClick={() => router.replace(`${pathname}?run=${item.run_id}`, { scroll: false })}
-                className={`w-full rounded px-2 py-1.5 text-left text-sm hover:bg-surface-2 ${item.run_id === runId ? "bg-accent-soft" : ""}`}
+                className={`w-full rounded-xl px-2 py-1.5 text-left text-sm hover:bg-surface-2 ${item.run_id === runId ? "bg-accent-soft" : ""}`}
               >
                 <span className="line-clamp-2">{item.question}</span>
                 <span className="mt-0.5 flex items-center gap-2 text-[11px] text-muted">

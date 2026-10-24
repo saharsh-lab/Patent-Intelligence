@@ -18,6 +18,7 @@ from app.schemas.chat import (
     ConversationSummary,
     MessageIn,
     ProgressOut,
+    SuggestionsOut,
 )
 from app.schemas.documents import DocumentOut, UploadResponse
 
@@ -73,6 +74,14 @@ def answer_progress(conversation_id: uuid.UUID, service: ChatServiceDep):
     return service.progress(conversation_id)
 
 
+@router.post("/{conversation_id}/stop", status_code=status.HTTP_204_NO_CONTENT)
+def stop_answer(conversation_id: uuid.UUID, service: ChatServiceDep):
+    """The Stop button: the answer being written stops at its next step (or mid-sentence),
+    keeping what was written so far, marked as not checked."""
+    service.stop(conversation_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.post("/{conversation_id}/messages", response_model=ChatMessageOut)
 def send_message(conversation_id: uuid.UUID, body: MessageIn, service: ChatServiceDep):
     """Answers with the user's preferred pipeline; follow-ups are rewritten using the
@@ -83,8 +92,15 @@ def send_message(conversation_id: uuid.UUID, body: MessageIn, service: ChatServi
             body.message,
             live_search=body.live_search,
             inject_false_fact=body.inject_false_fact,
+            timezone=body.timezone,
         )
     )
+
+
+@router.post("/{conversation_id}/messages/{run_id}/suggestions", response_model=SuggestionsOut)
+def message_suggestions(conversation_id: uuid.UUID, run_id: uuid.UUID, service: ChatServiceDep):
+    """Follow-up questions for an answer (written once, then kept with it)."""
+    return SuggestionsOut(suggestions=service.suggestions(conversation_id, run_id))
 
 
 @router.post(
